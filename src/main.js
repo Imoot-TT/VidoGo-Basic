@@ -146,7 +146,7 @@ const TITLE_BAR_THEMES = {
   dark: { color: '#070c17', symbolColor: '#edf6ff' },
 };
 const UPDATE_RELEASE_API_URL = process.env.VIDOGO_UPDATE_API_URL
-  || 'https://api.github.com/repos/Imoot-TT/VidoGo/releases?per_page=30';
+  || 'https://api.github.com/repos/Imoot-TT/VidoGo-Basic/releases?per_page=30';
 let metadataRequestCounter = 0;
 let metadataGeneration = 0;
 let currentEntitlementProfile = normalizeEntitlementProfile({});
@@ -306,11 +306,11 @@ async function fetchLatestReleaseResponse() {
       status: 200,
       data: [{
         tag_name: 'basic-v0.2.0',
-        html_url: 'https://github.com/Imoot-TT/VidoGo/releases/tag/basic-v0.2.0',
+        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.0',
         published_at: '2026-08-23T12:00:00Z',
         assets: [{
           name: 'VidoGo-Basic-0.2.0-x64-Setup.exe',
-          browser_download_url: 'https://github.com/Imoot-TT/VidoGo/releases/download/basic-v0.2.0/VidoGo-Basic-0.2.0-x64-Setup.exe',
+          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.0/VidoGo-Basic-0.2.0-x64-Setup.exe',
         }],
       }],
     };

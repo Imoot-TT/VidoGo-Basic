@@ -19,20 +19,20 @@ assert.strictEqual(compareVersions('1.5.0', '1.5.0-rc.1'), 1);
 const releases = [
   {
     tag_name: 'v2-v3.0.0',
-    html_url: 'https://github.com/Imoot-TT/VidoGo/releases/tag/v2-v3.0.0',
+    html_url: 'https://github.com/Imoot-TT/VidoGo-V2/releases/tag/v2-v3.0.0',
   },
   {
     tag_name: 'basic-v0.2.0',
-    html_url: 'https://github.com/Imoot-TT/VidoGo/releases/tag/basic-v0.2.0',
+    html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.0',
     published_at: '2026-08-23T12:00:00Z',
     assets: [
-      { name: 'latest.yml', browser_download_url: 'https://github.com/Imoot-TT/VidoGo/releases/download/basic-v0.2.0/latest.yml' },
-      { name: 'VidoGo-Basic-0.2.0-x64-Setup.exe', browser_download_url: 'https://github.com/Imoot-TT/VidoGo/releases/download/basic-v0.2.0/VidoGo-Basic-0.2.0-x64-Setup.exe' },
+      { name: 'latest.yml', browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.0/latest.yml' },
+      { name: 'VidoGo-Basic-0.2.0-x64-Setup.exe', browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.0/VidoGo-Basic-0.2.0-x64-Setup.exe' },
     ],
   },
   {
     tag_name: 'basic-v0.1.1',
-    html_url: 'https://github.com/Imoot-TT/VidoGo/releases/tag/basic-v0.1.1',
+    html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.1',
   },
 ];
 assert.strictEqual(latestChannelRelease(releases, 'basic').tag_name, 'basic-v0.2.0');

@@ -208,7 +208,7 @@ assert(!/<button[^>]+data-order-pay/.test(app) && !app.includes('continueLocalPa
 for (const token of ['parseVersion', 'compareVersions', 'deriveGitHubUpdateState', 'releaseDownloadUrl', 'safeHttpsUrl']) {
   assert(updateCheck.includes(token), `Update checker token missing: ${token}`);
 }
-assert(main.includes('api.github.com/repos/Imoot-TT/VidoGo/releases?per_page=30') && main.includes('RELEASE_CHANNEL') && main.includes('net.fetch'), 'Main update check is not connected to the Basic GitHub release channel');
+assert(main.includes('api.github.com/repos/Imoot-TT/VidoGo-Basic/releases?per_page=30') && main.includes('RELEASE_CHANNEL') && main.includes('net.fetch'), 'Main update check is not connected to the Basic GitHub release channel');
 assert(app.includes('handleUpdateCheck') && app.includes("text('updateAvailable'") && app.includes("text('openRelease'"), 'Settings update UI does not handle available releases');
 for (const token of ['parseAttributeList', 'parseHlsPlaylist', 'buildHlsCandidate', 'drmSystemForKey', 'parseDashManifest', 'buildDashCandidate', 'dashDrmSystem', 'estimatedSizeBytes']) {
   assert(manifestRules.includes(token), `Manifest implementation token missing: ${token}`);
