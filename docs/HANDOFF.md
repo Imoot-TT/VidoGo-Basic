@@ -242,9 +242,8 @@ The YouTube candidate/variant and generic-provider batches are intentionally unc
 
 ## Git Notes
 
-- GitHub repository: `https://github.com/Imoot-TT/VidoGo`.
+- GitHub repository: `https://github.com/Imoot-TT/VidoGo-Basic`.
 - Local default branch: `main`.
-- Remote: `origin https://github.com/Imoot-TT/VidoGo.git`.
-- The user provided a GitHub profile URL, not a repository URL: `https://github.com/Imoot-TT`.
+- Remote: `origin https://github.com/Imoot-TT/VidoGo-Basic.git`.
 - Do not commit `node_modules/`, `dist/`, `build/`, or `legacy_reference/`.
 - Do not commit unrelated untracked files such as temporary icon extractions or unrelated markdown drafts.

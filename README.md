@@ -1,77 +1,113 @@
-# VidoGo
+<div align="center">
+  <img src="assets/vidogo-brand-icon.png" alt="VidoGo Basic" width="144">
+  <h1>VidoGo Basic</h1>
+  <p>A Windows desktop video browser, detector, downloader, and recorder.</p>
+  <p><strong>English</strong> · <a href="README.zh-CN.md">中文</a></p>
+  <p>
+    <img alt="Version" src="https://img.shields.io/badge/version-0.1.0-1688f0">
+    <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20x64-0078d4">
+    <img alt="Electron" src="https://img.shields.io/badge/Electron-39.8.10-47848f">
+    <img alt="License" src="https://img.shields.io/badge/license-MIT-22a06b">
+  </p>
+</div>
 
-VidoGo is a rebuilt Electron desktop shell with an embedded browser and a Python download worker.
+---
 
-## Version Baseline
+## Download
 
-- Independent product line: **VidoGo Basic**.
-- Initial source release: **0.1.0**.
-- GitHub release tag: **`basic-v0.1.0`**.
-- Installer name: **`VidoGo-Basic-0.1.0-x64-Setup.exe`**.
-- Basic, V2, and Platform have independent version sequences and release tags; see [`VERSION.md`](VERSION.md).
+Download the Windows installer from the [VidoGo Basic 0.1.0 release](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.0):
 
-## What This Rebuild Changes
+- `VidoGo-Basic-0.1.0-x64-Setup.exe`
 
-- Uses a dedicated `VidoGo Runtime\\rebuild-v1` profile instead of the old VidBrowser browser data.
-- Uses its own persistent browser partition for login state reuse during downloads.
-- Recreates the main VidBrowser-style workspace: home shortcuts, browser tabs, media side panel, downloads, history, favorites, plans, account, theme, and language controls.
-- Adds local browser enhancements for popup routing, preferred language headers, basic ad/tracker blocking, cosmetic ad hiding, YouTube ad-skip assistance, and media resource sniffing.
-- Inspects HLS and DASH manifests in the embedded browser session, resolves HLS renditions, pairs DASH video/audio representations, labels resolution/codecs, estimates VOD sizes, detects live/encrypted/DRM state, and passes the page referrer through to protected CDN downloads.
-- Exposes a session reset action in the UI so browser login state can be cleared explicitly.
-- Keeps download settings and records locally, including output directory, resolution, playlist mode, audio-only mode, progress, status, file/folder actions, and clear-finished controls.
-- Adds a VidBrowser-style video hover recorder for clear, non-DRM HTML video. Before capture it selects the player's highest advertised quality and waits for the decoded resolution; recordings then stream to disk, appear in the unified Downloads list, use high-bitrate VP9/WebM, and are losslessly remuxed with the bundled FFmpeg for duration/seeking metadata.
-- Enforces the extracted plan limits locally across downloads and recordings: Free is 5 uses/day, 1 concurrent task, and 5 minutes per recording; Pro is 30/day, 5 concurrent tasks, and 30 minutes; Ultimate/Lifetime are unlimited per day with up to 10 concurrent tasks and unlimited recording duration.
-- The About page now checks the VidoGo GitHub Releases API, compares semantic versions, distinguishes unpublished/rate-limited/offline states, and exposes the verified HTTPS release page when a newer version exists.
-- Does not connect to any legacy VidBrowser membership or billing endpoint.
+The installer is published as a GitHub Release asset, not committed to the Git repository.
 
-## Run
+## Highlights
 
-Install dependencies:
+- Embedded browser with reusable site login sessions.
+- Media detection for regular video resources, HLS playlists, and DASH manifests.
+- Expandable quality, resolution, and codec variants with recommended choices.
+- Cookie-aware downloads through a Python and `yt-dlp` worker.
+- Video recording for clear, non-DRM HTML video with bundled FFmpeg remuxing.
+- Local download queue, history, favorites, plan limits, themes, and multiple UI languages.
+- Basic-specific update checks that only accept `basic-v*` GitHub Releases.
+
+DRM-protected media is intentionally rejected. Users are responsible for following applicable laws, site terms, and content rights.
+
+## Versioning
+
+The current source version is **0.1.0**.
+
+| Item | Convention | Current value |
+| --- | --- | --- |
+| Product | `VidoGo Basic` | `VidoGo Basic` |
+| Semantic version | `MAJOR.MINOR.PATCH` | `0.1.0` |
+| Git tag / Release | `basic-vMAJOR.MINOR.PATCH` | `basic-v0.1.0` |
+| Windows installer | `VidoGo-Basic-VERSION-x64-Setup.exe` | `VidoGo-Basic-0.1.0-x64-Setup.exe` |
+
+Basic, V2, and Platform maintain independent version sequences. See [VERSION.md](VERSION.md) for the complete policy.
+
+## Run from Source
+
+Requirements:
+
+- Windows 10 or 11 x64
+- Node.js and npm
+- Python 3
+- FFmpeg and FFprobe on `PATH` for development-mode merging and recording
+
+Install dependencies and start the app:
 
 ```powershell
 npm install
 python -m pip install -r requirements.txt
-```
-
-Start the desktop app:
-
-```powershell
 npm start
 ```
 
-## Build a Windows Release
+## Build the Windows Installer
 
-Install the one-time build dependency, then create either an unpacked app or an NSIS installer:
+Install the build dependency, then create the NSIS installer:
 
 ```powershell
 python -m pip install -r requirements-build.txt
-npm.cmd run pack:win
 npm.cmd run dist:win
 ```
 
-The build freezes the Python download/metadata entrypoints into one `vidogo-worker.exe` and copies `ffmpeg.exe` plus `ffprobe.exe` into the packaged resources. The installed app therefore does not require a separate Python, yt-dlp, Node.js, or FFmpeg installation. The build machine must have `ffmpeg` and `ffprobe` on `PATH`.
+The release build freezes the Python download and metadata workers and bundles FFmpeg and FFprobe. End users do not need separate Python, Node.js, `yt-dlp`, or FFmpeg installations.
 
-## Download Worker
+Before producing a public installer, set the production HTTPS management origin in [config/account-service.json](config/account-service.json). Packaged builds reject a non-HTTPS account origin; `VIDOGO_ACCOUNT_API_ORIGIN` remains available for development and testing.
 
-The Electron UI launches [`backend/download_worker.py`](backend/download_worker.py), which uses `yt-dlp` for downloads and can reuse cookies and a validated HTTP referrer from the embedded browser session. YouTube watch pages are normalized into one recommended video candidate with expandable quality/codec variants; exact metadata uses the embedded player when available and a cookie-aware [`backend/metadata_worker.py`](backend/metadata_worker.py) fallback otherwise. HLS master playlists and DASH MPDs are inspected directly and become expandable rendition rows; DASH selections carry an explicit video-plus-audio format selector. Explicit media pages from Vimeo, TikTok, Instagram, Facebook, X/Twitter, Dailymotion, Reddit, Rumble, and Twitch use the same cookie-aware metadata path. The `curl-cffi` extra in `requirements.txt` enables sites that require browser impersonation.
+## Binary Release Policy
 
-## Notes
+GitHub blocks files larger than 100 MiB in normal repositories. The VidoGo Basic installer is approximately 237 MB, so:
 
-- Development-mode 4K downloads require `ffmpeg` on `PATH`; Windows release builds bundle it so separate audio/video streams can be merged.
-- Web recording requests the highest quality exposed by supported page players, waits for that decoded height, and preserves the resolution delivered to the video element. Its target bitrate scales from at least 12 Mbps to 160 Mbps by decoded resolution/frame rate. DRM-protected streams are intentionally rejected instead of producing a corrupt or misleading file.
-- Browser login state is stored only in the new `VidoGo Runtime\\rebuild-v1` profile.
-- Old unpacked VidBrowser artifacts in this workspace are reference material only and are not the current runtime entrypoint.
+- `dist/` remains ignored by Git.
+- Do not use `git add -f` to commit installers, blockmaps, or generated update metadata.
+- Commit source code normally.
+- Upload installers and related generated artifacts to GitHub Releases.
 
-## Development Handoff
+This follows [GitHub's guidance for distributing large binaries](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github#distributing-large-binaries).
 
-Before continuing feature work, read:
+## Project Structure
 
-- [`docs/HANDOFF.md`](docs/HANDOFF.md)
-- [`docs/VIDBROWSER_PARITY.md`](docs/VIDBROWSER_PARITY.md)
-- [`docs/TESTING.md`](docs/TESTING.md)
+```text
+assets/      Application icons and brand assets
+backend/     Download and metadata workers
+config/      Runtime service configuration
+docs/        Development, testing, and parity notes
+scripts/     Build and audit scripts
+src/         Electron main, preload, and renderer code
+tests/       JavaScript, Python, and Electron verification
+```
 
-## Workspace Boundary
+This repository contains only the independent VidoGo Basic desktop product. V2, Platform, the public website, and management services are maintained separately.
 
-This directory is a self-contained desktop project. It does not contain V2, the public website, or the management service. Those sibling projects are documented in [`../Workspace-Docs/目录结构与版本说明.md`](../Workspace-Docs/目录结构与版本说明.md).
+## Development Notes
 
-Before building a public installer, set the production HTTPS management origin in [`config/account-service.json`](config/account-service.json). Packaged builds reject a non-HTTPS account origin; `VIDOGO_ACCOUNT_API_ORIGIN` remains available as a development/test override.
+- Development-mode 4K downloads require FFmpeg on `PATH`; release builds bundle it.
+- Browser state is stored under the dedicated `VidoGo Runtime\rebuild-v1` profile.
+- The account service endpoint is configured through `config/account-service.json` or a development environment override.
+- Continue development with [docs/HANDOFF.md](docs/HANDOFF.md), [docs/VIDBROWSER_PARITY.md](docs/VIDBROWSER_PARITY.md), and [docs/TESTING.md](docs/TESTING.md).
+
+## License
+
+MIT
