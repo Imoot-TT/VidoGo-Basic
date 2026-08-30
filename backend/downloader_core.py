@@ -1,0 +1,468 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+from typing import Callable, Iterable
+from urllib.request import Request, urlopen
+from urllib.parse import urlsplit, urlunsplit
+
+
+DEFAULT_ARCHIVE_NAME = ".download-archive.txt"
+ProgressCallback = Callable[[dict], None]
+LogCallback = Callable[[str], None]
+TranslateCallback = Callable[..., str]
+
+
+class DownloadCancelled(RuntimeError):
+    pass
+
+
+@dataclass(slots=True)
+class DownloadSettings:
+    output_dir: Path
+    resolution: str = "2160"
+    playlist: bool = False
+    audio_only: bool = False
+    cookies_from_browser: str | None = None
+    cookie_file: Path | None = None
+    js_runtime: str = "auto"
+    js_runtime_path: Path | None = None
+    archive_file: Path | None = None
+    ffmpeg_location: Path | None = None
+    retries: int = 10
+    concurrent_fragments: int = 4
+    format_selector: str | None = None
+    merge_output_format: str = "mp4"
+    referrer: str | None = None
+    thumbnail_url: str | None = None
+
+
+def normalize_resolution(value: str) -> str:
+    if value == "best":
+        return value
+    if not value.isdigit():
+        raise ValueError("Resolution must be 'best' or a number such as 2160, 1440, or 1080.")
+    return value
+
+
+def load_urls_from_text(raw_text: str) -> list[str]:
+    urls: list[str] = []
+    for raw_line in raw_text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        urls.append(line)
+    return list(dict.fromkeys(urls))
+
+
+def load_urls_from_file(file_path: Path) -> list[str]:
+    if not file_path.exists():
+        raise FileNotFoundError(f"URL file not found: {file_path}")
+    return load_urls_from_text(file_path.read_text(encoding="utf-8"))
+
+
+def resolve_archive_file(output_dir: Path, user_value: Path | None) -> Path:
+    return user_value or output_dir / DEFAULT_ARCHIVE_NAME
+
+
+def ensure_ffmpeg_available(ffmpeg_location: Path | None) -> bool:
+    if ffmpeg_location:
+        ffmpeg_bin = ffmpeg_location / ("ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg")
+        return ffmpeg_bin.exists()
+    return shutil.which("ffmpeg") is not None
+
+
+def build_format_selector(audio_only: bool, resolution: str) -> str:
+    if audio_only:
+        return "bestaudio/best"
+    if resolution == "best":
+        return "bestvideo*+bestaudio/bestvideo+bestaudio/best"
+    return f"bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]/best"
+
+
+def normalize_format_selector(value: object) -> str | None:
+    selector = str(value or "").strip()
+    if not selector:
+        return None
+    if len(selector) > 300 or not re.fullmatch(r"[A-Za-z0-9_+*/.\[\]=:,<>!-]+", selector):
+        raise ValueError("Invalid yt-dlp format selector.")
+    return selector
+
+
+def normalize_merge_output_format(value: object) -> str:
+    output_format = str(value or "mp4").strip().lower()
+    if output_format not in {"mp4", "webm", "mkv"}:
+        raise ValueError("Merge output format must be mp4, webm, or mkv.")
+    return output_format
+
+
+def normalize_referrer(value: object) -> str | None:
+    referrer = str(value or "").strip()
+    if not referrer:
+        return None
+    if len(referrer) > 2048 or "\r" in referrer or "\n" in referrer:
+        raise ValueError("Invalid HTTP referrer.")
+    parsed = urlsplit(referrer)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password:
+        raise ValueError("Invalid HTTP referrer.")
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
+
+
+def normalize_thumbnail_url(value: object) -> str | None:
+    thumbnail_url = str(value or "").strip()
+    if not thumbnail_url:
+        return None
+    if len(thumbnail_url) > 4096 or "\r" in thumbnail_url or "\n" in thumbnail_url:
+        raise ValueError("Invalid thumbnail URL.")
+    parsed = urlsplit(thumbnail_url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password:
+        raise ValueError("Invalid thumbnail URL.")
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, parsed.query, ""))
+
+
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".mkv", ".mov", ".m4v", ".avi"}
+MAX_THUMBNAIL_BYTES = 20 * 1024 * 1024
+
+
+def _thumbnail_extension(url: str, content_type: str | None) -> str:
+    mime = str(content_type or "").split(";", 1)[0].strip().lower()
+    by_mime = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+        "image/avif": ".avif",
+    }
+    if mime in by_mime:
+        return by_mime[mime]
+    extension = Path(urlsplit(url).path).suffix.lower()
+    return extension if extension in IMAGE_EXTENSIONS else ".jpg"
+
+
+def _download_fallback_thumbnail(task_dir: Path, thumbnail_url: str | None, referrer: str | None) -> Path | None:
+    if not thumbnail_url:
+        return None
+    headers = {"User-Agent": "Mozilla/5.0 VidoGo/1.0"}
+    if referrer:
+        headers["Referer"] = referrer
+    request = Request(thumbnail_url, headers=headers)
+    temporary_path = task_dir / ".cover.download"
+    try:
+        with urlopen(request, timeout=30) as response:
+            declared_length = int(response.headers.get("Content-Length") or 0)
+            if declared_length > MAX_THUMBNAIL_BYTES:
+                return None
+            content = response.read(MAX_THUMBNAIL_BYTES + 1)
+            if not content or len(content) > MAX_THUMBNAIL_BYTES:
+                return None
+            extension = _thumbnail_extension(thumbnail_url, response.headers.get("Content-Type"))
+        temporary_path.write_bytes(content)
+        cover_path = task_dir / f"cover{extension}"
+        temporary_path.replace(cover_path)
+        return cover_path
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        return None
+
+
+def _generate_video_cover(final_path: Path, ffmpeg_location: Path | None) -> Path | None:
+    if final_path.suffix.lower() not in VIDEO_EXTENSIONS or not final_path.is_file():
+        return None
+    ffmpeg_name = "ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg"
+    ffmpeg_path = (ffmpeg_location / ffmpeg_name) if ffmpeg_location else Path(shutil.which("ffmpeg") or "")
+    if not ffmpeg_path.is_file():
+        return None
+    cover_path = final_path.parent / "cover.jpg"
+    command = [
+        str(ffmpeg_path), "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", "0", "-i", str(final_path), "-frames:v", "1",
+        "-vf", "scale=1280:-2:force_original_aspect_ratio=decrease", "-q:v", "2", str(cover_path),
+    ]
+    try:
+        subprocess.run(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+            timeout=60,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+        return cover_path if cover_path.is_file() and cover_path.stat().st_size > 0 else None
+    except Exception:
+        cover_path.unlink(missing_ok=True)
+        return None
+
+
+def finalize_task_output(
+    final_filename: str,
+    thumbnail_url: str | None,
+    referrer: str | None,
+    ffmpeg_location: Path | None = None,
+) -> tuple[Path, Path | None]:
+    final_path = Path(final_filename).resolve()
+    task_dir = final_path.parent
+    task_dir.mkdir(parents=True, exist_ok=True)
+    existing_cover = next((path for path in task_dir.glob("cover.*") if path.suffix.lower() in IMAGE_EXTENSIONS), None)
+    if existing_cover:
+        return final_path, existing_cover
+
+    thumbnail_candidates = sorted(
+        (
+            path for path in task_dir.iterdir()
+            if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+        ),
+        key=lambda path: (path.stem != final_path.stem, -path.stat().st_mtime_ns),
+    )
+    if thumbnail_candidates:
+        source = thumbnail_candidates[0]
+        cover_path = task_dir / f"cover{source.suffix.lower()}"
+        source.replace(cover_path)
+        return final_path, cover_path
+
+    downloaded_cover = _download_fallback_thumbnail(task_dir, thumbnail_url, referrer)
+    if downloaded_cover:
+        return final_path, downloaded_cover
+    return final_path, _generate_video_cover(final_path, ffmpeg_location)
+
+
+def human_size(value: float | None) -> str:
+    if not value or value <= 0:
+        return "-"
+    units = ["B/s", "KB/s", "MB/s", "GB/s"]
+    size = float(value)
+    for unit in units:
+        if size < 1024 or unit == units[-1]:
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return "-"
+
+
+def human_eta(value: float | None) -> str:
+    if value is None or value < 0:
+        return "-"
+    seconds = int(value)
+    minutes, sec = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{sec:02d}"
+    return f"{minutes:02d}:{sec:02d}"
+
+
+def _text(translate: TranslateCallback | None, key: str, **kwargs: object) -> str:
+    if translate:
+        return translate(key, **kwargs)
+
+    defaults = {
+        "error_missing_dependency": "Missing dependency: yt-dlp. Run `python -m pip install -r requirements.txt` first.",
+        "error_no_urls": "No valid URLs to download.",
+        "warning_ffmpeg_missing": "Warning: ffmpeg was not found. 4K downloads usually need ffmpeg to merge streams.",
+        "download_cancelled": "Download cancelled.",
+        "download_start": "[{index}/{total}] Starting: {url}",
+        "download_finished": "[{index}/{total}] Finished: {name}",
+    }
+    return defaults[key].format(**kwargs)
+
+
+def download_urls(
+    urls: Iterable[str],
+    settings: DownloadSettings,
+    log: LogCallback,
+    progress: ProgressCallback,
+    should_cancel: Callable[[], bool] | None = None,
+    translate: TranslateCallback | None = None,
+) -> tuple[int, int]:
+    try:
+        from yt_dlp import YoutubeDL
+    except ImportError as exc:
+        raise RuntimeError(_text(translate, "error_missing_dependency")) from exc
+
+    normalized_urls = list(dict.fromkeys(url.strip() for url in urls if url.strip()))
+    if not normalized_urls:
+        raise ValueError(_text(translate, "error_no_urls"))
+
+    settings.output_dir.mkdir(parents=True, exist_ok=True)
+    archive_file = resolve_archive_file(settings.output_dir, settings.archive_file)
+    ffmpeg_available = ensure_ffmpeg_available(settings.ffmpeg_location)
+
+    if not settings.audio_only and not ffmpeg_available:
+        log(_text(translate, "warning_ffmpeg_missing"))
+
+    task_folder = "%(upload_date>%Y%m%d)s - %(title).120B [%(id)s] [%(format_id)s]"
+    ydl_opts = {
+        "paths": {"home": str(settings.output_dir)},
+        "outtmpl": {
+            "default": f"{task_folder}/video.%(ext)s",
+            "chapter": f"{task_folder}/chapters/%(section_number)02d - %(section_title).120B.%(ext)s",
+        },
+        "format": normalize_format_selector(settings.format_selector)
+        or build_format_selector(settings.audio_only, normalize_resolution(settings.resolution)),
+        "noplaylist": not settings.playlist,
+        "ignoreerrors": True,
+        "retries": settings.retries,
+        "continuedl": True,
+        "concurrent_fragment_downloads": max(1, settings.concurrent_fragments),
+        # Progress is already delivered through progress_hooks. Suppress yt-dlp's
+        # textual progress lines so the desktop UI does not mistake them for
+        # user-facing notifications.
+        "noprogress": True,
+        "windowsfilenames": False,
+        "restrictfilenames": False,
+        "merge_output_format": normalize_merge_output_format(settings.merge_output_format),
+        "format_sort": ["res"] if settings.resolution == "best" else [f"res:{settings.resolution}"],
+        "writethumbnail": True,
+    }
+
+    # A yt-dlp archive is keyed by extractor/video id, not by format. Applying
+    # it to explicit format downloads would make the first resolution suppress
+    # every later resolution of the same video.
+    if not settings.format_selector:
+        ydl_opts["download_archive"] = str(archive_file)
+
+    referrer = normalize_referrer(settings.referrer)
+    if referrer:
+        ydl_opts["http_headers"] = {"Referer": referrer}
+
+    if settings.audio_only:
+        ydl_opts["postprocessors"] = [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "320",
+            }
+        ]
+
+    if settings.ffmpeg_location:
+        ydl_opts["ffmpeg_location"] = str(settings.ffmpeg_location)
+
+    if settings.cookies_from_browser and settings.cookies_from_browser != "none":
+        ydl_opts["cookiesfrombrowser"] = (settings.cookies_from_browser,)
+
+    if settings.cookie_file:
+        ydl_opts["cookiefile"] = str(settings.cookie_file)
+
+    if settings.js_runtime == "disabled":
+        ydl_opts["js_runtimes"] = {}
+    elif settings.js_runtime_path:
+        ydl_opts["js_runtimes"] = {"node": {"path": str(settings.js_runtime_path)}}
+    else:
+        node_path = shutil.which("node")
+        if settings.js_runtime == "node" and node_path:
+            ydl_opts["js_runtimes"] = {"node": {"path": node_path}}
+        elif settings.js_runtime == "auto" and node_path:
+            ydl_opts["js_runtimes"] = {"node": {"path": node_path}}
+
+    class UILogger:
+        def debug(self, msg: str) -> None:
+            if msg and not msg.startswith("[debug]"):
+                log(msg)
+
+        info = debug
+        warning = debug
+        error = debug
+
+    total = len(normalized_urls)
+    downloaded = 0
+    failed = 0
+    current_index = 0
+    current_url = ""
+    final_paths: list[str] = []
+
+    def hook(data: dict) -> None:
+        if should_cancel and should_cancel():
+            raise DownloadCancelled(_text(translate, "download_cancelled"))
+
+        status = data.get("status", "")
+        if status == "downloading":
+            downloaded_bytes = data.get("downloaded_bytes") or 0
+            total_bytes = data.get("total_bytes") or data.get("total_bytes_estimate") or 0
+            percent = (downloaded_bytes / total_bytes * 100) if total_bytes else 0.0
+            progress(
+                {
+                    "item_index": current_index,
+                    "item_total": total,
+                    "percent": percent,
+                    "status": "downloading",
+                    "filename": data.get("filename") or "",
+                    "task_dir": str(Path(data["filename"]).resolve().parent) if data.get("filename") else str(settings.output_dir.resolve()),
+                    "downloaded_bytes": downloaded_bytes,
+                    "total_bytes": total_bytes,
+                    "speed": data.get("speed"),
+                    "eta": data.get("eta"),
+                }
+            )
+        elif status == "finished":
+            progress(
+                {
+                    "item_index": current_index,
+                    "item_total": total,
+                    "percent": 100.0,
+                    "status": "processing",
+                    "filename": data.get("filename") or "",
+                    "task_dir": str(Path(data["filename"]).resolve().parent) if data.get("filename") else str(settings.output_dir.resolve()),
+                    "downloaded_bytes": data.get("total_bytes") or data.get("downloaded_bytes") or 0,
+                    "total_bytes": data.get("total_bytes") or data.get("downloaded_bytes") or 0,
+                    "speed": data.get("speed"),
+                    "eta": 0,
+                }
+            )
+
+    def post_hook(filename: str) -> None:
+        if filename:
+            final_paths.append(str(Path(filename).resolve()))
+
+    with YoutubeDL({**ydl_opts, "logger": UILogger()}) as ydl:
+        ydl.add_progress_hook(hook)
+        ydl.add_post_hook(post_hook)
+        for index, url in enumerate(normalized_urls, start=1):
+            if should_cancel and should_cancel():
+                raise DownloadCancelled(_text(translate, "download_cancelled"))
+
+            log(_text(translate, "download_start", index=index, total=total, url=url))
+            current_index = index
+            current_url = url
+            first_new_final_path = len(final_paths)
+            result = ydl.download([url])
+            if result == 0:
+                downloaded += 1
+                for final_filename in final_paths[first_new_final_path:]:
+                    final_path, cover_path = finalize_task_output(
+                        final_filename,
+                        normalize_thumbnail_url(settings.thumbnail_url),
+                        referrer,
+                        settings.ffmpeg_location,
+                    )
+                    file_size = final_path.stat().st_size if final_path.exists() else 0
+                    progress(
+                        {
+                            "item_index": current_index,
+                            "item_total": total,
+                            "percent": 100.0,
+                            "status": "completed",
+                            "filename": str(final_path),
+                            "task_dir": str(final_path.parent),
+                            "thumbnail_filename": str(cover_path) if cover_path else "",
+                            "downloaded_bytes": file_size,
+                            "total_bytes": file_size,
+                            "speed": 0,
+                            "eta": 0,
+                        }
+                    )
+                    log(
+                        _text(
+                            translate,
+                            "download_finished",
+                            index=current_index,
+                            total=total,
+                            name=final_path.name,
+                        )
+                    )
+            else:
+                failed += 1
+
+    return downloaded, failed

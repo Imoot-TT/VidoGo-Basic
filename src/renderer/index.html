@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src https: http:; frame-src https: http:;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VidoGo</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="../media-rules.js"></script>
+    <script defer src="./icons.js"></script>
+    <script defer src="./locales.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body data-theme="dark" data-resolved-theme="dark">
+    <div class="window-shell">
+      <header class="titlebar drag-region">
+        <div class="titlebar-brand">
+          <img class="titlebar-mark" src="./assets/vidogo-app-icon-16.png" alt="" width="16" height="16">
+          <strong class="titlebar-title" id="window-title">VidoGo</strong>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="sidebar">
+          <button class="sidebar-btn active" data-section="browser" data-tooltip="浏览器" aria-label="浏览器"><span data-icon="monitor"></span></button>
+          <button class="sidebar-btn" data-section="downloads" data-tooltip="下载" aria-label="下载"><span data-icon="download"></span><span class="download-badge" id="download-badge" hidden></span></button>
+          <button class="sidebar-btn" data-section="history" data-tooltip="历史" aria-label="历史"><span data-icon="clock"></span></button>
+          <button class="sidebar-btn" data-section="favorites" data-tooltip="收藏" aria-label="收藏"><span data-icon="star"></span></button>
+          <div class="sidebar-spacer"></div>
+          <button class="sidebar-btn" data-section="plans" data-tooltip="套餐" aria-label="套餐"><span data-icon="shopping-cart"></span></button>
+          <button class="sidebar-btn" data-section="account" data-tooltip="账户" aria-label="账户"><span data-icon="user"></span></button>
+          <button class="sidebar-btn" data-section="settings" data-tooltip="设置" aria-label="设置"><span data-icon="setting"></span></button>
+        </aside>
+
+        <main class="main">
+          <section class="tabbar tab-bar" id="browser-tabbar" aria-label="标签栏">
+            <div class="tab-strip tabs-strip" id="tab-strip"></div>
+            <button class="tab-add new-tab-button" id="tab-add" type="button" aria-label="新建标签页" title="新建标签页"><span data-icon="plus"></span></button>
+          </section>
+
+          <section class="page" id="page-home">
+            <div class="home-page browser-home">
+              <div class="browser-home-content">
+              <div class="brand browser-home-brand">
+                <div class="brand-wordmark browser-home-logo"><span class="brand-media logo-vid">Vido</span><span class="brand-browser logo-browser">Go</span></div>
+                <div class="brand-underline"></div>
+                <div class="brand-tagline" id="home-tagline">一键下载 · 畅享精彩</div>
+              </div>
+              <div class="home-search home-address-input">
+                <span class="input-prefix" data-icon="search"></span>
+                <input id="home-search-input" type="text" placeholder="搜索或输入网址" spellcheck="false" />
+              </div>
+              <section class="popular-sites" aria-label="常用站点">
+              <div class="quick-grid popular-site-groups">
+                <div class="quick-row popular-site-group">
+                  <div class="quick-label" id="quick-video-label">视频</div>
+                  <div class="quick-cards popular-site-list" data-group="video"></div>
+                </div>
+                <div class="quick-row popular-site-group">
+                  <div class="quick-label" id="quick-social-label">社交</div>
+                  <div class="quick-cards popular-site-list" data-group="social"></div>
+                </div>
+                <div class="quick-row popular-site-group">
+                  <div class="quick-label" id="quick-live-label">直播</div>
+                  <div class="quick-cards popular-site-list" data-group="live"></div>
+                </div>
+              </div>
+              </section>
+              <section class="home-workflow" id="home-workflow" aria-label="VidoGo 工作流">
+                <div class="home-workflow-track" aria-hidden="true"><i></i></div>
+                <div class="home-workflow-step"><span data-icon="monitor"></span><b id="home-flow-browser">浏览</b><small>01</small></div>
+                <div class="home-workflow-step is-live"><span data-icon="scale-to-original"></span><b id="home-flow-detect">识别</b><small>02</small></div>
+                <div class="home-workflow-step"><span data-icon="video-play"></span><b id="home-flow-choose">选择</b><small>03</small></div>
+                <div class="home-workflow-step"><span data-icon="folder-opened"></span><b id="home-flow-save">保存</b><small>04</small></div>
+              </section>
+              </div>
+            </div>
+          </section>
+
+          <section class="page active" id="page-browser">
+            <div class="browser-page browser-shell">
+              <div class="browser-toolbar nav-bar">
+                <div class="toolbar-nav">
+                  <button id="nav-back" type="button" title="后退" aria-label="后退"><span data-icon="arrow-left"></span></button>
+                  <button id="nav-forward" type="button" title="前进" aria-label="前进"><span data-icon="arrow-right"></span></button>
+                  <button id="nav-reload" type="button" title="刷新" aria-label="刷新"><span id="nav-reload-icon" data-icon="refresh"></span></button>
+                </div>
+                <div class="address-input-shell">
+                  <span class="input-prefix" data-icon="search"></span>
+                  <input class="address-input" id="address-input" type="text" placeholder="输入网址" spellcheck="false" />
+                  <button class="toolbar-go" id="address-go" type="button">访问</button>
+                </div>
+                <div class="toolbar-extra">
+                  <div class="favorites-popover-anchor">
+                    <button class="nav-favorites-button" id="page-favorite" type="button" title="收藏" aria-label="收藏" aria-haspopup="dialog" aria-expanded="false"><span id="page-favorite-icon" data-icon="star"></span></button>
+                    <section class="favorites-popover" id="favorites-popover" aria-label="收藏" hidden>
+                      <header class="favorites-panel-header">
+                        <div class="favorites-panel-title"><span id="favorites-popover-title">收藏</span><span class="favorites-count" id="favorites-popover-count">0</span></div>
+                        <button class="favorite-current-button" id="favorite-current-button" type="button"><span data-icon="star"></span><span id="favorite-current-label">收藏当前页</span></button>
+                      </header>
+                      <div class="favorites-popover-content" id="favorites-popover-content"></div>
+                    </section>
+                  </div>
+                  <button class="nav-media-toggle" id="page-media-toggle" type="button" title="媒体面板" aria-label="媒体面板"><span data-icon="scale-to-original"></span></button>
+                </div>
+              </div>
+
+              <section class="browser-content" id="browser-split">
+                <section class="browser-frame" id="browser-stage"></section>
+                <aside class="browser-side media-panel generic-media-panel" id="browser-side" aria-label="视频媒体">
+                  <div class="side-head media-panel-header">
+                    <div class="side-title media-panel-title">
+                      <h2 id="browser-side-title">视频媒体</h2>
+                      <span class="media-count" id="media-count">0</span>
+                    </div>
+                    <div class="side-actions media-panel-actions">
+                      <button class="media-header-action" id="side-refresh" type="button" title="刷新候选" aria-label="刷新候选"><span data-icon="refresh"></span></button>
+                      <button class="media-header-action" id="side-trash" type="button" title="清空候选" aria-label="清空候选"><span data-icon="delete"></span></button>
+                      <button class="media-header-action" id="side-close" type="button" title="关闭面板" aria-label="关闭面板"><span data-icon="close"></span></button>
+                    </div>
+                  </div>
+                  <div class="side-tabs media-panel-tabs">
+                    <button class="side-pill media-panel-tab active is-active" data-side-tab="recommend">推荐 <span class="media-tab-count" id="recommend-count">0</span></button>
+                    <button class="side-pill media-panel-tab" data-side-tab="all">全部 <span class="media-tab-count" id="all-count">0</span></button>
+                  </div>
+                  <label class="field compact media-resolution-filter">
+                    <span class="visually-hidden" id="browser-quality-label">分辨率筛选</span>
+                    <select class="media-resolution-select" id="browser-quality"></select>
+                  </label>
+                  <div class="candidate-list sniffer-resource-list" id="candidate-list"></div>
+                </aside>
+              </section>
+              <footer class="browser-statusbar" aria-label="VidoGo browser status">
+                <div class="browser-status-brand" title="VidoGo"><span class="browser-status-pulse" aria-hidden="true"></span><strong>VidoGo</strong></div>
+                <div class="browser-status-features">
+                  <span class="browser-status-item" title="Media detection"><span data-icon="scale-to-original" aria-hidden="true"></span><b id="browser-status-media-label">媒体识别</b><em id="browser-status-media-count">0</em></span>
+                  <span class="browser-status-item" title="Local save"><span data-icon="folder-opened" aria-hidden="true"></span><b id="browser-status-local-label">本地保存</b></span>
+                  <span class="browser-status-item" title="Ad blocker"><span data-icon="circle-check" aria-hidden="true"></span><b id="browser-status-adblock-label">广告过滤</b><em id="browser-status-adblock-state">ON</em></span>
+                </div>
+                <button class="browser-status-downloads" id="browser-status-downloads" type="button" title="打开下载队列">
+                  <span data-icon="download" aria-hidden="true"></span><b id="browser-status-download-label">下载队列</b><em id="browser-status-download-count">0</em>
+                </button>
+              </footer>
+            </div>
+          </section>
+
+          <section class="page" id="page-downloads">
+            <div class="downloads-view" aria-label="下载">
+              <header class="downloads-toolbar">
+                <div class="downloads-tabs" id="download-filters" role="tablist">
+                  <button class="downloads-tab is-active" data-status="all" role="tab" aria-selected="true">全部 <span class="downloads-tab-count">0</span></button>
+                  <button class="downloads-tab" data-status="queued" role="tab" aria-selected="false">等待下载 <span class="downloads-tab-count">0</span></button>
+                  <button class="downloads-tab" data-status="downloading" role="tab" aria-selected="false">下载中 <span class="downloads-tab-count">0</span></button>
+                  <button class="downloads-tab" data-status="completed" role="tab" aria-selected="false">已完成 <span class="downloads-tab-count">0</span></button>
+                  <button class="downloads-tab" data-status="error" role="tab" aria-selected="false">下载失败 <span class="downloads-tab-count">0</span></button>
+                </div>
+                <div class="downloads-toolbar-actions">
+                  <div class="downloads-time-filter">
+                    <span class="downloads-time-icon" data-icon="timer" aria-hidden="true"></span>
+                    <select class="downloads-time-filter-select" id="download-range" aria-label="时间筛选"></select>
+                  </div>
+                  <button class="downloads-clear-button" id="clear-finished" type="button"><span data-icon="delete"></span><span>清除已结束</span></button>
+                </div>
+              </header>
+              <div class="downloads-list">
+                <details class="downloads-url-panel">
+                  <summary id="download-url-summary">新增下载任务</summary>
+                  <div class="downloads-url-grid">
+                    <textarea id="url-input" placeholder="每行粘贴一个视频链接"></textarea>
+                    <div class="download-settings">
+                      <label class="field output-field">
+                        <span id="output-dir-label">输出目录</span>
+                        <input id="output-dir" type="text" readonly />
+                      </label>
+                      <button id="choose-output" type="button">浏览</button>
+                      <label class="field small-field">
+                        <span id="download-quality-label">分辨率</span>
+                        <select id="download-quality"></select>
+                      </label>
+                      <label class="check-field"><input id="playlist-toggle" type="checkbox" /> <span id="playlist-label">允许播放列表</span></label>
+                      <label class="check-field"><input id="audio-toggle" type="checkbox" /> <span id="audio-label">仅音频</span></label>
+                    </div>
+                    <div class="composer-actions">
+                      <button id="import-urls" type="button">导入列表</button>
+                      <button id="cancel-download" type="button">停止</button>
+                      <button id="start-download" type="button">开始下载</button>
+                    </div>
+                  </div>
+                </details>
+                <div class="downloads-row downloads-header-row" id="downloads-header" hidden>
+                  <div id="head-file">文件名</div>
+                  <div id="head-progress">进度</div>
+                  <div id="head-downloaded">已下载</div>
+                  <div id="head-size">文件大小</div>
+                  <div id="head-time">下载时间</div>
+                  <div id="head-status">下载状态</div>
+                  <div id="head-path">保存地址</div>
+                  <div id="head-action">操作</div>
+                </div>
+                <div class="download-body" id="download-body"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="page-history">
+            <div class="history-view" aria-label="历史">
+              <header class="history-toolbar">
+                <div class="history-filter">
+                  <span class="history-filter-icon" data-icon="timer" aria-hidden="true"></span>
+                  <select class="history-filter-select" id="history-range" aria-label="时间筛选"></select>
+                </div>
+                <button class="history-clear-button" id="history-clear" type="button"><span data-icon="delete"></span><span>清空</span></button>
+              </header>
+              <div class="history-list" id="history-list"></div>
+            </div>
+          </section>
+
+          <section class="page" id="page-favorites">
+            <div class="favorites-view" aria-label="收藏夹">
+              <header class="favorites-view-toolbar">
+                <div class="favorites-view-title">
+                  <span class="favorites-view-icon" data-icon="star" aria-hidden="true"></span>
+                  <h2 id="favorites-title">收藏夹</h2>
+                  <span class="favorites-count" id="favorites-count">0</span>
+                </div>
+              </header>
+              <div class="favorites-content" id="favorites-content"></div>
+            </div>
+          </section>
+
+          <section class="page" id="page-plans">
+            <div class="plans-view" aria-label="套餐购买">
+              <header class="account-toolbar">
+                <div class="account-toolbar-title">
+                  <span class="account-toolbar-icon" data-icon="shopping-cart" aria-hidden="true"></span>
+                  <div>
+                    <h2 id="plans-title">套餐购买</h2>
+                    <p id="plans-subtitle">选择套餐和支付方式。</p>
+                  </div>
+                </div>
+              </header>
+              <div class="plans-content">
+                <div class="account-plan-grid" id="plan-cards"></div>
+                <section class="account-comparison-table-wrap" id="plan-table"></section>
+                <section class="account-payment-panel">
+                  <header class="account-section-header">
+                    <div>
+                      <h3 id="purchase-title">购买支付方式</h3>
+                      <p class="account-payment-summary"><span id="purchase-current">旗舰版 · 月付</span><span id="purchase-price">US$9.90 / 月</span></p>
+                    </div>
+                    <span class="account-toolbar-icon" data-icon="credit-card" aria-hidden="true"></span>
+                  </header>
+                  <div class="account-payment-controls">
+                    <button class="account-payment-channel is-active" data-payment-channel="stripe" type="button" disabled>由账户服务安全处理</button>
+                    <select class="account-payssion-select hidden" id="payssion-method" aria-hidden="true"><option value="card">Card</option></select>
+                  </div>
+                  <div class="account-payment-action-row">
+                    <button class="purchase-button" id="purchase-button" type="button">登录后购买</button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="page-account">
+            <div class="account-view" aria-label="账户">
+              <header class="account-toolbar">
+                <div class="account-toolbar-title">
+                  <span class="account-toolbar-icon" data-icon="user-filled" aria-hidden="true"></span>
+                  <div>
+                    <h2 id="account-title">账户</h2>
+                    <p id="account-subtitle">登录后查看套餐、订单和购买状态。</p>
+                  </div>
+                </div>
+                <button class="ghost-button hidden" id="account-refresh" type="button"><span data-icon="refresh"></span><span id="account-refresh-label">刷新</span></button>
+              </header>
+              <div class="account-content">
+                <section class="account-auth-panel" id="account-auth-panel">
+                  <aside class="account-auth-story">
+                    <div class="account-auth-brand"><img class="account-auth-brand-mark" src="./assets/vidogo-app-icon-32.png" alt="" width="32" height="32"><strong>VidoGo</strong></div>
+                    <p class="account-auth-kicker">YOUR VIDEO, IN ONE PLACE</p>
+                    <h3 id="auth-story-title">让浏览、套餐和下载记录保持同步</h3>
+                    <p id="auth-story-copy">登录后即可从管理平台安全读取权益，在同一个工作台继续你的任务。</p>
+                    <div class="account-auth-benefits">
+                      <span><i data-icon="circle-check"></i><b id="auth-benefit-plan">同步套餐与额度</b></span>
+                      <span><i data-icon="circle-check"></i><b id="auth-benefit-orders">查看订单与支付状态</b></span>
+                      <span><i data-icon="circle-check"></i><b id="auth-benefit-security">账户数据独立加密存储</b></span>
+                    </div>
+                  </aside>
+                  <div class="account-auth-form">
+                    <div class="account-auth-header">
+                      <span class="account-toolbar-icon" data-icon="lock" aria-hidden="true"></span>
+                      <div>
+                        <h3 class="login-title">登录账户</h3>
+                        <p class="login-subtitle">使用管理平台中的 VidoGo 账户继续。</p>
+                      </div>
+                    </div>
+                    <label class="field"><span>邮箱</span><input id="login-email" type="email" placeholder="输入邮箱地址" /></label>
+                    <label class="field"><span>密码</span><input id="login-password" type="password" placeholder="输入密码" /></label>
+                    <label class="field" id="confirm-password-field"><span id="confirm-password-label">确认密码</span><input id="confirm-password" type="password" placeholder="再次输入密码" /></label>
+                    <div class="login-actions is-split">
+                      <button class="login-button" id="login-button" type="button">登录</button>
+                      <button class="ghost-button" id="register-mode-button" type="button">注册</button>
+                      <button class="login-button" id="register-button" type="button">注册</button>
+                      <button class="ghost-button" id="login-mode-button" type="button">返回登录</button>
+                    </div>
+                    <p class="account-auth-footnote"><span data-icon="lock" aria-hidden="true"></span><span id="auth-footnote">凭据仅发送到你配置的 VidoGo 管理平台</span></p>
+                  </div>
+                </section>
+                <section class="account-profile-panel" id="account-profile-panel">
+                  <div class="account-section-header">
+                    <div>
+                      <h3 id="profile-title">账户信息</h3>
+                      <p id="profile-subtitle">从管理平台同步账户和套餐信息。</p>
+                    </div>
+                    <button class="ghost-button" id="logout-button" type="button"><span data-icon="switch-button"></span><span id="logout-button-label">退出登录</span></button>
+                  </div>
+                  <div class="account-profile-grid">
+                    <div><span id="profile-email-label">邮箱</span><strong id="profile-email">-</strong></div>
+                    <div><span id="profile-plan-label">当前套餐</span><strong id="profile-plan">免费版</strong></div>
+                    <div><span id="profile-quota-label">今日下载</span><strong id="profile-quota">0 / 3</strong></div>
+                  </div>
+                  <div class="account-profile-actions">
+                    <button class="ghost-button" id="account-view-plans" type="button"><span data-icon="shopping-cart"></span><span id="account-view-plans-label">查看套餐</span></button>
+                    <button class="ghost-button" id="account-change-password-toggle" type="button"><span data-icon="lock"></span><span id="account-change-password-label">修改密码</span></button>
+                  </div>
+                </section>
+                <section class="account-password-panel hidden" id="account-password-panel">
+                  <div class="account-section-header">
+                    <div>
+                      <h3 id="password-title">修改密码</h3>
+                      <p id="password-subtitle">通过管理平台安全更新账户密码。</p>
+                    </div>
+                  </div>
+                  <label class="field"><span id="old-password-label">当前密码</span><input id="old-password" type="password" /></label>
+                  <label class="field"><span id="new-password-label">新密码</span><input id="new-password" type="password" /></label>
+                  <div class="login-actions">
+                    <button class="login-button" id="save-password-button" type="button">保存密码</button>
+                    <button class="ghost-button" id="cancel-password-button" type="button">取消</button>
+                  </div>
+                </section>
+                <section class="account-orders-panel" id="account-orders-panel">
+                  <div class="account-section-header">
+                    <div>
+                      <h3 id="orders-title">订单</h3>
+                      <p id="orders-subtitle">查看管理平台同步的购买记录和支付状态。</p>
+                    </div>
+                  </div>
+                  <div class="account-orders-list" id="orders-list"></div>
+                </section>
+              </div>
+            </div>
+          </section>
+
+          <section class="page" id="page-settings">
+            <div class="settings-view" aria-label="设置">
+              <aside class="settings-sidebar" aria-label="设置分区">
+                <div class="settings-sidebar-title" id="settings-title">设置</div>
+                <nav class="settings-sidebar-nav">
+                  <button class="settings-sidebar-button is-active" data-settings-section="interface" type="button"><span data-icon="brush"></span><span id="settings-nav-interface">界面</span></button>
+                  <button class="settings-sidebar-button" data-settings-section="downloads" type="button"><span data-icon="download"></span><span id="settings-nav-downloads">下载</span></button>
+                  <button class="settings-sidebar-button" data-settings-section="preferences" type="button"><span data-icon="setting"></span><span id="settings-nav-preferences">偏好</span></button>
+                  <button class="settings-sidebar-button" data-settings-section="about" type="button"><span data-icon="info-filled"></span><span id="settings-nav-about">关于</span></button>
+                </nav>
+              </aside>
+              <div class="settings-content">
+                <section class="settings-panel is-active" data-settings-panel="interface">
+                  <div class="settings-header"><h2 id="settings-interface-title">界面</h2></div>
+                  <div class="settings-list">
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-language-title">语言</div>
+                      <p id="settings-language-description">选择应用界面语言。</p>
+                    </div>
+                    <div class="setting-control">
+                      <select class="setting-select" id="settings-language-control">
+                        <option value="zh-CN">简体中文</option>
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="en">English</option>
+                        <option value="ru">Русский</option>
+                        <option value="pt">Português</option>
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="th">ไทย</option>
+                        <option value="ar">العربية</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-theme-title">主题</div>
+                      <p id="settings-theme-description">选择界面显示模式。</p>
+                    </div>
+                    <div class="setting-control">
+                      <select class="setting-select" id="settings-theme-control">
+                        <option value="light">浅色</option>
+                        <option value="dark">深色</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-adblock-title">广告拦截</div>
+                      <p id="settings-adblock-description">拦截广告、统计和跟踪请求。</p>
+                    </div>
+                    <div class="setting-control">
+                      <label class="settings-switch"><input id="settings-adblock-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-adblock-state">开启</span></label>
+                    </div>
+                  </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="downloads" hidden>
+                  <div class="settings-header"><h2 id="settings-downloads-title">下载</h2></div>
+                  <div class="settings-list">
+                  <div class="settings-section is-wide-control">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-download-dir-title">下载目录</div>
+                      <p id="settings-download-dir-description">视频和音频会保存到此文件夹。</p>
+                    </div>
+                    <div class="download-directory-control">
+                      <input class="download-directory-input" id="settings-output-dir" type="text" readonly />
+                      <div class="download-directory-actions">
+                        <button class="ghost-button" id="settings-choose-output" type="button"><span data-icon="folder-opened"></span><span id="settings-choose-output-label">选择目录</span></button>
+                        <button class="ghost-button" id="settings-reset-output" type="button"><span data-icon="refresh-left"></span><span id="settings-reset-output-label">恢复默认</span></button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-concurrency-title">并发下载</div>
+                      <p id="settings-concurrency-description">控制本地下载任务并发上限。</p>
+                    </div>
+                    <div class="setting-control setting-concurrency-control">
+                      <div class="setting-number-control">
+                        <button id="settings-concurrency-decrease" type="button" title="减少" aria-label="减少"><span data-icon="minus"></span></button>
+                        <input id="settings-concurrency" type="number" min="1" max="10" step="1" />
+                        <button id="settings-concurrency-increase" type="button" title="增加" aria-label="增加"><span data-icon="plus"></span></button>
+                      </div>
+                      <span class="setting-concurrency-meta">
+                        <span class="setting-limit-badge"><span data-icon="lock" aria-hidden="true"></span><span id="settings-concurrency-limit">免费版上限 1</span></span>
+                        <button class="setting-inline-action" id="settings-concurrency-plans" type="button">查看套餐</button>
+                      </span>
+                    </div>
+                  </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="preferences" hidden>
+                  <div class="settings-header"><h2 id="settings-preferences-title">偏好</h2></div>
+                  <div class="settings-list">
+                <div class="settings-section">
+                  <div class="setting-copy">
+                    <div class="setting-label" id="settings-search-title">默认搜索引擎</div>
+                      <p id="settings-search-description">地址栏输入关键词时使用的搜索引擎。</p>
+                    </div>
+                  <div class="setting-control">
+                    <select class="setting-select" id="settings-search-engine">
+                      <option value="google">Google</option>
+                      <option value="bing">Bing</option>
+                      <option value="duckduckgo">DuckDuckGo</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="settings-section">
+                  <div class="setting-copy">
+                    <div class="setting-label" id="settings-recording-title">网页录制</div>
+                    <p id="settings-recording-description">在网页视频上显示录制工具栏。该功能默认关闭。</p>
+                  </div>
+                  <div class="setting-control">
+                    <label class="settings-switch"><input id="settings-recording-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-recording-state">关闭</span></label>
+                  </div>
+                </div>
+                  </div>
+                </section>
+
+                <section class="settings-panel" data-settings-panel="about" hidden>
+                  <div class="settings-header"><h2 id="settings-about-title">关于</h2></div>
+                  <div class="settings-list">
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-version-title">当前版本</div>
+                    </div>
+                    <div class="setting-control">
+                      <div class="settings-version" id="settings-version">-</div>
+                    </div>
+                  </div>
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-latest-version-title">最新版本</div>
+                    </div>
+                    <div class="setting-control">
+                      <div class="settings-version" id="settings-latest-version">-</div>
+                    </div>
+                  </div>
+                  <div class="settings-section">
+                    <div class="setting-copy">
+                      <div class="setting-label" id="settings-update-title">更新</div>
+                    </div>
+                    <div class="setting-control">
+                      <button class="ghost-button" id="settings-check-update" type="button">检查更新</button>
+                    </div>
+                  </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-icon-audit*/
+build/
+out/
+release/
+
+# Runtime/cache artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.log
+*.tmp
+.cache/
+.pytest_cache/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Parsed/reference artifacts kept outside source control
+legacy_reference/
+
+# Historical installers and disposable build audits
+archive/
+
+# Local smoke screenshots and generated diagnostics
+vidogo-smoke-*.png
+vidogo-*-flow*.png
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
