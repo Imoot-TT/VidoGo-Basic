@@ -25,6 +25,13 @@ const supportedPages = [
   ['https://rumble.com/v4abcde-example.html', 'rumble'],
   ['https://www.twitch.tv/videos/123456789', 'twitch'],
   ['https://www.twitch.tv/example_channel', 'twitch'],
+  ['https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAYYWtidGhudGZp', 'snapchat'],
+  ['https://kick.com/xqc/videos/5c697a87-afce-4256-b01f-3c8fe71ef5cb', 'kick'],
+  ['https://kick.com/xqc/clips/clip_01KWZBW60GAZC6ED96B6FSVX2F', 'kick'],
+  ['https://vod.sooplive.com/player/192805325', 'soop'],
+  ['https://vod.sooplive.com/PLAYER/STATION/20515605', 'soop'],
+  ['https://chzzk.naver.com/video/1754', 'chzzk'],
+  ['https://www.nicovideo.jp/watch/sm8628149', 'niconico'],
 ];
 
 for (const [url, provider] of supportedPages) {

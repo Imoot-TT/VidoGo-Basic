@@ -121,6 +121,48 @@
       }
     }
 
+    if (isHostOrSubdomain(host, 'snapchat.com')) {
+      const spotlightId = pathname.match(/^\/spotlight\/([A-Za-z0-9_-]+)/i)?.[1];
+      if (spotlightId) return { provider: 'snapchat', mediaId: spotlightId, pageKind: 'post' };
+    }
+
+    if (isHostOrSubdomain(host, 'kick.com')) {
+      const videoId = pathname.match(/^\/[^/]+\/videos\/([A-Fa-f0-9-]{16,})/i)?.[1];
+      const clipId = pathname.match(/^\/[^/]+\/clips\/([A-Za-z0-9_-]+)/i)?.[1];
+      if (videoId) return { provider: 'kick', mediaId: videoId, pageKind: 'video' };
+      if (clipId) return { provider: 'kick', mediaId: clipId, pageKind: 'clip' };
+      const channel = parts.length === 1 ? parts[0] : null;
+      const reserved = new Set(['', 'browse', 'categories', 'following', 'search']);
+      if (channel && !reserved.has(channel.toLowerCase())) {
+        return { provider: 'kick', mediaId: channel, pageKind: 'live' };
+      }
+    }
+
+    if (isHostOrSubdomain(host, 'sooplive.com') || isHostOrSubdomain(host, 'sooplive.co.kr')) {
+      const videoId = pathname.match(/^\/player(?:\/station)?\/(\d+)/i)?.[1];
+      if (videoId) return { provider: 'soop', mediaId: videoId, pageKind: 'video' };
+      if (host.startsWith('play.')) {
+        const channel = parts[0];
+        if (channel) return { provider: 'soop', mediaId: parts[1] || channel, pageKind: 'live' };
+      }
+    }
+
+    if (isHostOrSubdomain(host, 'chzzk.naver.com')) {
+      const videoId = pathname.match(/^\/video\/(\d+)/i)?.[1];
+      const channelId = pathname.match(/^\/live\/([A-Fa-f0-9]+)/i)?.[1];
+      if (videoId) return { provider: 'chzzk', mediaId: videoId, pageKind: 'video' };
+      if (channelId) return { provider: 'chzzk', mediaId: channelId, pageKind: 'live' };
+    }
+
+    if (isHostOrSubdomain(host, 'nicovideo.jp')) {
+      const videoId = pathname.match(/^\/watch\/([A-Za-z0-9]+)/i)?.[1];
+      if (videoId) return { provider: 'niconico', mediaId: videoId, pageKind: 'video' };
+    }
+    if (host === 'live.nicovideo.jp') {
+      const liveId = pathname.match(/^\/watch\/(lv\d+)/i)?.[1];
+      if (liveId) return { provider: 'niconico', mediaId: liveId, pageKind: 'live' };
+    }
+
     return null;
   }
 

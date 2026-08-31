@@ -105,6 +105,58 @@ def verify_metadata_planning() -> None:
     assert_equal(vimeo_candidate["provider"], "vimeo", "provider hints should support non-YouTube extractors")
     assert_equal(vimeo_candidate["id"] != candidate["id"], True, "candidate IDs should be namespaced by provider")
 
+    twitter_info = {
+        "id": "2041472949631483904",
+        "title": "Sample X video",
+        "webpage_url": "https://x.com/example/status/2041474345386783199",
+        "duration": 30,
+        "formats": [
+            {
+                "format_id": "hls-1418", "ext": "mp4", "video_ext": "mp4", "audio_ext": "none",
+                "width": 720, "height": 1280, "tbr": 1418, "vcodec": "avc1.64001F", "acodec": "none",
+            },
+            {
+                "format_id": "hls-audio-128000-Audio", "ext": "mp4", "video_ext": "none", "audio_ext": "mp4",
+                "resolution": "audio only", "abr": 128, "vcodec": "none",
+            },
+        ],
+    }
+    twitter_candidate = create_media_candidates(twitter_info, twitter_info["webpage_url"], 42, "twitter")[0]
+    assert_equal(len(twitter_candidate["variants"]), 1, "X HLS metadata should create a downloadable variant")
+    assert_equal(
+        twitter_candidate["variants"][0]["formatId"].startswith("hls-1418+hls-audio-128000-Audio/"),
+        True,
+        "X HLS video should pair with its codec-less audio stream",
+    )
+
+    silent_info = {
+        "id": "silent-reel",
+        "title": "Silent reel",
+        "webpage_url": "https://www.instagram.com/reel/silent-reel/",
+        "formats": [
+            {
+                "format_id": "dash-video", "ext": "mp4", "width": 720, "height": 1280,
+                "vcodec": "avc1.64001F", "acodec": "none", "video_ext": "mp4", "audio_ext": "none",
+            },
+        ],
+    }
+    silent_candidate = create_media_candidates(silent_info, silent_info["webpage_url"], 42, "instagram")[0]
+    assert_equal(silent_candidate["hasAudio"], False, "silent videos should remain downloadable")
+
+    direct_info = {
+        "id": "spotlight123",
+        "title": "Spotlight",
+        "webpage_url": "https://www.snapchat.com/spotlight/spotlight123",
+        "url": "https://cdn.example/spotlight.mp4",
+        "format_id": "0",
+        "ext": "mp4",
+        "video_ext": "mp4",
+        "audio_ext": "none",
+        "formats": [],
+    }
+    direct_candidate = create_media_candidates(direct_info, direct_info["webpage_url"], 42, "snapchat")[0]
+    assert_equal(direct_candidate["formatId"], "0", "direct extractor output should retain its format selector")
+
     live_info = {
         "id": "live123",
         "title": "Sample live stream",
@@ -178,6 +230,7 @@ def verify_runtime_progress_hook() -> None:
     assert_equal(events[-1]["percent"], 100.0, "runtime hook completion percent")
     assert_equal(captured_options[0].get("noprogress"), True, "yt-dlp textual progress must be suppressed")
     assert_equal(captured_options[0].get("writethumbnail"), True, "source thumbnail must be downloaded")
+    assert_equal(captured_options[0].get("impersonate").client, "chrome", "downloads should use browser impersonation for protected media pages")
     if "/video.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
         raise AssertionError("each download must store media inside its own task folder")
     assert_equal("download_archive" in captured_options[0], True, "ordinary downloads should retain archive protection")

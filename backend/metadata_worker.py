@@ -44,12 +44,16 @@ def main() -> int:
         cookie_file = Path(cookie_value) if cookie_value else None
 
         from yt_dlp import YoutubeDL
+        from yt_dlp.networking.impersonate import ImpersonateTarget
 
         options = {
             "quiet": True,
             "no_warnings": True,
             "skip_download": True,
             "noplaylist": True,
+            "extractor_retries": 3,
+            "socket_timeout": 30,
+            "impersonate": ImpersonateTarget.from_str("chrome"),
             "logger": QuietLogger(),
         }
         if cookie_file and cookie_file.exists():

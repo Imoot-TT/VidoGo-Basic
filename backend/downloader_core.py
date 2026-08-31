@@ -10,6 +10,11 @@ from typing import Callable, Iterable
 from urllib.request import Request, urlopen
 from urllib.parse import urlsplit, urlunsplit
 
+try:
+    from yt_dlp.networking.impersonate import ImpersonateTarget
+except ImportError:
+    ImpersonateTarget = None
+
 
 DEFAULT_ARCHIVE_NAME = ".download-archive.txt"
 ProgressCallback = Callable[[dict], None]
@@ -317,6 +322,8 @@ def download_urls(
         "format_sort": ["res"] if settings.resolution == "best" else [f"res:{settings.resolution}"],
         "writethumbnail": True,
     }
+    if ImpersonateTarget is not None:
+        ydl_opts["impersonate"] = ImpersonateTarget.from_str("chrome")
 
     # A yt-dlp archive is keyed by extractor/video id, not by format. Applying
     # it to explicit format downloads would make the first resolution suppress

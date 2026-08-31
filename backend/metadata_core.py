@@ -95,7 +95,16 @@ def _format_size(format_info: dict[str, Any], duration_seconds: float | None, *,
 
 
 def _is_audio_only(format_info: dict[str, Any]) -> bool:
-    return bool(format_info.get("format_id")) and _codec_state(format_info.get("vcodec")) == "none" and _codec_state(format_info.get("acodec")) == "present"
+    if not format_info.get("format_id"):
+        return False
+    if _codec_state(format_info.get("vcodec")) == "none" and _codec_state(format_info.get("acodec")) == "present":
+        return True
+    # Some extractors, notably X/Twitter HLS, identify audio-only formats via
+    # the normalized extension/resolution fields but omit acodec entirely.
+    video_extension = str(format_info.get("video_ext") or "").strip().lower()
+    audio_extension = str(format_info.get("audio_ext") or "").strip().lower()
+    resolution = str(format_info.get("resolution") or "").strip().lower()
+    return (video_extension == "none" and audio_extension not in {"", "none"}) or resolution == "audio only"
 
 
 def _audio_is_compatible(format_info: dict[str, Any], extension: str) -> bool:
@@ -159,7 +168,7 @@ def plan_video_formats(formats: list[dict[str, Any]], duration_seconds: float | 
             continue
         has_audio = _codec_state(video.get("acodec")) == "present"
         audio = None if has_audio else _select_audio(audio_formats, extension)
-        if not has_audio and not audio:
+        if not has_audio and not audio and audio_formats:
             continue
         video_size = _format_size(video, duration_seconds, audio=False)
         audio_size = _format_size(audio, duration_seconds, audio=True) if audio else 0
@@ -174,6 +183,7 @@ def plan_video_formats(formats: list[dict[str, Any]], duration_seconds: float | 
                 "resolution": resolution,
                 "videoCodec": codec,
                 "audioCodec": _audio_codec_label(audio.get("acodec") if audio else video.get("acodec")),
+                "hasAudio": has_audio or audio is not None,
                 "fps": _positive_integer(video.get("fps")),
                 "totalSizeBytes": total_size,
             }
@@ -263,6 +273,48 @@ def create_media_candidates(
         duration = _positive_number(item.get("duration"))
         plans = plan_video_formats(formats, duration)
         if not plans:
+            direct_url = str(item.get("url") or "").strip()
+            extension = _output_extension(item)
+            if not direct_url or not extension:
+                continue
+            candidate_id = sha1(f"{provider}:{video_id}".encode("utf-8")).hexdigest()[:20]
+            width = _positive_integer(item.get("width"))
+            height = _positive_integer(item.get("height"))
+            resolution = min(width, height) if width and height else None
+            video_codec = _video_codec_label(item.get("vcodec"))
+            audio_state = _codec_state(item.get("acodec"))
+            audio_extension = str(item.get("audio_ext") or "").strip().lower()
+            candidates.append(
+                {
+                    "id": f"media-{web_contents_id}-{candidate_id}",
+                    "webContentsId": web_contents_id,
+                    "url": item_url,
+                    "pageUrl": item_url,
+                    "provider": provider,
+                    "fileName": _safe_file_name(title),
+                    "title": title,
+                    "kind": "video",
+                    "thumbnailUrl": _thumbnail_url(item),
+                    "formatId": str(item.get("format_id") or "").strip() or None,
+                    "mimeType": f"video/{extension}",
+                    "extension": extension,
+                    "sizeBytes": _format_size(item, duration, audio=False),
+                    "width": width,
+                    "height": height,
+                    "resolution": resolution,
+                    "variants": [],
+                    "qualityLabel": f"{resolution}p" if resolution else None,
+                    "videoCodec": video_codec,
+                    "audioCodec": _audio_codec_label(item.get("acodec")),
+                    "fps": _positive_integer(item.get("fps")),
+                    "hasAudio": audio_state == "present" or (audio_state == "unknown" and audio_extension != "none"),
+                    "hasVideo": True,
+                    "isRecommended": True,
+                    "downloadStrategy": "merge",
+                    "sourceClient": "yt-dlp",
+                    "metadataSource": f"yt-dlp:{provider}",
+                }
+            )
             continue
         variants = [
             {
@@ -277,7 +329,7 @@ def create_media_candidates(
                 "videoCodec": plan["videoCodec"],
                 "audioCodec": plan["audioCodec"],
                 "fps": plan["fps"],
-                "hasAudio": True,
+                "hasAudio": plan["hasAudio"],
                 "hasVideo": True,
                 "sourceClient": "yt-dlp",
                 "sizeBytes": plan["totalSizeBytes"],
@@ -310,7 +362,7 @@ def create_media_candidates(
                 "videoCodec": primary["videoCodec"],
                 "audioCodec": primary["audioCodec"],
                 "fps": primary["fps"],
-                "hasAudio": True,
+                "hasAudio": primary["hasAudio"],
                 "hasVideo": True,
                 "isRecommended": True,
                 "downloadStrategy": "merge",
