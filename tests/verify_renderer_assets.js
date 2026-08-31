@@ -73,6 +73,12 @@ for (const icon of referenceIcons) {
   assert(icons.includes(`'${icon}':`) || icons.includes(`    ${icon}:`), `Reference icon definition missing: ${icon}`);
 }
 
+const iconContext = { window: {}, queueMicrotask: () => {} };
+vm.runInNewContext(icons, iconContext, { filename: 'icons.js', timeout: 1_000 });
+const settingsIconMarkup = iconContext.window.VidoGoIcons.svg('setting');
+assert(settingsIconMarkup.includes('viewBox="0 0 24 24"'), 'Settings icon must use the compact Windows-compatible SVG');
+assert(settingsIconMarkup.includes('stroke="currentColor"') && settingsIconMarkup.includes('<circle'), 'Settings icon must render as a stroked gear');
+
 const officialIconDir = path.join(root, 'assets', 'app-icons');
 const officialIconFiles = [
   'video_downloader_icon_16x16.png',

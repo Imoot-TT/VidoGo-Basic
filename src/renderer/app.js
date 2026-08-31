@@ -4140,7 +4140,7 @@ async function runRendererSelfTest() {
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
 
   const runtimeInfo = await window.mediaDeck.getRuntimeInfo();
-  assert(runtimeInfo?.appName === 'VidoGo', 'Runtime info app name mismatch');
+  assert(runtimeInfo?.appName === 'VidoGo Basic', 'Runtime info app name mismatch');
   assert(String(runtimeInfo?.browserPartition || '').startsWith('persist:'), 'Runtime browser partition missing');
   const expectedBackendMode = String(window.mediaDeckSmokeExpectedBackend || '');
   if (expectedBackendMode) assert(runtimeInfo?.backendMode === expectedBackendMode, 'Runtime backend mode mismatch');

@@ -55,6 +55,13 @@
     const iconPaths = paths[name];
     if (!iconPaths) return '';
     const classes = className ? ` class="${escapeAttribute(className)}"` : '';
+    // Keep the settings glyph deliberately simple. The previous compound,
+    // filled path intermittently disappeared in Electron on Windows 11 while
+    // the surrounding button and tooltip still rendered. A small stroked SVG
+    // avoids that GPU path-tessellation edge case and remains crisp at 18px.
+    if (name === 'setting') {
+      return `<svg${classes} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.73v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.73l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    }
     return `<svg${classes} viewBox="0 0 1024 1024" aria-hidden="true" focusable="false">${iconPaths.map((path) => `<path fill="currentColor" d="${escapeAttribute(path)}"></path>`).join('')}</svg>`;
   }
 
