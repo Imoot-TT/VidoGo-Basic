@@ -240,6 +240,12 @@ const TEXT = {
     wrongPassword: '当前密码不正确。',
     passwordChanged: '密码已更新',
     loginFailed: '账户或密码不正确。',
+    showPassword: '显示密码',
+    hidePassword: '隐藏密码',
+    toastInfo: '提示',
+    toastSuccess: '操作成功',
+    toastWarning: '请注意',
+    toastError: '操作失败',
     continuePayment: '继续支付',
     paid: '已支付',
     created: '已创建',
@@ -483,6 +489,12 @@ const TEXT = {
     wrongPassword: 'Current password is incorrect.',
     passwordChanged: 'Password updated',
     loginFailed: 'Account or password is incorrect.',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+    toastInfo: 'Notice',
+    toastSuccess: 'Success',
+    toastWarning: 'Attention',
+    toastError: 'Action failed',
     continuePayment: 'Continue payment',
     paid: 'paid',
     created: 'created',
@@ -560,6 +572,28 @@ const TEXT = {
 const I18N = window.VidoGoI18n;
 if (!I18N) throw new Error('VidoGo locale module did not load');
 const TEXT_TABLES = I18N.createTextTables(TEXT);
+const AUTH_FAILURE_TEXT = {
+  'zh-CN': { loginFailed: '邮箱或密码不正确。' },
+  'zh-TW': { loginFailed: '電子郵件或密碼不正確。' },
+  en: { loginFailed: 'Email or password is incorrect.' },
+  ru: { loginFailed: 'Неверный адрес электронной почты или пароль.' },
+  pt: { loginFailed: 'E-mail ou senha incorretos.' },
+  vi: { loginFailed: 'Email hoặc mật khẩu không đúng.' },
+  th: { loginFailed: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
+  ar: { loginFailed: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' },
+};
+for (const [locale, copy] of Object.entries(AUTH_FAILURE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
+const NOTICE_TEXT = {
+  'zh-CN': { toastInfo: '提示', toastSuccess: '成功', toastWarning: '注意', toastError: '失败', adBlockerNotice: '注意：应部分平台的播放要求，VidoGo 会保留必要广告，因此无法屏蔽所有广告。' },
+  'zh-TW': { toastInfo: '提示', toastSuccess: '成功', toastWarning: '注意', toastError: '失敗', adBlockerNotice: '注意：因應部分平台的播放要求，VidoGo 會保留必要廣告，因此無法屏蔽所有廣告。' },
+  en: { toastInfo: 'Notice', toastSuccess: 'Success', toastWarning: 'Attention', toastError: 'Failed', adBlockerNotice: 'Note: Some platforms require essential ads for playback, so VidoGo cannot block every advertisement.' },
+  ru: { toastInfo: 'Сведения', toastSuccess: 'Успех', toastWarning: 'Внимание', toastError: 'Ошибка', adBlockerNotice: 'Примечание. Для воспроизведения на некоторых платформах необходима реклама, поэтому VidoGo не может блокировать всю рекламу.' },
+  pt: { toastInfo: 'Aviso', toastSuccess: 'Sucesso', toastWarning: 'Atenção', toastError: 'Falha', adBlockerNotice: 'Observação: algumas plataformas exigem anúncios essenciais para reprodução, portanto o VidoGo não pode bloquear todos os anúncios.' },
+  vi: { toastInfo: 'Thông báo', toastSuccess: 'Thành công', toastWarning: 'Chú ý', toastError: 'Thất bại', adBlockerNotice: 'Lưu ý: một số nền tảng cần quảng cáo thiết yếu để phát video, vì vậy VidoGo không thể chặn tất cả quảng cáo.' },
+  th: { toastInfo: 'แจ้งเตือน', toastSuccess: 'สำเร็จ', toastWarning: 'โปรดทราบ', toastError: 'ล้มเหลว', adBlockerNotice: 'หมายเหตุ: บางแพลตฟอร์มต้องใช้โฆษณาที่จำเป็นเพื่อเล่นวิดีโอ VidoGo จึงไม่สามารถบล็อกโฆษณาทั้งหมดได้' },
+  ar: { toastInfo: 'تنبيه', toastSuccess: 'نجح', toastWarning: 'انتباه', toastError: 'فشل', adBlockerNotice: 'ملاحظة: تتطلب بعض المنصات إعلانات ضرورية للتشغيل، لذلك لا يمكن لـ VidoGo حظر جميع الإعلانات.' },
+};
+for (const [locale, copy] of Object.entries(NOTICE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const ENTITLEMENT_TEXT = {
   'zh-CN': { dailyLimitReached: '今日下载/录制次数已达到当前套餐上限。' },
   'zh-TW': { dailyLimitReached: '今日下載/錄製次數已達到目前方案上限。' },
@@ -788,6 +822,9 @@ const els = {
   registerButton: document.getElementById('register-button'),
   loginEmail: document.getElementById('login-email'),
   loginPassword: document.getElementById('login-password'),
+  accountAuthError: document.getElementById('account-auth-error'),
+  accountAuthErrorCopy: document.getElementById('account-auth-error-copy'),
+  passwordVisibilityToggles: Array.from(document.querySelectorAll('[data-password-target]')),
   confirmPasswordField: document.getElementById('confirm-password-field'),
   confirmPassword: document.getElementById('confirm-password'),
   logoutButton: document.getElementById('logout-button'),
@@ -998,7 +1035,6 @@ function applyLocale() {
   document.getElementById('head-size').textContent = text('fileSize');
   document.getElementById('head-time').textContent = text('downloadTime');
   document.getElementById('head-status').textContent = text('downloadStatus');
-  document.getElementById('head-path').textContent = text('savePath');
   document.getElementById('head-action').textContent = text('action');
   els.historyClear.querySelector('span:last-child').textContent = text('clear');
   els.favoritesTitle.textContent = text('favoritesTitle');
@@ -1066,7 +1102,8 @@ function updateSettingsCopy() {
   document.getElementById('settings-recording-title').textContent = text('recordingFeature');
   document.getElementById('settings-recording-description').textContent = text('recordingFeatureDescription');
   document.getElementById('settings-adblock-title').textContent = text('adBlocker');
-  document.getElementById('settings-adblock-description').textContent = text('adBlockerDescription');
+  document.getElementById('settings-adblock-description-copy').textContent = text('adBlockerDescription');
+  document.getElementById('settings-adblock-notice').textContent = text('adBlockerNotice');
   els.settingsAdBlockState.textContent = text(state.settings.adBlocker !== false ? 'on' : 'off');
   els.settingsRecordingState.textContent = text(state.settings.recordingEnabled === true ? 'on' : 'off');
   document.getElementById('settings-update-title').textContent = text('updates');
@@ -1269,12 +1306,14 @@ function updateDownloadBadge() {
 function updateBrowserStatusBar() {
   if (!els.browserStatusDownloads) return;
   const copy = BROWSER_STATUS_TEXT[state.locale] || BROWSER_STATUS_TEXT.en;
+  const activePageAllowsAds = tabProvider(activeTab()) === 'dailymotion';
+  const adBlockerActive = state.settings.adBlocker !== false && !activePageAllowsAds;
   els.browserStatusMediaLabel.textContent = copy.media;
   els.browserStatusMediaCount.textContent = String(mediaCandidatesForTab().length);
   els.browserStatusLocalLabel.textContent = copy.local;
   els.browserStatusAdblockLabel.textContent = copy.adblock;
-  els.browserStatusAdblockState.textContent = state.settings.adBlocker === false ? 'OFF' : 'ON';
-  els.browserStatusAdblockState.classList.toggle('is-off', state.settings.adBlocker === false);
+  els.browserStatusAdblockState.textContent = adBlockerActive ? 'ON' : 'OFF';
+  els.browserStatusAdblockState.classList.toggle('is-off', !adBlockerActive);
   els.browserStatusDownloadLabel.textContent = copy.queue;
   els.browserStatusDownloadCount.textContent = String(state.queue.length);
   els.browserStatusDownloads.title = copy.openQueue;
@@ -1344,6 +1383,11 @@ function createTab(url = HOME_URL, title = text('newTab')) {
     mediaEnrichmentSequence: 0,
     mediaEnrichmentTimer: 0,
     lastEnrichedUrl: null,
+    activeMediaContext: null,
+    activeMediaExtractionKey: null,
+    activeMediaProbeTimer: 0,
+    dailymotionRecoveryUrl: '',
+    dailymotionRecoveryTimer: 0,
   };
   webview.className = 'browser-view';
   webview.setAttribute('partition', FALLBACK_PARTITION);
@@ -1388,25 +1432,31 @@ function attachWebviewEvents(tab) {
     tab.ready = true;
     sync();
     scheduleActiveWebviewResize();
+    scheduleActiveMediaProbe(tab, 300);
   });
   tab.webview.addEventListener('did-start-loading', () => {
     tab.loading = true;
+    clearTimeout(tab.dailymotionRecoveryTimer);
     sync();
   });
   tab.webview.addEventListener('did-navigate', () => {
     sync();
     addHistory(tab.title || tab.url, tab.url);
     schedulePageMediaEnrichment(tab);
+    scheduleActiveMediaProbe(tab, 300);
   });
   tab.webview.addEventListener('did-navigate-in-page', () => {
     sync();
     schedulePageMediaEnrichment(tab);
+    scheduleActiveMediaProbe(tab, 150);
   });
   tab.webview.addEventListener('did-stop-loading', () => {
     tab.loading = false;
     sync();
     scheduleActiveWebviewResize();
     schedulePageMediaEnrichment(tab);
+    scheduleActiveMediaProbe(tab, 150);
+    scheduleDailymotionPlaybackRecovery(tab);
   });
   tab.webview.addEventListener('page-title-updated', (event) => {
     tab.title = event.title || tab.title;
@@ -1416,6 +1466,62 @@ function attachWebviewEvents(tab) {
   });
   tab.webview.addEventListener('did-fail-load', (event) => {
     if (event.isMainFrame && event.errorCode !== -3) toast(`${text('loadFailed')}: ${event.validatedURL || tab.url}`);
+  });
+  tab.webview.addEventListener('ipc-message', (event) => {
+    if (event.channel !== 'vidogo:active-media') return;
+    void handleActiveMediaContext(tab, event.args?.[0]);
+  });
+}
+
+function scheduleDailymotionPlaybackRecovery(tab) {
+  clearTimeout(tab.dailymotionRecoveryTimer);
+  if (tabProvider(tab) !== 'dailymotion') return;
+  const pageUrl = MEDIA_RULES?.normalizePageUrl?.(tab.url) || tab.url;
+  if (!pageUrl || tab.dailymotionRecoveryUrl === pageUrl) return;
+  const inspect = async (remainingChecks) => {
+    if (!state.tabs.includes(tab) || tabProvider(tab) !== 'dailymotion') return;
+    const hasPlaybackError = await tab.webview.executeJavaScript(`(() => {
+      const copy = String(document.body?.innerText || '');
+      return /playback error/i.test(copy) && /check your internet connection/i.test(copy);
+    })()`, true).catch(() => false);
+    if (hasPlaybackError) {
+      tab.dailymotionRecoveryUrl = pageUrl;
+      await window.mediaDeck.repairDailymotionPlayback().catch(() => null);
+      if (state.tabs.includes(tab)) tab.webview.reloadIgnoringCache();
+      return;
+    }
+    if (remainingChecks > 1) {
+      tab.dailymotionRecoveryTimer = window.setTimeout(() => void inspect(remainingChecks - 1), 2500);
+    }
+  };
+  tab.dailymotionRecoveryTimer = window.setTimeout(() => void inspect(4), 1800);
+}
+
+let draggingBrowserTabId = null;
+
+function reorderBrowserTab(sourceId, targetId, placeAfter) {
+  if (!sourceId || sourceId === targetId) return false;
+  const sourceIndex = state.tabs.findIndex((tab) => tab.id === sourceId);
+  const targetIndex = state.tabs.findIndex((tab) => tab.id === targetId);
+  if (sourceIndex < 0 || targetIndex < 0) return false;
+  const [source] = state.tabs.splice(sourceIndex, 1);
+  const adjustedTargetIndex = state.tabs.findIndex((tab) => tab.id === targetId);
+  state.tabs.splice(adjustedTargetIndex + (placeAfter ? 1 : 0), 0, source);
+  return true;
+}
+
+function clearTabDropIndicators() {
+  els.tabStrip.querySelectorAll('.browser-tab').forEach((tab) => {
+    tab.classList.remove('is-dragging', 'drop-before', 'drop-after');
+  });
+}
+
+function scrollActiveTabIntoView() {
+  const selector = state.section === 'home'
+    ? '.home-tab-button'
+    : '.browser-tab.is-active';
+  requestAnimationFrame(() => {
+    els.tabStrip.querySelector(selector)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   });
 }
 
@@ -1440,6 +1546,39 @@ function renderTabs() {
     button.title = tab.title || text('newTab');
     button.innerHTML = `<span class="tab-title">${escapeHtml(tab.title || text('newTab'))}</span><button class="tab-close tab-close-button" type="button" title="${escapeHtml(text('closeTab'))}" aria-label="${escapeHtml(text('closeTab'))}">${iconSvg('close')}</button>`;
     button.querySelector('.tab-title')?.classList.add('browser-tab-title');
+    button.draggable = true;
+    button.addEventListener('dragstart', (event) => {
+      draggingBrowserTabId = tab.id;
+      button.classList.add('is-dragging');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/x-vidogo-tab', tab.id);
+    });
+    button.addEventListener('dragover', (event) => {
+      const sourceId = draggingBrowserTabId || event.dataTransfer.getData('text/x-vidogo-tab');
+      if (!sourceId || sourceId === tab.id) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      const after = event.clientX >= button.getBoundingClientRect().left + button.getBoundingClientRect().width / 2;
+      button.classList.toggle('drop-before', !after);
+      button.classList.toggle('drop-after', after);
+    });
+    button.addEventListener('dragleave', () => {
+      button.classList.remove('drop-before', 'drop-after');
+    });
+    button.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const sourceId = draggingBrowserTabId || event.dataTransfer.getData('text/x-vidogo-tab');
+      const after = event.clientX >= button.getBoundingClientRect().left + button.getBoundingClientRect().width / 2;
+      clearTabDropIndicators();
+      if (reorderBrowserTab(sourceId, tab.id, after)) renderTabs();
+    });
+    button.addEventListener('dragend', () => {
+      draggingBrowserTabId = null;
+      clearTabDropIndicators();
+    });
+    button.addEventListener('auxclick', (event) => {
+      if (event.button === 1) closeTab(tab.id);
+    });
     button.addEventListener('click', (event) => {
       if (event.target.closest('.tab-close-button')) {
         closeTab(tab.id);
@@ -1456,6 +1595,7 @@ function renderTabs() {
     });
     els.tabStrip.appendChild(button);
   });
+  scrollActiveTabIntoView();
 }
 
 function closeTab(id) {
@@ -1463,6 +1603,7 @@ function closeTab(id) {
   if (index < 0) return;
   const closingTab = state.tabs[index];
   if (closingTab.mediaEnrichmentTimer) clearTimeout(closingTab.mediaEnrichmentTimer);
+  if (closingTab.activeMediaProbeTimer) clearTimeout(closingTab.activeMediaProbeTimer);
   closingTab.mediaEnrichmentSequence += 1;
   closingTab.webview.remove();
   state.tabs.splice(index, 1);
@@ -1863,6 +2004,285 @@ function mediaCandidatesForTab(tabId = state.activeTabId) {
   return tabId ? state.candidatesByTabId[tabId] || [] : [];
 }
 
+function tabProvider(tab) {
+  return MEDIA_RULES?.providerSiteForUrl?.(tab?.url) || null;
+}
+
+function isSingleActiveMediaTab(tab) {
+  return tabProvider(tab) === 'tiktok';
+}
+
+function createTikTokActiveMediaProbeScript() {
+  return `(() => {
+    const visibleArea = (rect) => Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0))
+      * Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+    const video = Array.from(document.querySelectorAll('video')).map((item) => {
+      const rect = item.getBoundingClientRect();
+      const style = getComputedStyle(item);
+      if (rect.width < 120 || rect.height < 120 || style.display === 'none' || style.visibility === 'hidden') return null;
+      const area = visibleArea(rect);
+      if (!area) return null;
+      return { item, score: (!item.paused && !item.ended ? innerWidth * innerHeight * 2 : 0) + area };
+    }).filter(Boolean).sort((left, right) => right.score - left.score)[0]?.item;
+    if (!video) return null;
+    const feed = video.closest('[data-e2e="feed-video"]');
+    const fiberKey = feed ? Object.keys(feed).find((key) => key.startsWith('__reactFiber')) : null;
+    let fiber = fiberKey ? feed[fiberKey] : null;
+    let item = null;
+    for (let level = 0; fiber && level < 24; level += 1, fiber = fiber.return) {
+      const props = fiber.memoizedProps || fiber.pendingProps;
+      const value = props?.item || props?.value?.item;
+      const id = String(value?.id || value?.itemId || value?.aweme_id || '');
+      if (/^\\d{12,}$/.test(id)) { item = value; break; }
+    }
+    if (!item) return null;
+    const firstUrl = (value) => {
+      if (typeof value === 'string' && /^https?:/i.test(value)) return value;
+      if (!value || typeof value !== 'object') return '';
+      const values = [value.url, value.src, ...(value.urlList || []), ...(value.UrlList || []), ...(value.url_list || [])];
+      return values.find((entry) => typeof entry === 'string' && /^https?:/i.test(entry)) || '';
+    };
+    const integer = (value) => {
+      const number = Number(value || 0);
+      return Number.isFinite(number) && number > 0 ? Math.round(number) : 0;
+    };
+    const codecLabel = (value) => {
+      const codec = String(value || '');
+      if (/265|hevc|bytevc/i.test(codec)) return 'H.265';
+      if (/264|avc/i.test(codec)) return 'H.264';
+      return '';
+    };
+    const toVariant = (entry, fallbackLabel = '') => {
+      const playAddress = entry?.PlayAddr || entry?.playAddr || entry?.play_addr || entry;
+      const url = firstUrl(playAddress);
+      if (!url) return null;
+      const width = integer(playAddress?.Width || playAddress?.width || entry?.Width || entry?.width);
+      const height = integer(playAddress?.Height || playAddress?.height || entry?.Height || entry?.height);
+      const resolution = Math.min(width || height, height || width);
+      const videoCodec = codecLabel(entry?.CodecType || entry?.codecType || entry?.codec || entry?.Format || entry?.format);
+      const bitrate = integer(entry?.Bitrate || entry?.bitrate);
+      return {
+        url,
+        extension: 'mp4',
+        mimeType: 'video/mp4',
+        width,
+        height,
+        resolution,
+        qualityLabel: resolution ? (resolution + 'p' + (videoCodec ? ' · ' + videoCodec : '')) : fallbackLabel,
+        videoCodec,
+        bitrateKbps: bitrate ? Math.round(bitrate / 1000) : 0,
+        bandwidthBitsPerSecond: bitrate,
+        sizeBytes: integer(playAddress?.DataSize || playAddress?.dataSize || entry?.DataSize || entry?.dataSize),
+        hasAudio: true,
+        hasVideo: true,
+        isDrmProtected: false,
+        sourceClient: 'tiktok-page',
+      };
+    };
+    const primary = toVariant(item.video?.PlayAddrStruct || item.video?.playAddr || item.video?.play_addr, '原画');
+    const variants = [primary, ...((item.video?.bitrateInfo || item.video?.bit_rate || [])
+      .map((entry) => toVariant(entry)))]
+      .filter(Boolean)
+      .filter((entry, index, all) => all.findIndex((other) => other.url === entry.url) === index)
+      .slice(0, 12);
+    const mediaId = String(item.id || item.itemId || item.aweme_id || '');
+    const author = String(item.author?.uniqueId || item.author?.unique_id || item.author || '').replace(/^@/, '');
+    if (!mediaId || !author) return null;
+    const playingUrl = firstUrl(video.currentSrc) || firstUrl(video.src);
+    const selected = primary || variants[0] || null;
+    return {
+      provider: 'tiktok',
+      mediaId,
+      canonicalUrl: location.origin + '/@' + author + '/video/' + mediaId,
+      title: String(item.desc || item.description || item.title || '').replace(/\\s+/g, ' ').trim() || (author + ' · TikTok'),
+      thumbnailUrl: firstUrl(item.video?.cover) || firstUrl(item.video?.originCover)
+        || firstUrl(item.video?.dynamicCover) || firstUrl(item.cover),
+      directUrl: playingUrl || selected?.url || '',
+      width: integer(video.videoWidth) || selected?.width || 0,
+      height: integer(video.videoHeight) || selected?.height || 0,
+      resolution: Math.min(integer(video.videoWidth) || selected?.width || 0, integer(video.videoHeight) || selected?.height || 0),
+      qualityLabel: selected?.qualityLabel || '',
+      sizeBytes: selected?.sizeBytes || 0,
+      variants,
+    };
+  })()`;
+}
+
+async function probeActiveMedia(tab) {
+  if (!tab || !state.tabs.includes(tab) || tabProvider(tab) !== 'tiktok' || !tab.ready) return;
+  try {
+    const payload = await Promise.race([
+      tab.webview.executeJavaScript(createTikTokActiveMediaProbeScript(), true),
+      new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
+    ]);
+    if (payload) await handleActiveMediaContext(tab, payload);
+  } catch {
+    // A navigation can invalidate an in-flight page probe.
+  }
+}
+
+function scheduleActiveMediaProbe(tab, delay = 900) {
+  if (!tab) return;
+  if (tab.activeMediaProbeTimer) clearTimeout(tab.activeMediaProbeTimer);
+  if (tabProvider(tab) !== 'tiktok') {
+    tab.activeMediaProbeTimer = 0;
+    return;
+  }
+  tab.activeMediaProbeTimer = window.setTimeout(async () => {
+    tab.activeMediaProbeTimer = 0;
+    await probeActiveMedia(tab);
+    if (state.tabs.includes(tab) && tabProvider(tab) === 'tiktok') scheduleActiveMediaProbe(tab, 900);
+  }, delay);
+}
+
+function activeMediaPlaceholder(tab, context) {
+  return {
+    id: `active-${context.provider}-${context.mediaId}`,
+    webContentsId: tab.webContentsId,
+    url: context.directUrl || context.canonicalUrl,
+    pageUrl: context.canonicalUrl,
+    provider: context.provider,
+    fileName: context.title,
+    title: context.title,
+    kind: 'video',
+    thumbnailUrl: context.thumbnailUrl || null,
+    extension: 'mp4',
+    width: context.width || null,
+    height: context.height || null,
+    resolution: context.resolution || null,
+    qualityLabel: context.qualityLabel || null,
+    sizeBytes: context.sizeBytes || null,
+    variants: context.variants || [],
+    hasAudio: true,
+    hasVideo: true,
+    isRecommended: true,
+    downloadStrategy: context.directUrl ? 'direct' : 'merge',
+    sourceClient: context.directUrl ? 'tiktok-page' : 'active-page',
+    metadataSource: `${context.provider}-active-video`,
+    detectedAt: new Date().toISOString(),
+  };
+}
+
+function safeActiveMediaUrl(value, maxLength = 16384) {
+  const raw = String(value || '').trim();
+  if (!raw || raw.length > maxLength) return null;
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== 'https:' || !parsed.hostname || parsed.username || parsed.password) return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
+function safePositiveInteger(value) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) && number > 0 ? Math.round(number) : null;
+}
+
+function safeTikTokVariant(value) {
+  const url = safeActiveMediaUrl(value?.url);
+  if (!url) return null;
+  const width = safePositiveInteger(value?.width);
+  const height = safePositiveInteger(value?.height);
+  const resolution = safePositiveInteger(value?.resolution || height);
+  const videoCodec = ['H.264', 'H.265'].includes(value?.videoCodec) ? value.videoCodec : null;
+  return {
+    url,
+    extension: 'mp4',
+    mimeType: 'video/mp4',
+    width,
+    height,
+    resolution,
+    qualityLabel: String(value?.qualityLabel || (resolution ? resolution + 'p' : '')).slice(0, 80),
+    videoCodec,
+    bitrateKbps: safePositiveInteger(value?.bitrateKbps),
+    bandwidthBitsPerSecond: safePositiveInteger(value?.bandwidthBitsPerSecond),
+    sizeBytes: safePositiveInteger(value?.sizeBytes),
+    hasAudio: true,
+    hasVideo: true,
+    isDrmProtected: false,
+    sourceClient: 'tiktok-page',
+  };
+}
+
+function candidateMatchesActiveMedia(candidate, context) {
+  if (!context || candidate?.provider !== context.provider) return false;
+  const candidatePage = MEDIA_RULES?.classifyMediaPage?.(candidate.pageUrl || candidate.url);
+  return candidatePage?.provider === context.provider && candidatePage?.mediaId === context.mediaId;
+}
+
+async function handleActiveMediaContext(tab, payload) {
+  if (!tab || tabProvider(tab) !== 'tiktok' || payload?.provider !== 'tiktok') return;
+  const canonicalPage = MEDIA_RULES?.classifyMediaPage?.(payload.canonicalUrl);
+  if (!canonicalPage || canonicalPage.provider !== 'tiktok' || canonicalPage.mediaId !== String(payload.mediaId || '')) return;
+  const variants = (Array.isArray(payload.variants) ? payload.variants : [])
+    .map(safeTikTokVariant)
+    .filter(Boolean)
+    .filter((variant, index, all) => all.findIndex((other) => other.url === variant.url) === index)
+    .slice(0, 12);
+  const directUrl = safeActiveMediaUrl(payload.directUrl) || variants[0]?.url || null;
+  const context = {
+    provider: canonicalPage.provider,
+    mediaId: canonicalPage.mediaId,
+    canonicalUrl: canonicalPage.normalizedUrl,
+    title: String(payload.title || 'TikTok video').trim().slice(0, 300),
+    thumbnailUrl: safeActiveMediaUrl(payload.thumbnailUrl, 8192),
+    directUrl,
+    width: safePositiveInteger(payload.width),
+    height: safePositiveInteger(payload.height),
+    resolution: safePositiveInteger(payload.resolution),
+    qualityLabel: String(payload.qualityLabel || '').slice(0, 80),
+    sizeBytes: safePositiveInteger(payload.sizeBytes),
+    variants,
+  };
+  const extractionKey = `${context.provider}:${context.mediaId}`;
+  const activeChanged = tab.activeMediaExtractionKey !== extractionKey;
+  tab.activeMediaContext = context;
+  const placeholder = activeMediaPlaceholder(tab, context);
+  const currentMatching = mediaCandidatesForTab(tab.id).filter((candidate) => candidateMatchesActiveMedia(candidate, context));
+  setMediaCandidatesForTab(tab.id, context.directUrl
+    ? [placeholder]
+    : (currentMatching.length ? currentMatching.map((candidate) => ({
+      ...candidate,
+      title: context.title || candidate.title,
+      thumbnailUrl: context.thumbnailUrl || candidate.thumbnailUrl,
+    })) : [placeholder]));
+  if (tab.id === state.activeTabId) renderCandidates();
+  if (activeChanged) {
+    tab.activeMediaExtractionKey = extractionKey;
+    tab.mediaEnrichmentSequence += 1;
+  }
+  if (context.directUrl) return;
+  if (!activeChanged) return;
+  const sequence = tab.mediaEnrichmentSequence;
+  const webContentsId = Number(tab.webContentsId);
+  if (!Number.isFinite(webContentsId) || webContentsId <= 0) return;
+  void (async () => {
+    await window.mediaDeck.clearMediaCandidates(webContentsId).catch(() => []);
+    try {
+      const candidates = await window.mediaDeck.extractPageMedia({
+        pageUrl: context.canonicalUrl,
+        webContentsId,
+        force: true,
+      });
+      if (sequence !== tab.mediaEnrichmentSequence || tab.activeMediaExtractionKey !== extractionKey) return;
+      const matching = (Array.isArray(candidates) ? candidates : [])
+        .filter((candidate) => candidateMatchesActiveMedia(candidate, context))
+        .map((candidate) => ({
+          ...candidate,
+          title: candidate.title || context.title,
+          thumbnailUrl: candidate.thumbnailUrl || context.thumbnailUrl,
+        }));
+      setMediaCandidatesForTab(tab.id, matching.length ? matching : [placeholder]);
+      if (tab.id === state.activeTabId) renderCandidates();
+    } catch {
+      // The canonical page URL remains directly downloadable even when metadata
+      // analysis is unavailable, so retain the single active-video row.
+    }
+  })();
+}
+
 function setMediaCandidatesForTab(tabId, candidates) {
   if (!tabId) return;
   const nextCandidates = Array.isArray(candidates)
@@ -1890,6 +2310,8 @@ function resetTabMediaForNavigation(tab) {
   }
   tab.mediaEnrichmentSequence += 1;
   tab.lastEnrichedUrl = null;
+  tab.activeMediaContext = null;
+  tab.activeMediaExtractionKey = null;
   state.selectedMinimumResolutionByTabId[tab.id] = 0;
   clearMediaCandidatesForTab(tab.id);
   if (tab.id === state.activeTabId) renderCandidates();
@@ -1900,6 +2322,7 @@ function resetTabMediaForNavigation(tab) {
 }
 
 function candidateMatchesTabPage(candidate, tab) {
+  if (isSingleActiveMediaTab(tab)) return candidateMatchesActiveMedia(candidate, tab.activeMediaContext);
   if (!tab || !candidate?.pageUrl) return true;
   const candidateUrl = MEDIA_RULES?.normalizePageUrl?.(candidate.pageUrl) || candidate.pageUrl;
   const tabUrl = MEDIA_RULES?.normalizePageUrl?.(tab.url) || tab.url;
@@ -1937,6 +2360,7 @@ function addCandidate(candidate) {
   const tabId = mediaTabIdForCandidate(candidate);
   if (!tabId) return;
   const tab = state.tabs.find((item) => item.id === tabId);
+  if (isSingleActiveMediaTab(tab) && !candidateMatchesActiveMedia(candidate, tab.activeMediaContext)) return;
   if (!candidateMatchesTabPage(candidate, tab)) return;
   const current = mediaCandidatesForTab(tabId);
   setMediaCandidatesForTab(tabId, [candidate, ...current.filter((item) => item.url !== candidate.url)]);
@@ -2651,7 +3075,7 @@ function renderCandidates() {
   els.allMedia.classList.toggle('is-active', state.browserSideTab === 'all');
   if (!rows.length) {
     const emptyMessage = state.browserSideTab === 'recommend' && activeCandidates.length > 0 ? text('suspectedVideosFound') : text('scanning');
-    els.candidateList.innerHTML = `<div class="media-empty"><div class="empty-icon">${iconSvg('video-play')}</div><p>${escapeHtml(emptyMessage === text('scanning') ? text('noMedia') : emptyMessage)}</p></div>`;
+    els.candidateList.innerHTML = `<div class="media-empty"><img class="app-empty-image is-compact" src="./assets/vidogo-empty.png" alt="" /><p>${escapeHtml(emptyMessage === text('scanning') ? text('noMedia') : emptyMessage)}</p></div>`;
     return;
   }
   els.candidateList.innerHTML = rows.map((item) => renderCandidateRow(item)).join('');
@@ -2710,7 +3134,8 @@ function startCandidateDownload(candidate, variant = null) {
     toast(text(state.settings.recordingEnabled ? 'recordingRequired' : 'enableRecordingFirst'));
     return;
   }
-  const selectedVariant = variant || candidateVariants(candidate)[0] || null;
+  const selectedVariant = variant
+    || (candidate?.sourceClient === 'tiktok-page' ? null : candidateVariants(candidate)[0] || null);
   const target = selectedVariant ? candidateForVariant(candidate, selectedVariant) : { ...candidate };
   target.url = candidateDownloadUrl(candidate, selectedVariant);
   if (!target.url) return;
@@ -2848,6 +3273,9 @@ async function startDownload(downloadTarget = null) {
       mergeOutputFormat: candidateMergeOutputFormat(downloadTarget),
       referrer: downloadTarget?.pageUrl || null,
       thumbnailUrl: downloadTarget?.thumbnailUrl || window.mediaDeckSmokeDownload?.thumbnailUrl || null,
+      title: downloadTarget?.title || downloadTarget?.fileName || null,
+      directDownload: downloadTarget?.sourceClient === 'tiktok-page',
+      webContentsId: downloadTarget?.webContentsId || null,
       maxConcurrentDownloads: state.settings.maxConcurrentDownloads,
     });
     if (result?.entitlements) applyEntitlementState(result.entitlements);
@@ -3168,7 +3596,7 @@ function renderDownloads() {
     .filter((item) => isInRange(item.time, state.downloadRange));
   els.downloadHeader.hidden = rows.length === 0;
   if (!rows.length) {
-    els.downloadBody.innerHTML = `<div class="downloads-empty"><div class="downloads-empty-icon">${iconSvg('download')}</div><p>${text('noDownloads')}</p></div>`;
+    els.downloadBody.innerHTML = `<div class="downloads-empty menu-empty-state"><img class="app-empty-image" src="./assets/vidogo-empty.png" alt="" /></div>`;
     return;
   }
   const totalPages = Math.max(1, Math.ceil(rows.length / DOWNLOAD_PAGE_SIZE));
@@ -3217,7 +3645,6 @@ function renderDownloads() {
         <div class="download-text-cell download-size-cell"><bdi>${escapeHtml(item.size || '-')}</bdi></div>
         <div class="download-text-cell download-time-cell" title="${escapeHtml(formatTime(item.time))}">${escapeHtml(formatTime(item.time))}</div>
         <div class="download-status-cell is-${escapeHtml(item.state)}">${escapeHtml(text(item.state))}</div>
-        <div class="download-path-cell" title="${escapeHtml(item.savePath || item.path || '')}"><bdi>${escapeHtml(item.savePath || item.path || text('unknownPath'))}</bdi></div>
         <div class="download-actions-cell">${actionButtons}</div>
       </article>
     `;
@@ -3282,7 +3709,7 @@ function renderHistory() {
   const rows = state.history.filter((item) => isInRange(item.time, state.historyRange));
   els.historyClear.disabled = state.history.length === 0;
   if (!rows.length) {
-    els.historyList.innerHTML = `<div class="history-empty"><div class="history-empty-icon">${iconSvg('clock')}</div><p>${text('noHistory')}</p></div>`;
+    els.historyList.innerHTML = `<div class="history-empty menu-empty-state"><img class="app-empty-image" src="./assets/vidogo-empty.png" alt="" /></div>`;
     return;
   }
   els.historyList.innerHTML = rows.map((item) => `
@@ -3302,7 +3729,7 @@ function renderFavorites() {
   els.favoritesCount.textContent = String(state.favorites.length);
   const content = document.getElementById('favorites-content');
   if (!state.favorites.length) {
-    content.innerHTML = `<div class="favorites-empty favorites-view-empty"><div class="favorites-empty-icon">${iconSvg('star')}</div><p>${text('noFavorites')}</p></div>`;
+    content.innerHTML = `<div class="favorites-empty favorites-view-empty menu-empty-state"><img class="app-empty-image" src="./assets/vidogo-empty.png" alt="" /></div>`;
   } else {
     content.innerHTML = `<div class="favorites-view-list favorite-list">${state.favorites.map((item) => `
       <div class="favorite-row favorites-view-row">
@@ -3330,7 +3757,7 @@ function renderFavoritesPopover() {
   els.favoriteCurrentLabel.textContent = text(currentIsFavorite ? 'removeCurrentFavorite' : 'addCurrentFavorite');
   setIcon(els.favoriteCurrentButton.querySelector('[data-icon]'), currentIsFavorite ? 'star-filled' : 'star');
   if (!state.favorites.length) {
-    els.favoritesPopoverContent.innerHTML = `<div class="favorites-empty"><div class="favorites-empty-icon">${iconSvg('star')}</div><p>${text('noFavorites')}</p></div>`;
+    els.favoritesPopoverContent.innerHTML = `<div class="favorites-empty"><img class="app-empty-image is-popover" src="./assets/vidogo-empty.png" alt="" /></div>`;
     return;
   }
   els.favoritesPopoverContent.innerHTML = `<div class="favorites-list">${state.favorites.map((item) => `
@@ -3496,7 +3923,7 @@ function updateAccountCopy() {
   const page = els.pages.account;
   page.querySelector('.login-title').textContent = text(state.accountMode === 'login' ? 'login' : 'registerTitle');
   page.querySelector('.login-subtitle').textContent = text(state.accountMode === 'login' ? 'loginSubtitle' : 'registerSubtitle');
-  const labels = page.querySelectorAll('.field span');
+  const labels = page.querySelectorAll('.field > span:first-child');
   labels[0].textContent = text('email');
   labels[1].textContent = text('password');
   document.getElementById('confirm-password-label').textContent = text('confirmPassword');
@@ -3517,6 +3944,12 @@ function updateAccountCopy() {
   document.getElementById('new-password-label').textContent = text('newPassword');
   els.savePasswordButton.textContent = text('savePassword');
   els.cancelPasswordButton.textContent = text('cancel');
+  els.passwordVisibilityToggles.forEach((button) => {
+    const target = document.getElementById(button.dataset.passwordTarget || '');
+    const label = text(target?.type === 'text' ? 'hidePassword' : 'showPassword');
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  });
   document.getElementById('profile-title').textContent = text('profileTitle');
   document.getElementById('profile-subtitle').textContent = text('profileSubtitle');
   document.getElementById('profile-email-label').textContent = text('email');
@@ -3570,7 +4003,25 @@ function renderOrders() {
 
 function setAccountMode(mode) {
   state.accountMode = mode === 'register' ? 'register' : 'login';
+  clearAccountAuthError();
   renderAccount();
+}
+
+let accountAuthPending = false;
+
+function clearAccountAuthError() {
+  els.accountAuthError.hidden = true;
+  els.accountAuthErrorCopy.textContent = '';
+  els.loginEmail.removeAttribute('aria-invalid');
+  els.loginPassword.removeAttribute('aria-invalid');
+  els.confirmPassword.removeAttribute('aria-invalid');
+}
+
+function showAccountAuthError(message, fields = []) {
+  clearAccountAuthError();
+  els.accountAuthErrorCopy.textContent = String(message || text('loginFailed'));
+  els.accountAuthError.hidden = false;
+  fields.forEach((field) => field?.setAttribute('aria-invalid', 'true'));
 }
 
 function isEmail(value) {
@@ -3578,9 +4029,13 @@ function isEmail(value) {
 }
 
 async function submitLocalLogin() {
+  if (accountAuthPending) return;
   const email = els.loginEmail.value.trim();
-  if (!isEmail(email)) return toast(text('invalidEmail'));
-  if (!els.loginPassword.value) return toast(text('passwordRequired'));
+  if (!isEmail(email)) return showAccountAuthError(text('invalidEmail'), [els.loginEmail]);
+  if (!els.loginPassword.value) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
+  clearAccountAuthError();
+  accountAuthPending = true;
+  els.loginButton.disabled = true;
   try {
     const data = await window.mediaDeck.loginAccount({ email, password: els.loginPassword.value });
     state.account = data?.user || {};
@@ -3589,16 +4044,48 @@ async function submitLocalLogin() {
     await syncRecordingConfiguration();
     toast(text('loginSuccess'));
   } catch (error) {
-    toast(error?.message || text('loginFailed'));
+    showAccountAuthError(text('loginFailed'), [els.loginEmail, els.loginPassword]);
+  } finally {
+    accountAuthPending = false;
+    els.loginButton.disabled = false;
   }
 }
 
+async function runAccountUiFlowTest() {
+  const failures = [];
+  const assert = (condition, message) => { if (!condition) failures.push(message); };
+  state.account = {};
+  state.accountMode = 'login';
+  state.passwordPanelOpen = false;
+  setSection('account');
+  updateAccountCopy();
+  els.loginEmail.value = 'moote@gmail.com';
+  els.loginPassword.value = 'definitely-wrong';
+  await Promise.all(Array.from({ length: 12 }, () => submitLocalLogin()));
+  assert(els.accountAuthError.hidden === false, 'Wrong-password error was not shown inline');
+  assert(els.accountAuthErrorCopy.textContent === text('loginFailed'), 'Wrong-password error exposed an internal IPC message');
+  assert(els.loginEmail.getAttribute('aria-invalid') === 'true' && els.loginPassword.getAttribute('aria-invalid') === 'true', 'Invalid account fields were not highlighted');
+  assert(els.loginButton.disabled === false, 'Login button stayed disabled after the request');
+  assert(els.toastRegion.children.length === 0, 'Wrong-password attempts created duplicate global toasts');
+  const eye = els.passwordVisibilityToggles.find((button) => button.dataset.passwordTarget === 'login-password');
+  eye?.click();
+  assert(els.loginPassword.type === 'text', 'Password visibility button did not reveal the password');
+  eye?.click();
+  assert(els.loginPassword.type === 'password', 'Password visibility button did not restore masking');
+  toast(text('noUrls'), 'warning');
+  return { ok: failures.length === 0, failures, inlineError: els.accountAuthErrorCopy.textContent, toastCount: els.toastRegion.children.length };
+}
+
 async function submitLocalRegister() {
+  if (accountAuthPending) return;
   const email = els.loginEmail.value.trim();
-  if (!isEmail(email)) return toast(text('invalidEmail'));
-  if (!els.loginPassword.value) return toast(text('passwordRequired'));
-  if (els.loginPassword.value.length < 10 || els.loginPassword.value.length > 128) return toast(text('passwordRequired'));
-  if (els.loginPassword.value !== els.confirmPassword.value) return toast(text('passwordMismatch'));
+  if (!isEmail(email)) return showAccountAuthError(text('invalidEmail'), [els.loginEmail]);
+  if (!els.loginPassword.value) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
+  if (els.loginPassword.value.length < 10 || els.loginPassword.value.length > 128) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
+  if (els.loginPassword.value !== els.confirmPassword.value) return showAccountAuthError(text('passwordMismatch'), [els.loginPassword, els.confirmPassword]);
+  clearAccountAuthError();
+  accountAuthPending = true;
+  els.registerButton.disabled = true;
   try {
     await window.mediaDeck.registerAccount({ email, password: els.loginPassword.value });
     state.account = {};
@@ -3608,7 +4095,10 @@ async function submitLocalRegister() {
     updateAccountCopy();
     toast(text('registerSuccess'));
   } catch (error) {
-    toast(error?.message || text('loginFailed'));
+    showAccountAuthError(text('loginFailed'), [els.loginEmail, els.loginPassword]);
+  } finally {
+    accountAuthPending = false;
+    els.registerButton.disabled = false;
   }
 }
 
@@ -3662,12 +4152,57 @@ async function refreshRemoteAccount() {
   return state.account;
 }
 
-function toast(message) {
+function normalizeToastMessage(message) {
+  return String(message || '')
+    .replace(/^Error invoking remote method '[^']+':\s*(?:Error:\s*)?/i, '')
+    .replace(/^Error:\s*/i, '')
+    .trim();
+}
+
+function inferToastKind(message) {
+  const copy = String(message || '').toLowerCase();
+  if (/(error|failed|failure|incorrect|invalid|unable|cannot|can't|错误|失败|不正确|无法)/i.test(copy)) return 'error';
+  if (/(success|saved|completed|started|updated|成功|已保存|已完成|已更新|已开始)/i.test(copy)) return 'success';
+  if (/(please|required|need|unavailable|请|需要|必须|暂无)/i.test(copy)) return 'warning';
+  return 'info';
+}
+
+function toast(message, requestedKind = '') {
+  const copy = normalizeToastMessage(message);
+  if (!copy) return;
+  const kind = ['info', 'success', 'warning', 'error'].includes(requestedKind)
+    ? requestedKind
+    : inferToastKind(copy);
+  const key = `${kind}:${copy}`;
+  const existing = Array.from(els.toastRegion.children).find((item) => item.dataset.toastKey === key);
+  const scheduleRemoval = (item) => {
+    window.clearTimeout(item.__removeTimer);
+    item.__removeTimer = window.setTimeout(() => item.remove(), kind === 'error' ? 6000 : 4500);
+  };
+  if (existing) {
+    existing.classList.remove('is-repeated');
+    void existing.offsetWidth;
+    existing.classList.add('is-repeated');
+    scheduleRemoval(existing);
+    return;
+  }
   const item = document.createElement('div');
-  item.className = 'toast';
-  item.textContent = String(message || '');
+  const icon = document.createElement('span');
+  const body = document.createElement('span');
+  const detail = document.createElement('span');
+  item.className = `toast toast-${kind}`;
+  item.dataset.toastKey = key;
+  item.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  icon.className = 'toast-icon';
+  icon.dataset.icon = kind === 'success' ? 'circle-check' : (kind === 'error' ? 'circle-close' : 'info-filled');
+  body.className = 'toast-copy';
+  detail.textContent = copy;
+  body.append(detail);
+  item.append(icon, body);
   els.toastRegion.appendChild(item);
-  setTimeout(() => item.remove(), 3800);
+  window.VidoGoIcons?.mount(icon, icon.dataset.icon);
+  while (els.toastRegion.children.length > 3) els.toastRegion.firstElementChild?.remove();
+  scheduleRemoval(item);
 }
 
 function bindEvents() {
@@ -3675,6 +4210,11 @@ function bindEvents() {
   els.browserStatusDownloads.addEventListener('click', () => setSection('downloads'));
   els.settingsNav.forEach((button) => button.addEventListener('click', () => setSettingsSection(button.dataset.settingsSection)));
   els.tabAdd.addEventListener('click', () => setSection('home'));
+  els.tabStrip.addEventListener('wheel', (event) => {
+    if (els.tabStrip.scrollWidth <= els.tabStrip.clientWidth || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    event.preventDefault();
+    els.tabStrip.scrollLeft += event.deltaY;
+  }, { passive: false });
   els.homeSearch.addEventListener('keydown', (event) => { if (event.key === 'Enter') openUrl(els.homeSearch.value); });
   els.back.addEventListener('click', () => activeTab()?.webview.goBack());
   els.forward.addEventListener('click', () => activeTab()?.webview.goForward());
@@ -3852,6 +4392,20 @@ function bindEvents() {
   els.registerModeButton.addEventListener('click', () => setAccountMode('register'));
   els.loginButton.addEventListener('click', () => void submitLocalLogin());
   els.registerButton.addEventListener('click', () => void submitLocalRegister());
+  [els.loginEmail, els.loginPassword, els.confirmPassword].forEach((input) => input.addEventListener('input', clearAccountAuthError));
+  els.passwordVisibilityToggles.forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = document.getElementById(button.dataset.passwordTarget || '');
+      if (!input) return;
+      const visible = input.type === 'password';
+      input.type = visible ? 'text' : 'password';
+      button.classList.toggle('is-visible', visible);
+      const label = text(visible ? 'hidePassword' : 'showPassword');
+      button.setAttribute('aria-label', label);
+      button.title = label;
+      input.focus();
+    });
+  });
   els.accountRefresh.addEventListener('click', async () => {
     try {
       await refreshRemoteAccount();
@@ -3970,6 +4524,7 @@ function bindEvents() {
         row.jobId = payload.jobId || row.jobId;
         row.status = 'error';
         row.state = 'error';
+        row.errorMessage = payload.message || 'download failed';
         saveState();
         renderDownloads();
       } else {
@@ -4037,6 +4592,8 @@ async function bootstrap() {
   window.__VIDOGO_RUN_RECORDER_FLOW_TEST = runRecorderFlowTest;
   window.__VIDOGO_RUN_OWNER_FLOW_TEST = runOwnerFlowTest;
   window.__VIDOGO_RUN_BROWSER_YOUTUBE_FLOW_TEST = runBrowserYouTubeFlowTest;
+  window.__VIDOGO_RUN_BROWSER_PLATFORM_FLOW_TEST = runBrowserPlatformFlowTest;
+  window.__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST = runAccountUiFlowTest;
   window.__VIDOGO_RUN_MANIFEST_FLOW_TEST = runManifestFlowTest;
   window.__VIDOGO_RUN_DASH_FLOW_TEST = runDashManifestFlowTest;
   if (window.mediaDeckSmokeVisualAudit) {
@@ -4116,6 +4673,10 @@ async function runRendererSelfTest() {
     'toggleMaximizeWindow',
     'closeWindow',
     'resetBrowserSession',
+    'repairDailymotionPlayback',
+    'inspectBrowserFrames',
+    'getBlockedRequestDiagnostics',
+    'getDailymotionRequestDiagnostics',
     'setPreferredLanguage',
     'setTitleBarTheme',
     'setAdBlockerEnabled',
@@ -4138,6 +4699,18 @@ async function runRendererSelfTest() {
   ];
   const missingApiMethods = requiredApiMethods.filter((name) => typeof window.mediaDeck?.[name] !== 'function');
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
+  assert(els.passwordVisibilityToggles.length === 4, 'Password visibility controls are incomplete');
+  const originalPasswordType = els.loginPassword.type;
+  els.passwordVisibilityToggles.find((button) => button.dataset.passwordTarget === 'login-password')?.click();
+  assert(els.loginPassword.type !== originalPasswordType, 'Password visibility control did not toggle the field');
+  els.passwordVisibilityToggles.find((button) => button.dataset.passwordTarget === 'login-password')?.click();
+  showAccountAuthError(text('loginFailed'), [els.loginEmail, els.loginPassword]);
+  assert(els.accountAuthError.hidden === false && els.loginPassword.getAttribute('aria-invalid') === 'true', 'Account error did not render inline');
+  clearAccountAuthError();
+  toast('Repeated smoke notice', 'error');
+  toast('Repeated smoke notice', 'error');
+  assert(Array.from(els.toastRegion.children).filter((item) => item.dataset.toastKey === 'error:Repeated smoke notice').length === 1, 'Repeated toasts were not deduplicated');
+  els.toastRegion.replaceChildren();
 
   const runtimeInfo = await window.mediaDeck.getRuntimeInfo();
   assert(runtimeInfo?.appName === 'VidoGo Basic', 'Runtime info app name mismatch');
@@ -4928,11 +5501,11 @@ async function runOwnerFlowTest(password) {
   state.account = {};
   state.orders = [];
   state.settings.recordingEnabled = false;
-  const login = await window.mediaDeck.loginAccount({ email: 'moote011@gmail.com', password: String(password || '') });
+  const login = await window.mediaDeck.loginAccount({ email: 'moote@gmail.com', password: String(password || '') });
   state.account = login?.user || {};
   await refreshRemoteAccount();
   const configuration = await syncRecordingConfiguration();
-  assert(state.account.email === 'moote011@gmail.com', 'Built-in owner login did not return the expected account.');
+  assert(state.account.email === 'moote@gmail.com', 'Built-in owner login did not return the expected account.');
   assert(state.account.plan === 'owner' && state.account.builtin === true, 'Built-in owner identity is missing.');
   assert(state.entitlements?.dailyLimit === null && state.entitlements?.remainingToday === null, 'Owner daily downloads are not unlimited.');
   assert(state.entitlements?.maxConcurrentDownloads === null, 'Owner concurrent downloads are not unlimited.');
@@ -5161,6 +5734,181 @@ async function runDashManifestFlowTest(pageUrl) {
         sizeBytes: variant.sizeBytes,
       })),
     } : null,
+  };
+}
+
+async function runBrowserPlatformFlowTest() {
+  const failures = [];
+  const assert = (condition, message) => {
+    if (!condition) failures.push(message);
+  };
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const targetUrl = String(window.mediaDeckSmokeBrowserUrl || '').trim();
+  const provider = MEDIA_RULES?.providerSiteForUrl?.(targetUrl);
+  let directDownloadResult = null;
+  window.__VIDOGO_SELF_TEST_PROGRESS = `browser-platform-flow:${provider || 'unknown'}:started`;
+  assert(Boolean(targetUrl && provider), `Unsupported platform smoke URL: ${targetUrl}`);
+  state.tabs.forEach((tab) => tab.webview.remove());
+  state.tabs = [];
+  state.activeTabId = null;
+  state.candidatesByTabId = {};
+  state.selectedCandidateIdsByTabId = {};
+  state.selectedMinimumResolutionByTabId = {};
+  state.mediaPanelVisible = true;
+  if (provider === 'dailymotion') await window.mediaDeck.setAdBlockerEnabled(false);
+  const tab = createTab(targetUrl, provider || 'Platform');
+  setSection('browser');
+  let guest = null;
+  let pagePolicy = null;
+  let finalFrameStatus = [];
+  let dailymotionStableSince = 0;
+  let dailymotionErrorSince = 0;
+  const deadline = Date.now() + 38000;
+  while (Date.now() < deadline) {
+    await wait(750);
+    await startActiveGuestPlaybackForSmoke();
+    guest = await inspectActiveGuestPage();
+    try {
+      pagePolicy = await Promise.race([
+        tab.webview.executeJavaScript(`({
+          cosmeticStylePresent: Boolean(document.querySelector('style[id="__vidogo_cosmetic_ad_css"]')),
+          hasAntiAdblockText: /(?:ad blocker|广告拦截)/i.test(document.body?.innerText || ''),
+          hasPlaybackErrorText: /playback error|please check your internet connection/i.test(document.body?.innerText || ''),
+          frameCount: document.querySelectorAll('iframe').length,
+          href: location.href,
+          title: document.title
+        })`, true),
+        new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]);
+    } catch {
+      pagePolicy = null;
+    }
+    const candidates = mediaCandidatesForTab(tab.id);
+    const frameStatus = provider === 'dailymotion'
+      ? await window.mediaDeck.inspectBrowserFrames(tab.webContentsId).catch(() => [])
+      : [];
+    if (provider === 'dailymotion') finalFrameStatus = frameStatus;
+    const dailymotionReady = provider === 'dailymotion'
+      && guest?.readyState === 'complete'
+      && pagePolicy?.cosmeticStylePresent === false
+      && pagePolicy?.hasPlaybackErrorText === false
+      && frameStatus.every((frame) => frame.hasPlaybackError !== true)
+      && mediaCandidatesForTab(tab.id).length > 0;
+    const tiktokReady = provider === 'tiktok'
+      && Boolean(tab.activeMediaContext?.mediaId)
+      && Boolean(tab.activeMediaContext?.directUrl)
+      && candidates.length === 1;
+    if (dailymotionReady) {
+      if (!dailymotionStableSince) dailymotionStableSince = Date.now();
+      if (Date.now() - dailymotionStableSince >= 8_000) break;
+    } else {
+      dailymotionStableSince = 0;
+    }
+    const dailymotionHasPlaybackError = provider === 'dailymotion'
+      && frameStatus.some((frame) => frame.hasPlaybackError === true);
+    if (dailymotionHasPlaybackError) {
+      if (!dailymotionErrorSince) dailymotionErrorSince = Date.now();
+      if (Date.now() - dailymotionErrorSince >= 4_000) break;
+    } else {
+      dailymotionErrorSince = 0;
+    }
+    if (tiktokReady) break;
+  }
+  const candidates = mediaCandidatesForTab(tab.id);
+  const blockedRequestDiagnostics = provider === 'dailymotion'
+    ? await window.mediaDeck.getBlockedRequestDiagnostics().catch(() => [])
+    : [];
+  const dailymotionRequestDiagnostics = provider === 'dailymotion'
+    ? await window.mediaDeck.getDailymotionRequestDiagnostics().catch(() => [])
+    : [];
+  if (provider === 'dailymotion') {
+    const frameStatus = await window.mediaDeck.inspectBrowserFrames(tab.webContentsId).catch(() => []);
+    finalFrameStatus = frameStatus;
+    assert(pagePolicy?.cosmeticStylePresent === false, 'Dailymotion still received cosmetic ad-blocking CSS');
+    assert(els.browserStatusAdblockState.textContent === 'OFF', 'Dailymotion did not show the effective ad-blocking state as OFF');
+    assert(pagePolicy?.hasAntiAdblockText === false, 'Dailymotion still reported an ad blocker');
+    assert(pagePolicy?.hasPlaybackErrorText === false, 'Dailymotion still reported a playback/network error');
+    assert(frameStatus.every((frame) => frame.hasPlaybackError !== true), 'Dailymotion player frame still reported a playback/network error');
+    assert(frameStatus.some((frame) => frame.video && frame.video.readyState >= 2), 'Dailymotion player frame did not create playable video media');
+    assert(candidates.length > 0, 'Dailymotion player did not request any downloadable media streams');
+  }
+  if (provider === 'tiktok') {
+    assert(Boolean(tab.activeMediaContext?.mediaId), 'TikTok did not report the current visible video');
+    assert(candidates.length === 1, `TikTok media panel should contain one active item, got ${candidates.length}`);
+    assert(Boolean(candidates[0]?.thumbnailUrl), 'TikTok active item did not include a thumbnail');
+    assert(!/^(?:TikTok - Make Your Day|Sign up \| TikTok)$/i.test(candidates[0]?.title || ''), 'TikTok active item retained a generic page title');
+    assert(candidates[0]?.sourceClient === 'tiktok-page', 'TikTok active item did not use the current player media');
+    assert(/^https:\/\//i.test(candidates[0]?.url || '')
+      && candidates[0]?.url !== candidates[0]?.pageUrl, 'TikTok active item did not include a direct video URL');
+    assert(candidateVariants(candidates[0]).length > 0, 'TikTok active item did not include downloadable player variants');
+    const firstMediaId = tab.activeMediaContext?.mediaId;
+    try {
+      await tab.webview.executeJavaScript(`(() => {
+        const cards = Array.from(document.querySelectorAll('[data-e2e="feed-video"]'));
+        const next = cards[1];
+        if (!next) return false;
+        cards[0]?.querySelector('video')?.pause();
+        next.scrollIntoView({ block: 'center' });
+        const video = next.querySelector('video');
+        if (video) { video.muted = true; void video.play().catch(() => undefined); }
+        return true;
+      })()`, true);
+      const switchDeadline = Date.now() + 12000;
+      while (Date.now() < switchDeadline && tab.activeMediaContext?.mediaId === firstMediaId) await wait(300);
+      const switchedCandidates = mediaCandidatesForTab(tab.id);
+      assert(tab.activeMediaContext?.mediaId !== firstMediaId, 'TikTok current-video selection did not follow the next playing item');
+      assert(switchedCandidates.length === 1, `TikTok kept stale items after switching videos: ${switchedCandidates.length}`);
+      assert(switchedCandidates[0]?.pageUrl === tab.activeMediaContext?.canonicalUrl, 'TikTok media row does not match the newly active video');
+      assert(switchedCandidates[0]?.url === tab.activeMediaContext?.directUrl
+        && switchedCandidates[0]?.url !== switchedCandidates[0]?.pageUrl, 'TikTok switched row did not receive the new current-video URL');
+      if (window.mediaDeckSmokeDownload?.real && window.mediaDeckSmokeDownload?.outputDir) {
+        const currentCandidate = mediaCandidatesForTab(tab.id)[0];
+        const directUrl = candidateDownloadUrl(currentCandidate);
+        state.settings.outputDir = window.mediaDeckSmokeDownload.outputDir;
+        await startCandidateDownload(currentCandidate);
+        const downloadDeadline = Date.now() + 50000;
+        let row = state.queue.find((item) => item.url === directUrl);
+        while (Date.now() < downloadDeadline && row && !isTerminalDownloadState(row.status || row.state)) {
+          await wait(300);
+          row = state.queue.find((item) => item.url === directUrl);
+        }
+        directDownloadResult = row ? {
+          state: normalizeDownloadState(row.status || row.state),
+        path: row.path || row.savePath || null,
+        errorMessage: row.errorMessage || null,
+        diagnostics: state.downloadDiagnostics.slice(-10),
+      } : null;
+        assert(directDownloadResult?.state === 'completed', 'TikTok direct download did not complete: '
+          + (directDownloadResult?.errorMessage || directDownloadResult?.state || 'missing queue row'));
+        setSection('browser');
+      }
+    } catch (error) {
+      failures.push(`TikTok active-video switch check failed: ${error?.message || String(error)}`);
+    }
+  }
+  window.__VIDOGO_SELF_TEST_PROGRESS = `browser-platform-flow:${provider || 'unknown'}:done`;
+  return {
+    ok: failures.length === 0,
+    failures,
+    provider,
+    guest,
+    pagePolicy,
+    directDownloadResult,
+    activeMediaContext: tab.activeMediaContext,
+    blockedRequestDiagnostics,
+    dailymotionRequestDiagnostics: dailymotionRequestDiagnostics.filter((item) => item.phase === 'error' || Number(item.statusCode) >= 400).slice(-30),
+    frameStatus: finalFrameStatus,
+    candidates: candidates.map((candidate) => ({
+      id: candidate.id,
+      title: candidate.title,
+      pageUrl: candidate.pageUrl,
+      url: candidate.url,
+      provider: candidate.provider,
+      thumbnailUrl: candidate.thumbnailUrl,
+      metadataSource: candidate.metadataSource,
+      sourceClient: candidate.sourceClient,
+      variants: candidateVariants(candidate).length,
+    })),
   };
 }
 

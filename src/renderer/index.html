@@ -197,7 +197,6 @@
                   <div id="head-size">文件大小</div>
                   <div id="head-time">下载时间</div>
                   <div id="head-status">下载状态</div>
-                  <div id="head-path">保存地址</div>
                   <div id="head-action">操作</div>
                 </div>
                 <div class="download-body" id="download-body"></div>
@@ -299,8 +298,9 @@
                       </div>
                     </div>
                     <label class="field"><span>邮箱</span><input id="login-email" type="email" placeholder="输入邮箱地址" /></label>
-                    <label class="field"><span>密码</span><input id="login-password" type="password" placeholder="输入密码" /></label>
-                    <label class="field" id="confirm-password-field"><span id="confirm-password-label">确认密码</span><input id="confirm-password" type="password" placeholder="再次输入密码" /></label>
+                    <label class="field"><span>密码</span><span class="password-input-wrap"><input id="login-password" type="password" placeholder="输入密码" /><button class="password-visibility-toggle" type="button" data-password-target="login-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
+                    <label class="field" id="confirm-password-field"><span id="confirm-password-label">确认密码</span><span class="password-input-wrap"><input id="confirm-password" type="password" placeholder="再次输入密码" /><button class="password-visibility-toggle" type="button" data-password-target="confirm-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
+                    <p class="account-auth-error" id="account-auth-error" role="alert" aria-live="assertive" hidden><span data-icon="circle-close" aria-hidden="true"></span><span id="account-auth-error-copy"></span></p>
                     <div class="login-actions is-split">
                       <button class="login-button" id="login-button" type="button">登录</button>
                       <button class="ghost-button" id="register-mode-button" type="button">注册</button>
@@ -335,8 +335,8 @@
                       <p id="password-subtitle">通过管理平台安全更新账户密码。</p>
                     </div>
                   </div>
-                  <label class="field"><span id="old-password-label">当前密码</span><input id="old-password" type="password" /></label>
-                  <label class="field"><span id="new-password-label">新密码</span><input id="new-password" type="password" /></label>
+                  <label class="field"><span id="old-password-label">当前密码</span><span class="password-input-wrap"><input id="old-password" type="password" /><button class="password-visibility-toggle" type="button" data-password-target="old-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
+                  <label class="field"><span id="new-password-label">新密码</span><span class="password-input-wrap"><input id="new-password" type="password" /><button class="password-visibility-toggle" type="button" data-password-target="new-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
                   <div class="login-actions">
                     <button class="login-button" id="save-password-button" type="button">保存密码</button>
                     <button class="ghost-button" id="cancel-password-button" type="button">取消</button>
@@ -403,7 +403,7 @@
                   <div class="settings-section">
                     <div class="setting-copy">
                       <div class="setting-label" id="settings-adblock-title">广告拦截</div>
-                      <p id="settings-adblock-description">拦截广告、统计和跟踪请求。</p>
+                      <p id="settings-adblock-description"><span id="settings-adblock-description-copy">拦截广告、统计和跟踪请求。</span><span class="setting-inline-notice" id="settings-adblock-notice">注意：应部分平台的播放要求，VidoGo 会保留必要广告，因此无法屏蔽所有广告。</span></p>
                     </div>
                     <div class="setting-control">
                       <label class="settings-switch"><input id="settings-adblock-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-adblock-state">开启</span></label>

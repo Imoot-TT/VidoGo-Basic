@@ -35,6 +35,39 @@
     return parsed.pathname.split('/').filter(Boolean);
   }
 
+  function providerSiteForUrl(rawUrl) {
+    let parsed;
+    try {
+      parsed = new URL(String(rawUrl || '').trim());
+    } catch {
+      return null;
+    }
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'youtu.be' || isHostOrSubdomain(host, 'youtube.com') || isHostOrSubdomain(host, 'youtube-nocookie.com')) return 'youtube';
+    if (isHostOrSubdomain(host, 'vimeo.com')) return 'vimeo';
+    if (isHostOrSubdomain(host, 'tiktok.com')) return 'tiktok';
+    if (isHostOrSubdomain(host, 'instagram.com')) return 'instagram';
+    if (host === 'fb.watch' || isHostOrSubdomain(host, 'facebook.com')) return 'facebook';
+    if (isHostOrSubdomain(host, 'x.com') || isHostOrSubdomain(host, 'twitter.com')) return 'twitter';
+    if (host === 'dai.ly' || isHostOrSubdomain(host, 'dailymotion.com')) return 'dailymotion';
+    if (isHostOrSubdomain(host, 'reddit.com')) return 'reddit';
+    if (isHostOrSubdomain(host, 'rumble.com')) return 'rumble';
+    if (isHostOrSubdomain(host, 'twitch.tv')) return 'twitch';
+    if (isHostOrSubdomain(host, 'snapchat.com')) return 'snapchat';
+    if (isHostOrSubdomain(host, 'kick.com')) return 'kick';
+    if (isHostOrSubdomain(host, 'sooplive.com') || isHostOrSubdomain(host, 'sooplive.co.kr')) return 'soop';
+    if (isHostOrSubdomain(host, 'chzzk.naver.com')) return 'chzzk';
+    if (isHostOrSubdomain(host, 'nicovideo.jp')) return 'niconico';
+    return null;
+  }
+
+  function isProviderMediaContext(contextUrl, mediaUrl) {
+    const contextProvider = providerSiteForUrl(contextUrl);
+    const mediaPage = classifyMediaPage(mediaUrl);
+    return Boolean(contextProvider && mediaPage && contextProvider === mediaPage.provider);
+  }
+
   function matchMediaPage(parsed) {
     const host = parsed.hostname.toLowerCase();
     const pathname = parsed.pathname.replace(/\/+$/, '') || '/';
@@ -224,10 +257,12 @@
   return Object.freeze({
     MIN_MEDIA_CANDIDATE_SIZE_BYTES,
     classifyMediaPage,
+    isProviderMediaContext,
     isHostOrSubdomain,
     isPlaylistResource,
     isSupportedMetadataPage,
     normalizePageUrl,
+    providerSiteForUrl,
     shouldIgnoreRawMediaResource,
   });
 }));

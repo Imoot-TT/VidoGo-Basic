@@ -52,6 +52,11 @@ for (const asset of expectedAssets) {
   assert(stat.size > 0, `Icon asset is empty: ${asset}`);
   assert(app.includes(`./assets/${asset}`), `Icon asset is not referenced: ${asset}`);
 }
+assert(fs.statSync(path.join(assetDir, 'vidogo-empty.png')).size > 0, 'Shared empty-state artwork is missing');
+assert(app.includes('./assets/vidogo-empty.png'), 'Shared empty-state artwork is not wired into the renderer');
+assert(!app.includes('downloads-empty-icon') && !app.includes('history-empty-icon') && !app.includes('favorites-empty-icon'), 'Menu empty states must use the shared artwork instead of tiny placeholder icons');
+assert((app.match(/menu-empty-state/g) || []).length === 3, 'Download, history, and favorites pages must share one aligned empty-state layout');
+assert(!/menu-empty-state[^`]*<p>/.test(app), 'Main menu empty states must not render redundant empty-copy labels');
 
 const requiredCopy = ['浏览器', '主页', '下载', '历史', '收藏', '一键下载 · 畅享精彩', '搜索或输入网址', '套餐购买'];
 for (const copy of requiredCopy) {
@@ -139,7 +144,10 @@ assert(i18n.resolveSupportedLocale('zh-Hant-HK') === 'zh-TW', 'Traditional Chine
 assert(i18n.resolveSupportedLocale('pt-BR') === 'pt', 'Portuguese locale resolution failed');
 assert(css.includes('html[dir="rtl"] .sidebar'), 'RTL sidebar layout rules are missing');
 assert(/\.tab-strip\s*\{[^}]*flex:\s*0 1 auto/s.test(css), 'Tab strip must shrink to its VidBrowser content width');
-assert(/\.browser-tab\s*\{[^}]*width:\s*176px[^}]*max-width:\s*176px[^}]*flex:\s*0 0 176px/s.test(css), 'Browser tabs must remain at the VidBrowser 176px width');
+assert(/\.tab-strip\s*\{[^}]*overflow-x:\s*auto/s.test(css), 'Overflowing browser tabs must remain horizontally reachable');
+assert(/\.browser-tab\s*\{[^}]*width:\s*176px[^}]*min-width:\s*72px[^}]*max-width:\s*176px[^}]*flex:\s*0 1 176px/s.test(css), 'Browser tabs must shrink while retaining close controls');
+assert(app.includes('reorderBrowserTab') && app.includes("setData('text/x-vidogo-tab'"), 'Browser tabs must support drag reordering');
+assert(app.includes('scrollActiveTabIntoView'), 'The active browser tab must be scrolled into view');
 
 for (const planCode of ['pro_month', 'pro_year', 'ultimate_month', 'ultimate_year', 'lifetime']) {
   assert(app.includes(`${planCode}:`), `Reference plan product missing: ${planCode}`);
@@ -163,6 +171,7 @@ assert(main.includes('Math.min(10, concurrency)'), 'Main download queue must acc
 assert(main.includes('width: 1360') && main.includes('height: 860') && main.includes('minWidth: 980') && main.includes('minHeight: 680'), 'Main window dimensions must match VidBrowser');
 assert(main.includes("appendSwitch('disable-gpu-shader-disk-cache')") && main.includes("appendSwitch('disable-accelerated-video-decode')"), 'Electron playback compatibility switches must match VidBrowser');
 assert(/\.download-actions-cell \.el-button\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/s.test(css), 'Download row action icons must use a centered flex layout');
+assert(!html.includes('id="head-path"') && !app.includes('download-path-cell'), 'Download list must use the open-folder action instead of a redundant save-path column');
 
 const recorderTokens = [
   '__vidogoRecorderToolbar',

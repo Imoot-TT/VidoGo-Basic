@@ -6,9 +6,11 @@ const path = require('path');
 const { execFileSync, spawn } = require('child_process');
 const {
   classifyMediaPage,
+  isProviderMediaContext,
   isPlaylistResource,
   isSupportedMetadataPage,
   normalizePageUrl,
+  providerSiteForUrl,
   shouldIgnoreRawMediaResource,
 } = require('./media-rules');
 const {
@@ -26,7 +28,7 @@ const {
 } = require('./entitlements');
 const { deriveGitHubUpdateState, safeHttpsUrl } = require('./update-check');
 const {
-  BUILTIN_OWNER_SESSION_TOKEN,
+  builtinOwnerSessionToken,
   builtinOwnerUser,
   isBuiltinOwnerEmail,
   isBuiltinOwnerSession,
@@ -132,7 +134,10 @@ let browserPopupWindows = new Set();
 let browserPreferredLocale = 'zh-CN';
 let browserAcceptLanguage = ACCEPT_LANGUAGE_BY_LOCALE[browserPreferredLocale];
 let browserAdBlockerEnabled = true;
+let browserChromeVersion = '';
 let requestFeaturesRegistered = false;
+const blockedRequestDiagnostics = [];
+const dailymotionRequestDiagnostics = [];
 const mediaCandidates = new Map();
 const manifestInspectionInFlight = new Map();
 const metadataExtractionCache = new Map();
@@ -223,9 +228,9 @@ async function accountRegister(credentials = {}) {
 async function accountLogin(credentials = {}) {
   if (isBuiltinOwnerEmail(credentials.email)) {
     if (!verifyBuiltinOwnerCredentials(credentials)) throw new Error('Email or password is incorrect.');
-    accountSession = { accessToken: BUILTIN_OWNER_SESSION_TOKEN };
+    accountSession = { accessToken: builtinOwnerSessionToken(credentials.email) };
     saveAccountSession();
-    return { user: builtinOwnerUser() };
+    return { user: builtinOwnerUser(credentials.email) };
   }
   if (USE_SMOKE_ACCOUNT_MOCK) {
     const email = String(credentials.email || '').trim().toLowerCase();
@@ -241,7 +246,12 @@ async function accountLogin(credentials = {}) {
 }
 
 async function accountCurrent() {
-  if (isBuiltinOwnerSession(accountSession.accessToken)) return { user: builtinOwnerUser() };
+  if (isBuiltinOwnerSession(accountSession.accessToken)) return { user: builtinOwnerUser(accountSession.accessToken) };
+  if (String(accountSession.accessToken || '').startsWith('builtin-owner:')) {
+    accountSession = {};
+    saveAccountSession();
+    return { user: null };
+  }
   if (USE_SMOKE_ACCOUNT_MOCK) return { user: accountSession.accessToken?.startsWith('smoke:') ? smokeUser(accountSession.accessToken.slice(6)) : null };
   if (!accountSession.accessToken) return { user: null };
   try {
@@ -584,6 +594,10 @@ async function runSmokeTest(window) {
           const scenario = ${JSON.stringify(process.env.ELECTRON_SMOKE_SCENARIO || '')};
           const runnerName = scenario === 'browser-youtube-flow'
             ? '__VIDOGO_RUN_BROWSER_YOUTUBE_FLOW_TEST'
+            : (scenario === 'browser-platform-flow'
+              ? '__VIDOGO_RUN_BROWSER_PLATFORM_FLOW_TEST'
+            : (scenario === 'account-ui-flow'
+              ? '__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST'
             : (scenario === 'owner-flow'
               ? '__VIDOGO_RUN_OWNER_FLOW_TEST'
             : (scenario === 'locale-rtl'
@@ -592,9 +606,9 @@ async function runSmokeTest(window) {
                 ? '__VIDOGO_RUN_RECORDER_FLOW_TEST'
                 : (scenario === 'manifest-flow'
                   ? '__VIDOGO_RUN_MANIFEST_FLOW_TEST'
-                  : (scenario === 'dash-flow' ? '__VIDOGO_RUN_DASH_FLOW_TEST' : '__VIDOGO_RUN_SELF_TEST')))));
+              : (scenario === 'dash-flow' ? '__VIDOGO_RUN_DASH_FLOW_TEST' : '__VIDOGO_RUN_SELF_TEST')))))));
           const runnerLabel = scenario || 'self test';
-          const runnerTimeoutMs = scenario === 'browser-youtube-flow'
+          const runnerTimeoutMs = ['browser-youtube-flow', 'browser-platform-flow'].includes(scenario)
             ? 65000
             : (scenario === 'download-queue-real' ? 60000 : (scenario === 'recorder-flow' ? 40000 : 18000));
           const selfTestPromise = Promise.resolve(
@@ -753,6 +767,17 @@ function getBrowserSession() {
   return session.fromPartition(BROWSER_PARTITION);
 }
 
+function configureBrowserIdentity() {
+  const browserSession = getBrowserSession();
+  const browserUserAgent = String(browserSession.getUserAgent() || '')
+    .replace(/\s+(?:Electron|VidoGo)(?:-Basic)?\/[^\s]+/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  if (browserUserAgent) browserSession.setUserAgent(browserUserAgent);
+  browserChromeVersion = browserUserAgent.match(/Chrome\/([\d.]+)/i)?.[1] || '';
+  return browserUserAgent;
+}
+
 function setHeader(headers, name, value) {
   for (const key of Object.keys(headers)) {
     if (key.toLowerCase() === name.toLowerCase()) delete headers[key];
@@ -787,6 +812,7 @@ function classifyBrowserWindowOpen(url, openerUrl = '') {
 }
 
 function shouldBlockRequest(rawUrl, resourceType) {
+  if (isTrustedDirectMediaUrl(rawUrl)) return false;
   let parsed;
   try {
     parsed = new URL(rawUrl);
@@ -803,6 +829,46 @@ function shouldBlockRequest(rawUrl, resourceType) {
     || /[?&](?:ad_id|ad_slot|ad_unit|adurl|gclid|fbclid)=/i.test(parsed.search);
 }
 
+function webContentsUsesAdSupportedPlayback(webContentsId) {
+  const id = Number(webContentsId);
+  if (!Number.isInteger(id) || id <= 0) return false;
+  let guest = null;
+  try {
+    guest = webContents.fromId(id);
+  } catch {
+    return false;
+  }
+  if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return false;
+  return providerSiteForUrl(guest.getURL()) === 'dailymotion';
+}
+
+function requestUsesAdSupportedPlayback(details = {}) {
+  if (webContentsUsesAdSupportedPlayback(details.webContentsId)) return true;
+  const frame = details.frame;
+  const contextUrls = [
+    details.referrer,
+    details.initiator,
+    frame?.url,
+    frame?.top?.url,
+    frame?.parent?.url,
+  ];
+  try { contextUrls.push(details.webContents?.getURL?.()); } catch { /* request may outlive its contents */ }
+  return contextUrls.some((value) => providerSiteForUrl(value) === 'dailymotion');
+}
+
+function frameUsesAdSupportedPlayback(frame) {
+  const contextUrls = [frame?.url, frame?.top?.url, frame?.parent?.url];
+  return contextUrls.some((value) => providerSiteForUrl(value) === 'dailymotion');
+}
+
+function sendAdBlockerState() {
+  for (const contents of webContents.getAllWebContents()) {
+    if (!contents.isDestroyed() && contents.getType() === 'webview') {
+      contents.send('browser:ad-blocker-changed', browserAdBlockerEnabled);
+    }
+  }
+}
+
 function looksLikeMedia(details) {
   const mime = String(getResponseHeader(details.responseHeaders, 'content-type') || '').split(';')[0].trim().toLowerCase();
   if (MEDIA_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix))) return true;
@@ -815,7 +881,14 @@ function looksLikeMedia(details) {
 }
 
 function browserPageContext(webContentsId) {
-  const guest = webContents.fromId(Number(webContentsId));
+  const id = Number(webContentsId);
+  if (!Number.isInteger(id) || id <= 0) return { pageUrl: null, pageTitle: null, userAgent: null };
+  let guest = null;
+  try {
+    guest = webContents.fromId(id);
+  } catch {
+    return { pageUrl: null, pageTitle: null, userAgent: null };
+  }
   if (!guest || guest.isDestroyed()) return { pageUrl: null, pageTitle: null, userAgent: null };
   const pageUrl = normalizePageUrl(guest.getURL());
   const pageTitle = String(guest.getTitle() || '').trim() || null;
@@ -1006,16 +1079,43 @@ function registerBrowserRequestFeatures() {
   requestFeaturesRegistered = true;
   const browserSession = getBrowserSession();
   browserSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
-    callback({ cancel: browserAdBlockerEnabled && shouldBlockRequest(details.url, details.resourceType) });
+    const pageAllowsAds = requestUsesAdSupportedPlayback(details);
+    const cancel = browserAdBlockerEnabled && !pageAllowsAds && shouldBlockRequest(details.url, details.resourceType);
+    if (cancel && IS_SMOKE_TEST) {
+      blockedRequestDiagnostics.push({
+        url: details.url,
+        resourceType: details.resourceType,
+        webContentsId: details.webContentsId,
+        referrer: details.referrer || '',
+        initiator: details.initiator || '',
+        frameUrl: details.frame?.url || '',
+        topFrameUrl: details.frame?.top?.url || '',
+      });
+      if (blockedRequestDiagnostics.length > 200) blockedRequestDiagnostics.splice(0, blockedRequestDiagnostics.length - 200);
+    }
+    callback({ cancel });
   });
   browserSession.webRequest.onBeforeSendHeaders({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
     const requestHeaders = { ...details.requestHeaders };
     setHeader(requestHeaders, 'Accept-Language', browserAcceptLanguage);
+    const chromeMajor = browserChromeVersion.split('.')[0];
+    if (chromeMajor) {
+      setHeader(requestHeaders, 'Sec-CH-UA', `"Not_A Brand";v="99", "Google Chrome";v="${chromeMajor}", "Chromium";v="${chromeMajor}"`);
+      setHeader(requestHeaders, 'Sec-CH-UA-Full-Version-List', `"Not_A Brand";v="99.0.0.0", "Google Chrome";v="${browserChromeVersion}", "Chromium";v="${browserChromeVersion}"`);
+    }
     callback({ requestHeaders });
   });
   browserSession.webRequest.onHeadersReceived({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+    if (IS_SMOKE_TEST && /(?:dailymotion|dmxleo|cdndirector)/i.test(details.url)) {
+      dailymotionRequestDiagnostics.push({ phase: 'headers', url: details.url, statusCode: details.statusCode, resourceType: details.resourceType });
+      if (dailymotionRequestDiagnostics.length > 300) dailymotionRequestDiagnostics.splice(0, dailymotionRequestDiagnostics.length - 300);
+    }
     rememberMediaCandidate(details);
     callback({ responseHeaders: details.responseHeaders });
+  });
+  browserSession.webRequest.onErrorOccurred({ urls: ['http://*/*', 'https://*/*'] }, (details) => {
+    if (!IS_SMOKE_TEST || !/(?:dailymotion|dmxleo|cdndirector)/i.test(details.url)) return;
+    dailymotionRequestDiagnostics.push({ phase: 'error', url: details.url, error: details.error, resourceType: details.resourceType });
   });
 }
 
@@ -1151,7 +1251,8 @@ async function extractPageMediaCandidates(pageUrl, webContentsId, force = false)
   if (!page || !Number.isFinite(id) || id <= 0) return [];
   const guest = webContents.fromId(id);
   if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return [];
-  if (normalizePageUrl(guest.getURL()) !== normalizedUrl) return [];
+  const guestUrl = normalizePageUrl(guest.getURL());
+  if (guestUrl !== normalizedUrl && !isProviderMediaContext(guestUrl, normalizedUrl)) return [];
   if (IS_SMOKE_TEST) return [];
 
   const cacheKey = `${id}:${normalizedUrl}`;
@@ -1171,7 +1272,9 @@ async function extractPageMediaCandidates(pageUrl, webContentsId, force = false)
         provider: page.provider,
         webContentsId: id,
       }, cookiePath);
-      if (generation !== metadataGeneration || normalizePageUrl(guest.getURL()) !== normalizedUrl) return [];
+      const currentGuestUrl = normalizePageUrl(guest.getURL());
+      if (generation !== metadataGeneration
+        || (currentGuestUrl !== normalizedUrl && !isProviderMediaContext(currentGuestUrl, normalizedUrl))) return [];
       const normalizedCandidates = candidates.slice(0, 10).map((candidate) => ({
         ...candidate,
         webContentsId: id,
@@ -1444,6 +1547,259 @@ function sendDownloadJobEvent(job, payload) {
   });
 }
 
+async function repairDailymotionPlayback() {
+  const browserSession = getBrowserSession();
+  await Promise.allSettled([
+    browserSession.clearCache(),
+    browserSession.clearStorageData({
+      origin: 'https://www.dailymotion.com',
+      storages: ['serviceworkers', 'cachestorage'],
+    }),
+  ]);
+  return { repaired: true };
+}
+
+async function inspectBrowserFrames(webContentsId) {
+  const id = Number(webContentsId);
+  if (!Number.isInteger(id) || id <= 0) return [];
+  const guest = webContents.fromId(id);
+  if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return [];
+  const mainFrame = guest.mainFrame;
+  const frames = [mainFrame, ...(mainFrame?.framesInSubtree || [])].filter(Boolean);
+  const uniqueFrames = Array.from(new Map(frames.map((frame) => [`${frame.processId}:${frame.routingId}`, frame])).values());
+  return Promise.all(uniqueFrames.map(async (frame) => {
+    const status = await frame.executeJavaScript(`(() => {
+      const copy = String(document.body?.innerText || '');
+      const video = document.querySelector('video');
+      return {
+        hasPlaybackError: /playback error|please check your internet connection/i.test(copy),
+        hasAntiAdblockText: /(?:ad blocker|adblock|\u5e7f\u544a\u62e6\u622a)/i.test(copy),
+        cosmeticStylePresent: Boolean(document.querySelector('style[id="__vidogo_cosmetic_ad_css"]')),
+        text: copy.replace(/\s+/g, ' ').trim().slice(0, 240),
+        codecSupport: {
+          h264: document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"'),
+          hls: document.createElement('video').canPlayType('application/vnd.apple.mpegurl'),
+          mseH264: typeof MediaSource !== 'undefined' && MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E, mp4a.40.2"'),
+        },
+        video: video ? {
+          paused: video.paused,
+          ended: video.ended,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          currentTime: video.currentTime,
+          currentSrc: video.currentSrc,
+          error: video.error ? { code: video.error.code, message: video.error.message } : null,
+        } : null,
+      };
+    })()`, true).catch(() => null);
+    return { url: frame.url, ...(status || {}) };
+  }));
+}
+
+const DIRECT_MEDIA_HOST_SUFFIXES = [
+  'tiktok.com',
+  'tiktokcdn.com',
+  'tiktokcdn-us.com',
+  'muscdn.com',
+  'byteoversea.com',
+];
+
+function isTrustedDirectMediaUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    const host = parsed.hostname.toLowerCase();
+    return parsed.protocol === 'https:'
+      && !parsed.username
+      && !parsed.password
+      && DIRECT_MEDIA_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith('.' + suffix));
+  } catch {
+    return false;
+  }
+}
+
+function safeDirectDownloadStem(value) {
+  const cleaned = String(value || 'TikTok video')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/[. ]+$/g, '')
+    .trim()
+    .slice(0, 120);
+  const fallback = cleaned || 'TikTok video';
+  return /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(fallback) ? '_' + fallback : fallback;
+}
+
+async function reserveDirectDownloadPaths(outputDir, title) {
+  const root = path.resolve(String(outputDir || '').trim() || path.join(app.getPath('downloads'), APP_NAME));
+  await fs.mkdir(root, { recursive: true });
+  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
+  const stem = date + ' - ' + safeDirectDownloadStem(title);
+  for (let index = 0; index < 1000; index += 1) {
+    const suffix = index ? ' (' + (index + 1) + ')' : '';
+    const taskDir = path.join(root, stem + suffix);
+    try {
+      await fs.mkdir(taskDir);
+      return {
+        taskDir,
+        finalPath: path.join(taskDir, 'video.mp4'),
+        temporaryPath: path.join(taskDir, '.video.download'),
+      };
+    } catch (error) {
+      if (error?.code !== 'EEXIST') throw error;
+    }
+  }
+  throw new Error('Could not reserve a download folder.');
+}
+
+function openDirectMediaResponse(url, signal, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const request = net.request({
+      method: 'GET',
+      url,
+      headers,
+    });
+    const abort = () => request.abort();
+    signal?.addEventListener('abort', abort, { once: true });
+    request.once('response', (response) => {
+      signal?.removeEventListener('abort', abort);
+      resolve(response);
+    });
+    request.once('error', (error) => {
+      signal?.removeEventListener('abort', abort);
+      reject(error);
+    });
+    request.end();
+  });
+}
+
+async function directMediaRequestHeaders(url, referrer, includeRange = false) {
+  const cookies = await getBrowserSession().cookies.get({ url }).catch(() => []);
+  return {
+    Accept: '*/*',
+    Referer: referrer || 'https://www.tiktok.com/',
+    'User-Agent': getBrowserSession().getUserAgent(),
+    ...(cookies.length ? { Cookie: cookies.map((cookie) => cookie.name + '=' + cookie.value).join('; ') } : {}),
+    ...(includeRange ? { Range: 'bytes=0-' } : {}),
+  };
+}
+
+function directResponseHeader(response, name) {
+  const value = response?.headers?.[String(name || '').toLowerCase()];
+  return Array.isArray(value) ? value[0] : value || null;
+}
+
+async function downloadDirectThumbnail(taskDir, thumbnailUrl, referrer, signal) {
+  if (!isTrustedDirectMediaUrl(thumbnailUrl)) return null;
+  try {
+    const headers = await directMediaRequestHeaders(thumbnailUrl, referrer);
+    const response = await openDirectMediaResponse(thumbnailUrl, signal, headers);
+    if (response.statusCode < 200 || response.statusCode >= 300) return null;
+    const contentType = String(directResponseHeader(response, 'content-type') || '').toLowerCase();
+    const extension = contentType.includes('png') ? '.png'
+      : (contentType.includes('webp') ? '.webp' : '.jpg');
+    const chunks = [];
+    let contentLength = 0;
+    for await (const chunk of response) {
+      contentLength += chunk.length;
+      if (contentLength > 20 * 1024 * 1024) return null;
+      chunks.push(chunk);
+    }
+    if (!contentLength) return null;
+    const coverPath = path.join(taskDir, 'cover' + extension);
+    await fs.writeFile(coverPath, Buffer.concat(chunks));
+    return coverPath;
+  } catch {
+    return null;
+  }
+}
+
+function spawnDirectDownloadJob(job) {
+  const abortController = new AbortController();
+  job.abortController = abortController;
+  activeDownloadJobs.set(job.id, job);
+  sendDownloadQueueState();
+  void (async () => {
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    job.temporaryPath = reserved.temporaryPath;
+    job.taskDir = reserved.taskDir;
+    const startedAt = Date.now();
+    let downloadedBytes = 0;
+    let totalBytes = 0;
+    let lastProgressAt = 0;
+    let handle = null;
+    try {
+      const headers = await directMediaRequestHeaders(job.url, job.task.referrer, true);
+      const response = await openDirectMediaResponse(job.url, abortController.signal, headers);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw new Error('Direct media request failed with HTTP ' + response.statusCode + '.');
+      }
+      totalBytes = Math.max(0, Number(directResponseHeader(response, 'content-length') || 0));
+      handle = await fs.open(reserved.temporaryPath, 'w');
+      for await (const chunk of response) {
+        if (job.cancelled) throw new Error('Download cancelled.');
+        await handle.write(chunk);
+        downloadedBytes += chunk.length;
+        const now = Date.now();
+        if (now - lastProgressAt < 250) continue;
+        lastProgressAt = now;
+        const elapsedSeconds = Math.max(0.001, (now - startedAt) / 1000);
+        sendDownloadJobEvent(job, {
+          type: 'progress',
+          data: {
+            item_index: 1,
+            item_total: 1,
+            percent: totalBytes > 0 ? Math.min(99, downloadedBytes / totalBytes * 100) : 0,
+            status: 'downloading',
+            filename: reserved.finalPath,
+            downloaded_bytes: downloadedBytes,
+            total_bytes: totalBytes || null,
+            speed: downloadedBytes / elapsedSeconds,
+            eta: totalBytes > downloadedBytes ? (totalBytes - downloadedBytes) / (downloadedBytes / elapsedSeconds) : 0,
+          },
+        });
+      }
+      await handle.close();
+      handle = null;
+      if (!downloadedBytes) throw new Error('Direct media request returned no data.');
+      await fs.rename(reserved.temporaryPath, reserved.finalPath);
+      const coverPath = await downloadDirectThumbnail(
+        reserved.taskDir,
+        job.task.thumbnailUrl,
+        job.task.referrer,
+        abortController.signal,
+      );
+      sendDownloadJobEvent(job, {
+        type: 'progress',
+        data: {
+          item_index: 1,
+          item_total: 1,
+          percent: 100,
+          status: 'completed',
+          filename: reserved.finalPath,
+          task_dir: reserved.taskDir,
+          thumbnail_filename: coverPath,
+          downloaded_bytes: downloadedBytes,
+          total_bytes: downloadedBytes,
+          speed: 0,
+          eta: 0,
+        },
+      });
+      sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
+    } catch (error) {
+      if (handle) await handle.close().catch(() => {});
+      await fs.unlink(reserved.temporaryPath).catch(() => {});
+      await fs.rmdir(reserved.taskDir).catch(() => {});
+      if (!job.cancelled) {
+        sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
+      }
+    } finally {
+      activeDownloadJobs.delete(job.id);
+      releaseDownloadJobCookie(job);
+      pumpDownloadQueue();
+      sendDownloadQueueState();
+    }
+  })();
+}
+
 function spawnDownloadWorker(job) {
   const { task } = job;
   const launch = resolveWorkerLaunch('download');
@@ -1514,6 +1870,89 @@ function spawnDownloadWorker(job) {
   }));
 }
 
+function spawnBrowserDownloadJob(job) {
+  activeDownloadJobs.set(job.id, job);
+  sendDownloadQueueState();
+  void (async () => {
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    const guestId = Number(job.task.webContentsId);
+    let guest = null;
+    try {
+      guest = Number.isInteger(guestId) && guestId > 0 ? webContents.fromId(guestId) : null;
+    } catch {
+      guest = null;
+    }
+    if (!guest || guest.isDestroyed()) throw new Error('The source tab is no longer available.');
+    await new Promise((resolve, reject) => {
+      const browserSession = getBrowserSession();
+      const timeout = setTimeout(() => {
+        browserSession.removeListener('will-download', onWillDownload);
+        reject(new Error('The browser did not start the media download.'));
+      }, 12000);
+      const onWillDownload = (_event, item, sourceContents) => {
+        if (sourceContents?.id !== guestId || item.getURL() !== job.url) return;
+        clearTimeout(timeout);
+        browserSession.removeListener('will-download', onWillDownload);
+        job.downloadItem = item;
+        item.setSavePath(reserved.temporaryPath);
+        item.on('updated', (_downloadEvent, stateValue) => {
+          if (stateValue === 'interrupted') return;
+          const received = item.getReceivedBytes();
+          const total = item.getTotalBytes();
+          sendDownloadJobEvent(job, {
+            type: 'progress',
+            data: {
+              item_index: 1,
+              item_total: 1,
+              percent: total > 0 ? Math.min(99, received / total * 100) : 0,
+              status: 'downloading',
+              filename: reserved.finalPath,
+              downloaded_bytes: received,
+              total_bytes: total || null,
+              speed: 0,
+              eta: 0,
+            },
+          });
+        });
+        item.once('done', (_downloadEvent, stateValue) => {
+          if (stateValue === 'completed') resolve();
+          else reject(new Error(stateValue === 'cancelled' ? 'Download cancelled.' : 'Browser media download failed.'));
+        });
+      };
+      browserSession.on('will-download', onWillDownload);
+      guest.downloadURL(job.url);
+    });
+    await fs.rename(reserved.temporaryPath, reserved.finalPath);
+    const fileStat = await fs.stat(reserved.finalPath);
+    sendDownloadJobEvent(job, {
+      type: 'progress',
+      data: {
+        item_index: 1,
+        item_total: 1,
+        percent: 100,
+        status: 'completed',
+        filename: reserved.finalPath,
+        task_dir: reserved.taskDir,
+        thumbnail_filename: null,
+        downloaded_bytes: fileStat.size,
+        total_bytes: fileStat.size,
+        speed: 0,
+        eta: 0,
+      },
+    });
+    sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
+  })().catch(async (error) => {
+    if (job.temporaryPath) await fs.unlink(job.temporaryPath).catch(() => {});
+    if (job.taskDir) await fs.rmdir(job.taskDir).catch(() => {});
+    if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
+  }).finally(() => {
+    activeDownloadJobs.delete(job.id);
+    releaseDownloadJobCookie(job);
+    pumpDownloadQueue();
+    sendDownloadQueueState();
+  });
+}
+
 function pumpDownloadQueue() {
   while (activeDownloadJobs.size + activeRecordingSessions.size < downloadConcurrencyLimit && queuedDownloadJobs.length > 0) {
     const job = queuedDownloadJobs.shift();
@@ -1522,7 +1961,11 @@ function pumpDownloadQueue() {
       continue;
     }
     try {
-      spawnDownloadWorker(job);
+      if (job.task.directDownload && isTrustedDirectMediaUrl(job.url)) {
+        spawnBrowserDownloadJob(job);
+      } else {
+        spawnDownloadWorker(job);
+      }
     } catch (error) {
       sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
       releaseDownloadJobCookie(job);
@@ -1538,8 +1981,8 @@ function resolveUrl(input) {
   return `https://${trimmed}`;
 }
 
-app.setName(APP_NAME);
-app.setAppUserModelId(APP_ID);
+app.setName(IS_SMOKE_TEST ? `${APP_NAME} Smoke ${process.pid}` : APP_NAME);
+app.setAppUserModelId(IS_SMOKE_TEST ? `${APP_ID}.smoke.${process.pid}` : APP_ID);
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 // Match VidBrowser's Windows playback compatibility profile. Hybrid/older GPU
 // drivers can decode YouTube audio while presenting a permanently black video
@@ -1577,6 +2020,7 @@ app.on('web-contents-created', (_event, contents) => {
 
 app.whenReady().then(async () => {
   await ensureUserDataPath();
+  configureBrowserIdentity();
   registerBrowserRequestFeatures();
   createWindow();
   app.on('activate', () => {
@@ -1634,11 +2078,20 @@ ipcMain.handle('browser:set-preferred-language', (_event, locale) => {
 
 ipcMain.handle('browser:get-preferred-locale', () => browserPreferredLocale);
 ipcMain.handle('recording:get-enabled', () => recordingEnabled);
+ipcMain.handle('browser:get-ad-blocker-enabled', (event) => (
+  browserAdBlockerEnabled && !frameUsesAdSupportedPlayback(event.senderFrame)
+));
 
 ipcMain.handle('browser:set-ad-blocker-enabled', (_event, enabled) => {
   browserAdBlockerEnabled = enabled !== false;
+  sendAdBlockerState();
   return browserAdBlockerEnabled;
 });
+
+ipcMain.handle('browser:repair-dailymotion-playback', () => repairDailymotionPlayback());
+ipcMain.handle('browser:inspect-frames', (_event, webContentsId) => inspectBrowserFrames(webContentsId));
+ipcMain.handle('browser:get-blocked-request-diagnostics', () => blockedRequestDiagnostics.slice());
+ipcMain.handle('browser:get-dailymotion-request-diagnostics', () => dailymotionRequestDiagnostics.slice());
 
 ipcMain.handle('app:check-for-updates', () => checkForAppUpdates());
 
@@ -2040,6 +2493,11 @@ ipcMain.handle('download:start', async (_event, task) => {
     mergeOutputFormat: normalizeMergeOutputFormat(task.mergeOutputFormat),
     referrer: normalizeDownloadReferrer(task.referrer),
     thumbnailUrl: normalizeDownloadReferrer(task.thumbnailUrl),
+    title: String(task.title || task.fileName || 'TikTok video').trim().slice(0, 300),
+    directDownload: task.directDownload === true,
+    webContentsId: Number.isInteger(Number(task.webContentsId)) && Number(task.webContentsId) > 0
+      ? Number(task.webContentsId)
+      : null,
   };
   const requestedEntries = urls.map((url) => ({
     url,
@@ -2200,6 +2658,8 @@ ipcMain.handle('download:cancel', async () => {
   for (const job of active) {
     job.cancelled = true;
     sendDownloadJobEvent(job, { type: 'cancelled' });
+    job.abortController?.abort();
+    job.downloadItem?.cancel();
     job.process?.kill();
   }
   for (const recording of activeRecordingSessions.values()) {

@@ -1,9 +1,11 @@
 const {
   MIN_MEDIA_CANDIDATE_SIZE_BYTES,
   classifyMediaPage,
+  isProviderMediaContext,
   isPlaylistResource,
   isSupportedMetadataPage,
   normalizePageUrl,
+  providerSiteForUrl,
   shouldIgnoreRawMediaResource,
 } = require('../src/media-rules');
 
@@ -57,6 +59,16 @@ for (const url of unsupportedPages) {
 assert(
   normalizePageUrl(' https://example.com/video#chapter ') === 'https://example.com/video',
   'Page URL normalization should trim input and remove fragments',
+);
+assert(providerSiteForUrl('https://www.tiktok.com/') === 'tiktok', 'TikTok collection pages should retain their provider context');
+assert(providerSiteForUrl('https://www.dailymotion.com/us') === 'dailymotion', 'Dailymotion home should retain its provider context');
+assert(
+  isProviderMediaContext('https://www.tiktok.com/', 'https://www.tiktok.com/@scout2015/video/6718335390845095173'),
+  'A TikTok feed should be allowed to analyze its active canonical video',
+);
+assert(
+  !isProviderMediaContext('https://www.tiktok.com/', 'https://www.dailymotion.com/video/x84sh87'),
+  'Active-media analysis must not cross provider boundaries',
 );
 assert(isPlaylistResource({ url: 'https://cdn.example/master.m3u8' }), 'M3U8 should be a playlist');
 assert(isPlaylistResource({ url: 'https://cdn.example/stream', mimeType: 'application/dash+xml' }), 'DASH MIME should be a playlist');
