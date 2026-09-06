@@ -1619,14 +1619,15 @@ body[data-resolved-theme="dark"] .media-kind-badge.is-playlist,
 .composer-actions button { min-width: 112px; height: 32px; }
 .downloads-row {
   display: grid;
-  min-width: 832px;
+  min-width: 1060px;
   grid-template-columns:
-    minmax(240px, 3.2fr)
-    minmax(150px, 1.5fr)
+    minmax(200px, 2.1fr)
+    minmax(145px, 1.4fr)
     minmax(72px, 0.7fr)
     minmax(72px, 0.7fr)
     minmax(112px, 0.9fr)
     minmax(68px, 0.7fr)
+    minmax(220px, 2fr)
     104px;
   gap: 10px;
   align-items: center;
@@ -1703,6 +1704,18 @@ body[data-resolved-theme="dark"] .media-kind-badge.is-playlist,
 .download-status-cell.is-completed { color: #16a34a; }
 .download-status-cell.is-error,
 .download-status-cell.is-cancelled { color: var(--app-danger); }
+.download-result-cell {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--app-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.download-result-cell.has-error { color: var(--app-danger); }
 .download-actions-cell { display: flex; width: 104px; align-items: center; justify-content: flex-end; gap: 6px; }
 .download-actions-cell .el-button { width: 32px; flex: 0 0 32px; margin: 0; padding: 0; line-height: 1; }
 .download-actions-cell .el-button .ui-icon { display: block; width: 14px; height: 14px; flex: 0 0 14px; }

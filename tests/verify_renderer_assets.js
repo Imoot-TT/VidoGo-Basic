@@ -219,6 +219,9 @@ for (const token of [
   'daily-entitlement-limit-reached',
 ]) assert(main.includes(token), `Main entitlement enforcement token missing: ${token}`);
 assert(preload.includes('getEntitlements') && preload.includes('configureEntitlements') && preload.includes('onEntitlementsChanged'), 'Entitlement renderer bridge is incomplete');
+assert(html.includes('id="head-result"'), 'Downloads table must include the result-details column header');
+assert(app.includes("resultDetails: '结果详情'") && app.includes('download-result-cell'), 'Downloads table must render localized failure details');
+assert(css.includes('minmax(220px, 2fr)') && css.includes('-webkit-line-clamp: 2'), 'Failure details column must remain wide and clamp long messages');
 assert(app.includes('retryExisting: downloadTarget?.isRetry === true'), 'Only an explicit retry may skip daily entitlement consumption');
 assert(/retryRowId:\s*rowId,\s*isRetry:\s*true,/.test(app), 'Failed-task retry must explicitly preserve its entitlement exemption');
 assert(app.includes('BATCH_RESOLVER_CONCURRENCY') && app.includes('Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length)'), 'Batch episode resolution must use a bounded parallel worker pool');

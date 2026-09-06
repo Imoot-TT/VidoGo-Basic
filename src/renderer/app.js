@@ -135,6 +135,7 @@ const TEXT = {
     fileSize: '文件大小',
     downloadTime: '下载时间',
     downloadStatus: '下载状态',
+    resultDetails: '结果详情',
     savePath: '保存地址',
     action: '操作',
     completed: '已完成',
@@ -384,6 +385,7 @@ const TEXT = {
     fileSize: 'File size',
     downloadTime: 'Download time',
     downloadStatus: 'Status',
+    resultDetails: 'Result details',
     savePath: 'Save path',
     action: 'Action',
     completed: 'Completed',
@@ -572,6 +574,8 @@ const TEXT = {
 const I18N = window.VidoGoI18n;
 if (!I18N) throw new Error('VidoGo locale module did not load');
 const TEXT_TABLES = I18N.createTextTables(TEXT);
+TEXT_TABLES['zh-CN'].resultDetails = TEXT.zh.resultDetails;
+TEXT_TABLES['zh-TW'].resultDetails = '結果詳情';
 const PLATFORM_MANAGER_TEXT = {
   'zh-CN': {
     platformLauncher: '常用平台', platformManager: '平台管理', platformManagerSubtitle: '管理主页显示的平台和分类',
@@ -1150,6 +1154,7 @@ function applyLocale() {
   document.getElementById('head-size').textContent = text('fileSize');
   document.getElementById('head-time').textContent = text('downloadTime');
   document.getElementById('head-status').textContent = text('downloadStatus');
+  document.getElementById('head-result').textContent = text('resultDetails');
   document.getElementById('head-action').textContent = text('action');
   els.historyClear.querySelector('span:last-child').textContent = text('clear');
   els.favoritesTitle.textContent = text('favoritesTitle');
@@ -5222,6 +5227,9 @@ function renderDownloads() {
     const canRetry = item.source !== 'recording' && ['error', 'cancelled'].includes(item.state);
     const canPause = item.source !== 'recording' && ['queued', 'resolving', 'connecting', 'downloading'].includes(item.state);
     const canResume = item.source !== 'recording' && item.state === 'paused';
+    const resultDetails = item.state === 'error'
+      ? userFacingDownloadError(item.errorMessage || text('invalidDownloadOutput'))
+      : '--';
     const thumbnail = item.thumbnailUrl
       ? `<span class="download-thumbnail has-thumbnail"><img src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.fileName)}" loading="lazy" /></span>`
       : `<span class="download-thumbnail" aria-hidden="true">${iconSvg('video-play')}</span>`;
@@ -5250,6 +5258,7 @@ function renderDownloads() {
         <div class="download-text-cell download-size-cell"><bdi>${isResolving ? '' : escapeHtml(item.size || '-')}</bdi></div>
         <div class="download-text-cell download-time-cell" title="${escapeHtml(formatTime(item.time))}">${escapeHtml(formatTime(item.time))}</div>
         <div class="download-status-cell is-${escapeHtml(item.state)}" title="${escapeHtml(item.errorMessage || text(item.state))}">${escapeHtml(text(item.state))}</div>
+        <div class="download-result-cell${item.state === 'error' ? ' has-error' : ''}" title="${escapeHtml(resultDetails)}"><bdi>${escapeHtml(resultDetails)}</bdi></div>
         <div class="download-actions-cell">${actionButtons}</div>
       </article>
     `;
