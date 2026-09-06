@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    { "id": "video", "labels": { "zh-CN": "视频", "zh-TW": "影片", "en": "Video" }, "enabled": true, "builtIn": true },
+    { "id": "social", "labels": { "zh-CN": "社交", "zh-TW": "社交", "en": "Social" }, "enabled": true, "builtIn": true },
+    { "id": "live", "labels": { "zh-CN": "直播", "zh-TW": "直播", "en": "Live" }, "enabled": true, "builtIn": true },
+    { "id": "stock", "labels": { "zh-CN": "素材", "zh-TW": "素材", "en": "Stock" }, "enabled": true, "builtIn": true }
+  ],
+  "platforms": [
+    { "id": "youtube", "name": "YouTube", "url": "https://www.youtube.com/", "categoryId": "video", "icon": "./assets/youtube.ico", "enabled": true, "builtIn": true },
+    { "id": "tiktok", "name": "TikTok", "url": "https://www.tiktok.com/", "categoryId": "video", "icon": "./assets/tiktok.ico", "enabled": true, "builtIn": true },
+    { "id": "douyin", "name": "抖音", "url": "https://www.douyin.com/jingxuan", "categoryId": "video", "icon": "https://www.douyin.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "vimeo", "name": "Vimeo", "url": "https://vimeo.com/", "categoryId": "video", "icon": "./assets/vimeo.ico", "enabled": true, "builtIn": true },
+    { "id": "dailymotion", "name": "Dailymotion", "url": "https://www.dailymotion.com/", "categoryId": "video", "icon": "./assets/dailymotion.ico", "enabled": true, "builtIn": true },
+    { "id": "rumble", "name": "Rumble", "url": "https://rumble.com/", "categoryId": "video", "icon": "./assets/rumble.ico", "enabled": true, "builtIn": true },
+    { "id": "instagram", "name": "Instagram", "url": "https://www.instagram.com/", "categoryId": "social", "icon": "./assets/instagram.png", "enabled": true, "builtIn": true },
+    { "id": "facebook", "name": "Facebook", "url": "https://www.facebook.com/", "categoryId": "social", "icon": "./assets/facebook.png", "enabled": true, "builtIn": true },
+    { "id": "x", "name": "X/Twitter", "url": "https://x.com/", "categoryId": "social", "icon": "./assets/x.ico", "enabled": true, "builtIn": true },
+    { "id": "reddit", "name": "Reddit", "url": "https://www.reddit.com/", "categoryId": "social", "icon": "./assets/reddit.ico", "enabled": true, "builtIn": true },
+    { "id": "snapchat", "name": "Snapchat", "url": "https://www.snapchat.com/", "categoryId": "social", "icon": "./assets/snapchat.ico", "enabled": true, "builtIn": true },
+    { "id": "twitch", "name": "Twitch", "url": "https://www.twitch.tv/", "categoryId": "live", "icon": "./assets/twitch.ico", "enabled": true, "builtIn": true },
+    { "id": "kick", "name": "Kick", "url": "https://kick.com/", "categoryId": "live", "icon": "./assets/kick.png", "enabled": true, "builtIn": true },
+    { "id": "sooplive", "name": "SoopLive", "url": "https://www.sooplive.com/", "categoryId": "live", "icon": "./assets/sooplive.ico", "enabled": true, "builtIn": true },
+    { "id": "chzzk", "name": "Chzzk", "url": "https://chzzk.naver.com/", "categoryId": "live", "icon": "./assets/chzzk.ico", "enabled": true, "builtIn": true },
+    { "id": "niconico", "name": "Niconico", "url": "https://www.nicovideo.jp/", "categoryId": "live", "icon": "./assets/niconico.ico", "enabled": true, "builtIn": true },
+    { "id": "pexels", "name": "Pexels", "url": "https://www.pexels.com/videos/", "categoryId": "stock", "icon": "https://www.pexels.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "pixabay", "name": "Pixabay", "url": "https://pixabay.com/videos/", "categoryId": "stock", "icon": "https://pixabay.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "mixkit", "name": "Mixkit", "url": "https://mixkit.co/", "categoryId": "stock", "icon": "https://mixkit.co/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "coverr", "name": "Coverr", "url": "https://coverr.co/", "categoryId": "stock", "icon": "https://coverr.co/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "videvo", "name": "Videvo", "url": "https://www.videvo.net/", "categoryId": "stock", "icon": "https://www.videvo.net/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "videezy", "name": "Videezy", "url": "https://www.videezy.com/", "categoryId": "stock", "icon": "https://www.videezy.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "distill", "name": "Distill", "url": "https://wedistill.io/", "categoryId": "stock", "icon": "https://wedistill.io/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "mazwai", "name": "Mazwai", "url": "https://mazwai.com/", "categoryId": "stock", "icon": "https://mazwai.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "life-of-vids", "name": "Life of Vids", "url": "https://lifeofvids.com/", "categoryId": "stock", "icon": "https://lifeofvids.com/favicon.ico", "enabled": true, "builtIn": true },
+    { "id": "dareful", "name": "Dareful", "url": "https://dareful.com/", "categoryId": "stock", "icon": "https://dareful.com/favicon.ico", "enabled": true, "builtIn": true }
+  ]
+}

@@ -47,6 +47,7 @@
     if (host === 'youtu.be' || isHostOrSubdomain(host, 'youtube.com') || isHostOrSubdomain(host, 'youtube-nocookie.com')) return 'youtube';
     if (isHostOrSubdomain(host, 'vimeo.com')) return 'vimeo';
     if (isHostOrSubdomain(host, 'tiktok.com')) return 'tiktok';
+    if (isHostOrSubdomain(host, 'douyin.com')) return 'douyin';
     if (isHostOrSubdomain(host, 'instagram.com')) return 'instagram';
     if (host === 'fb.watch' || isHostOrSubdomain(host, 'facebook.com')) return 'facebook';
     if (isHostOrSubdomain(host, 'x.com') || isHostOrSubdomain(host, 'twitter.com')) return 'twitter';
@@ -59,6 +60,17 @@
     if (isHostOrSubdomain(host, 'sooplive.com') || isHostOrSubdomain(host, 'sooplive.co.kr')) return 'soop';
     if (isHostOrSubdomain(host, 'chzzk.naver.com')) return 'chzzk';
     if (isHostOrSubdomain(host, 'nicovideo.jp')) return 'niconico';
+    if (isHostOrSubdomain(host, 'pexels.com')) return 'pexels';
+    if (isHostOrSubdomain(host, 'pixabay.com')) return 'pixabay';
+    if (isHostOrSubdomain(host, 'mixkit.co')) return 'mixkit';
+    if (isHostOrSubdomain(host, 'coverr.co')) return 'coverr';
+    if (isHostOrSubdomain(host, 'videvo.net')) return 'videvo';
+    if (isHostOrSubdomain(host, 'videezy.com')) return 'videezy';
+    if (isHostOrSubdomain(host, 'wedistill.io')) return 'distill';
+    if (isHostOrSubdomain(host, 'mazwai.com')) return 'mazwai';
+    if (isHostOrSubdomain(host, 'lifeofvids.com')) return 'lifeofvids';
+    if (isHostOrSubdomain(host, 'dareful.com')) return 'dareful';
+    if (isHostOrSubdomain(host, 'agedm.io')) return 'agedm';
     return null;
   }
 
@@ -100,6 +112,13 @@
       if ((host === 'vm.tiktok.com' || host === 'vt.tiktok.com') && shareId) {
         return { provider: 'tiktok', mediaId: shareId, pageKind: 'share' };
       }
+    }
+
+    if (isHostOrSubdomain(host, 'douyin.com')) {
+      const modalId = parsed.searchParams.get('modal_id');
+      const videoId = pathname.match(/^\/video\/(\d+)/i)?.[1]
+        || (/^\d{12,}$/.test(String(modalId || '')) ? modalId : null);
+      if (videoId) return { provider: 'douyin', mediaId: videoId, pageKind: 'video' };
     }
 
     if (isHostOrSubdomain(host, 'instagram.com')) {
@@ -194,6 +213,36 @@
     if (host === 'live.nicovideo.jp') {
       const liveId = pathname.match(/^\/watch\/(lv\d+)/i)?.[1];
       if (liveId) return { provider: 'niconico', mediaId: liveId, pageKind: 'live' };
+    }
+
+    if (isHostOrSubdomain(host, 'pexels.com')) {
+      const mediaId = pathname.match(/^\/(?:video|download)\/[^/]*?(\d{4,})(?:\/|$)/i)?.[1];
+      if (mediaId) return { provider: 'pexels', mediaId, pageKind: 'stock-video' };
+    }
+    if (isHostOrSubdomain(host, 'pixabay.com')) {
+      const mediaId = pathname.match(/^\/(?:videos|download)\/[^/]*?(\d{3,})(?:\/|$)/i)?.[1];
+      if (mediaId) return { provider: 'pixabay', mediaId, pageKind: 'stock-video' };
+    }
+    if (isHostOrSubdomain(host, 'mixkit.co')) {
+      const mediaId = pathname.match(/^\/free-stock-video\/[^/]*?(\d{3,})(?:\/|$)/i)?.[1];
+      if (mediaId) return { provider: 'mixkit', mediaId, pageKind: 'stock-video' };
+    }
+    if (isHostOrSubdomain(host, 'coverr.co')) {
+      const slug = pathname.match(/^\/videos\/([^/]+)/i)?.[1];
+      if (slug) return { provider: 'coverr', mediaId: slug, pageKind: 'stock-video' };
+    }
+    if (isHostOrSubdomain(host, 'videvo.net')) {
+      const mediaId = pathname.match(/\/(?:video|download)\/[^/]*\/?(\d{3,})?(?:\/|$)/i)?.[1];
+      if (mediaId) return { provider: 'videvo', mediaId, pageKind: 'stock-video' };
+    }
+    if (isHostOrSubdomain(host, 'videezy.com')) {
+      const mediaId = pathname.match(/\/(\d{3,})-[^/]+/i)?.[1];
+      if (mediaId) return { provider: 'videezy', mediaId, pageKind: 'stock-video' };
+    }
+
+    if (isHostOrSubdomain(host, 'agedm.io')) {
+      const episode = pathname.match(/^\/play\/([^/]+)\/(\d+)\/(\d+)/i);
+      if (episode) return { provider: 'agedm', mediaId: `${episode[1]}-${episode[2]}-${episode[3]}`, pageKind: 'episode' };
     }
 
     return null;

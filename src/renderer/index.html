@@ -21,6 +21,11 @@
           <img class="titlebar-mark" src="./assets/vidogo-app-icon-16.png" alt="" width="16" height="16">
           <strong class="titlebar-title" id="window-title">VidoGo</strong>
         </div>
+        <button class="titlebar-account" id="titlebar-account" type="button" aria-label="查看账户信息">
+          <span class="titlebar-account-state" id="titlebar-account-state">未登录</span>
+          <span class="titlebar-account-separator" aria-hidden="true"></span>
+          <span class="titlebar-account-quota" id="titlebar-account-quota">今日剩余 5/5</span>
+        </button>
       </header>
 
       <div class="workspace">
@@ -37,11 +42,11 @@
 
         <main class="main">
           <section class="tabbar tab-bar" id="browser-tabbar" aria-label="标签栏">
-            <div class="tab-strip tabs-strip" id="tab-strip"></div>
+            <div class="tab-strip tabs-strip" id="tab-strip"><button class="tab home-tab-button active is-active" type="button"><span data-icon="house" class="ui-icon tab-icon"></span><span class="tab-title browser-tab-title">主页</span></button></div>
             <button class="tab-add new-tab-button" id="tab-add" type="button" aria-label="新建标签页" title="新建标签页"><span data-icon="plus"></span></button>
           </section>
 
-          <section class="page" id="page-home">
+          <section class="page active" id="page-home">
             <div class="home-page browser-home">
               <div class="browser-home-content">
               <div class="brand browser-home-brand">
@@ -49,25 +54,11 @@
                 <div class="brand-underline"></div>
                 <div class="brand-tagline" id="home-tagline">一键下载 · 畅享精彩</div>
               </div>
-              <div class="home-search home-address-input">
-                <span class="input-prefix" data-icon="search"></span>
-                <input id="home-search-input" type="text" placeholder="搜索或输入网址" spellcheck="false" />
-              </div>
               <section class="popular-sites" aria-label="常用站点">
-              <div class="quick-grid popular-site-groups">
-                <div class="quick-row popular-site-group">
-                  <div class="quick-label" id="quick-video-label">视频</div>
-                  <div class="quick-cards popular-site-list" data-group="video"></div>
-                </div>
-                <div class="quick-row popular-site-group">
-                  <div class="quick-label" id="quick-social-label">社交</div>
-                  <div class="quick-cards popular-site-list" data-group="social"></div>
-                </div>
-                <div class="quick-row popular-site-group">
-                  <div class="quick-label" id="quick-live-label">直播</div>
-                  <div class="quick-cards popular-site-list" data-group="live"></div>
-                </div>
-              </div>
+                <header class="popular-sites-header">
+                  <button class="platform-manage-button" id="platform-manage-button" type="button"><span id="platform-manage-label">平台管理</span><span class="platform-manage-arrow" data-icon="arrow-right" aria-hidden="true"></span></button>
+                </header>
+                <div class="quick-grid popular-site-groups" id="platform-groups"></div>
               </section>
               <section class="home-workflow" id="home-workflow" aria-label="VidoGo 工作流">
                 <div class="home-workflow-track" aria-hidden="true"><i></i></div>
@@ -80,7 +71,7 @@
             </div>
           </section>
 
-          <section class="page active" id="page-browser">
+          <section class="page" id="page-browser">
             <div class="browser-page browser-shell">
               <div class="browser-toolbar nav-bar">
                 <div class="toolbar-nav">
@@ -89,9 +80,8 @@
                   <button id="nav-reload" type="button" title="刷新" aria-label="刷新"><span id="nav-reload-icon" data-icon="refresh"></span></button>
                 </div>
                 <div class="address-input-shell">
-                  <span class="input-prefix" data-icon="search"></span>
-                  <input class="address-input" id="address-input" type="text" placeholder="输入网址" spellcheck="false" />
-                  <button class="toolbar-go" id="address-go" type="button">访问</button>
+                  <span class="input-prefix" data-icon="lock"></span>
+                  <input class="address-input" id="address-input" type="text" placeholder="当前网页地址" spellcheck="false" readonly aria-readonly="true" tabindex="-1" />
                 </div>
                 <div class="toolbar-extra">
                   <div class="favorites-popover-anchor">
@@ -126,6 +116,14 @@
                     <button class="side-pill media-panel-tab active is-active" data-side-tab="recommend">推荐 <span class="media-tab-count" id="recommend-count">0</span></button>
                     <button class="side-pill media-panel-tab" data-side-tab="all">全部 <span class="media-tab-count" id="all-count">0</span></button>
                   </div>
+                  <div class="media-context-switch" id="media-context-switch" hidden>
+                    <button class="is-active" type="button" data-media-mode="current">当前视频</button>
+                    <button type="button" data-media-mode="batch">批量 <span id="batch-media-count">0</span></button>
+                  </div>
+                  <div class="batch-media-toolbar" id="batch-media-toolbar" hidden>
+                    <label><input id="batch-select-all" type="checkbox" /><span id="batch-select-all-label">全选</span></label>
+                    <button class="platform-primary-button" id="batch-download-selected" type="button"><span data-icon="download"></span><span id="batch-download-label">下载所选</span></button>
+                  </div>
                   <label class="field compact media-resolution-filter">
                     <span class="visually-hidden" id="browser-quality-label">分辨率筛选</span>
                     <select class="media-resolution-select" id="browser-quality"></select>
@@ -140,6 +138,10 @@
                   <span class="browser-status-item" title="Local save"><span data-icon="folder-opened" aria-hidden="true"></span><b id="browser-status-local-label">本地保存</b></span>
                   <span class="browser-status-item" title="Ad blocker"><span data-icon="circle-check" aria-hidden="true"></span><b id="browser-status-adblock-label">广告过滤</b><em id="browser-status-adblock-state">ON</em></span>
                 </div>
+                <span class="browser-status-network" id="browser-status-network" title="当前下载总速度">
+                  <span class="browser-status-network-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <b id="browser-status-network-label">网速</b><em id="browser-status-network-speed"><bdi>0 B/s</bdi></em>
+                </span>
                 <button class="browser-status-downloads" id="browser-status-downloads" type="button" title="打开下载队列">
                   <span data-icon="download" aria-hidden="true"></span><b id="browser-status-download-label">下载队列</b><em id="browser-status-download-count">0</em>
                 </button>
@@ -158,6 +160,7 @@
                   <button class="downloads-tab" data-status="error" role="tab" aria-selected="false">下载失败 <span class="downloads-tab-count">0</span></button>
                 </div>
                 <div class="downloads-toolbar-actions">
+                  <button class="downloads-retry-failed-button" id="retry-failed-downloads" type="button" hidden><span data-icon="refresh"></span><span>批量重试失败项</span></button>
                   <div class="downloads-time-filter">
                     <span class="downloads-time-icon" data-icon="timer" aria-hidden="true"></span>
                     <select class="downloads-time-filter-select" id="download-range" aria-label="时间筛选"></select>
@@ -453,19 +456,6 @@
                   <div class="settings-list">
                 <div class="settings-section">
                   <div class="setting-copy">
-                    <div class="setting-label" id="settings-search-title">默认搜索引擎</div>
-                      <p id="settings-search-description">地址栏输入关键词时使用的搜索引擎。</p>
-                    </div>
-                  <div class="setting-control">
-                    <select class="setting-select" id="settings-search-engine">
-                      <option value="google">Google</option>
-                      <option value="bing">Bing</option>
-                      <option value="duckduckgo">DuckDuckGo</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="settings-section">
-                  <div class="setting-copy">
                     <div class="setting-label" id="settings-recording-title">网页录制</div>
                     <p id="settings-recording-description">在网页视频上显示录制工具栏。该功能默认关闭。</p>
                   </div>
@@ -511,6 +501,54 @@
         </main>
       </div>
     </div>
+    <section class="platform-manager-overlay" id="platform-manager-overlay" hidden>
+      <div class="platform-manager-dialog" role="dialog" aria-modal="true" aria-labelledby="platform-manager-title">
+        <header class="platform-manager-header">
+          <div>
+            <h2 id="platform-manager-title">平台管理</h2>
+            <p id="platform-manager-subtitle">管理主页显示的平台和分类</p>
+          </div>
+          <div class="platform-manager-header-actions">
+            <button class="ghost-button" id="platform-reset-button" type="button">恢复默认</button>
+            <button class="platform-dialog-close" id="platform-manager-close" type="button" aria-label="关闭"><span data-icon="close"></span></button>
+          </div>
+        </header>
+        <div class="platform-manager-body">
+          <aside class="platform-category-pane">
+            <div class="platform-pane-title"><b id="platform-category-title">分类</b><button id="platform-category-add" type="button"><span data-icon="plus"></span></button></div>
+            <div class="platform-category-list" id="platform-category-list"></div>
+          </aside>
+          <section class="platform-site-pane">
+            <div class="platform-pane-title"><b id="platform-site-title">平台</b><button class="platform-primary-button" id="platform-site-add" type="button"><span data-icon="plus"></span><span id="platform-site-add-label">添加平台</span></button></div>
+            <div class="platform-site-list" id="platform-site-list"></div>
+          </section>
+        </div>
+        <form class="platform-editor" id="platform-editor" hidden>
+          <input id="platform-edit-id" type="hidden" />
+          <label><span id="platform-edit-name-label">名称</span><input id="platform-edit-name" type="text" maxlength="60" required /></label>
+          <label><span id="platform-edit-url-label">网址</span><input id="platform-edit-url" type="url" maxlength="2048" required /></label>
+          <label><span id="platform-edit-category-label">分类</span><select id="platform-edit-category"></select></label>
+          <div class="platform-icon-field">
+            <span class="platform-editor-label" id="platform-edit-icon-label">图标</span>
+            <span class="platform-icon-preview" id="platform-icon-preview"><span data-icon="monitor"></span></span>
+            <button class="ghost-button" id="platform-icon-auto" type="button">自动获取</button>
+            <button class="ghost-button" id="platform-icon-choose" type="button">选择图片</button>
+          </div>
+          <div class="platform-editor-actions">
+            <button class="ghost-button" id="platform-edit-cancel" type="button">取消</button>
+            <button class="platform-primary-button" id="platform-edit-save" type="submit">保存</button>
+          </div>
+        </form>
+        <form class="category-editor" id="category-editor" hidden>
+          <input id="category-edit-id" type="hidden" />
+          <label><span id="category-edit-name-label">分类名称</span><input id="category-edit-name" type="text" maxlength="30" required /></label>
+          <div class="platform-editor-actions">
+            <button class="ghost-button" id="category-edit-cancel" type="button">取消</button>
+            <button class="platform-primary-button" id="category-edit-save" type="submit">保存</button>
+          </div>
+        </form>
+      </div>
+    </section>
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
   </body>
 </html>

@@ -39,9 +39,10 @@ const APP_NAME = 'VidoGo Basic';
 const RELEASE_CHANNEL = 'basic';
 const APP_ID = 'com.vidogo.desktop';
 const STORAGE_NAMESPACE = 'VidoGo Runtime';
-const RUNTIME_PROFILE = 'rebuild-v1';
-const PARTITION_NAME = 'vidogo-rebuild-v1';
+const RUNTIME_PROFILE = 'basic-0.1.3';
+const PARTITION_NAME = 'vidogo-basic-0.1.3';
 const BROWSER_PARTITION = `persist:${PARTITION_NAME}`;
+const BACKGROUND_DOWNLOAD_PARTITION = `${PARTITION_NAME}-background-downloads`;
 const IS_SMOKE_TEST = process.env.ELECTRON_SMOKE_TEST === '1';
 const USE_PERSISTENT_SMOKE_PROFILE = IS_SMOKE_TEST && process.env.ELECTRON_SMOKE_USE_PERSISTENT_PROFILE === '1';
 const USE_SMOKE_ACCOUNT_MOCK = IS_SMOKE_TEST && process.env.ELECTRON_SMOKE_REAL_ACCOUNT_API !== '1';
@@ -54,6 +55,7 @@ const SESSION_DATA_PATH = path.join(USER_DATA_PATH, 'SessionData');
 const PARTITIONS_PATH = path.join(USER_DATA_PATH, 'Partitions');
 const ENTITLEMENT_STATE_PATH = path.join(USER_DATA_PATH, 'entitlements.json');
 const ACCOUNT_SESSION_PATH = path.join(USER_DATA_PATH, 'account-session.json');
+const PLATFORM_CONFIG_PATH = path.join(USER_DATA_PATH, 'platforms.json');
 const ACCOUNT_API_ORIGIN = (() => {
   try {
     const configPath = app.isPackaged
@@ -123,6 +125,10 @@ app.setPath('sessionData', SESSION_DATA_PATH);
 let mainWindow = null;
 const activeDownloadJobs = new Map();
 const queuedDownloadJobs = [];
+const nativeDownloadPermits = new Map();
+const programmaticBrowserDownloads = new Set();
+const programmaticBrowserDownloadSources = new Map();
+const programmaticMediaRequests = new Set();
 const activeRecordingSessions = new Map();
 let downloadConcurrencyLimit = 1;
 let downloadJobCounter = 0;
@@ -139,6 +145,7 @@ let requestFeaturesRegistered = false;
 const blockedRequestDiagnostics = [];
 const dailymotionRequestDiagnostics = [];
 const mediaCandidates = new Map();
+const retainedMediaResolvers = new Map();
 const manifestInspectionInFlight = new Map();
 const metadataExtractionCache = new Map();
 const metadataExtractionInFlight = new Map();
@@ -159,6 +166,104 @@ let entitlementStore = loadEntitlementStore();
 let accountSession = loadAccountSession();
 const smokeAccounts = new Map();
 let smokeOrders = [];
+
+function bundledPlatformConfigPath() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'config', 'platforms.json')
+    : path.join(__dirname, '..', 'config', 'platforms.json');
+}
+
+function normalizePlatformId(value, fallback = 'item') {
+  const normalized = String(value || '').trim().toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64);
+  return normalized || fallback;
+}
+
+function normalizePlatformUrl(value) {
+  const parsed = new URL(String(value || '').trim());
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+    throw new Error('平台地址必须是有效的 HTTP(S) 网址。');
+  }
+  parsed.hash = '';
+  return parsed.href;
+}
+
+function normalizePlatformIcon(value) {
+  const icon = String(value || '').trim();
+  if (!icon) return '';
+  if (/^\.\/assets\/[A-Za-z0-9_.-]+$/.test(icon)) return icon;
+  if (/^https:\/\//i.test(icon) && icon.length <= 4096) return icon;
+  if (/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(icon) && icon.length <= 1024 * 1024) return icon;
+  return '';
+}
+
+function normalizePlatformConfiguration(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('平台配置格式无效。');
+  const sourceCategories = Array.isArray(value.categories) ? value.categories.slice(0, 30) : [];
+  const seenCategoryIds = new Set();
+  const categories = sourceCategories.map((item, index) => {
+    const id = normalizePlatformId(item?.id, `category-${index + 1}`);
+    if (seenCategoryIds.has(id)) return null;
+    seenCategoryIds.add(id);
+    const sourceLabels = item?.labels && typeof item.labels === 'object' ? item.labels : {};
+    const zhLabel = String(sourceLabels['zh-CN'] || item?.name || id).trim().slice(0, 30) || id;
+    const enLabel = String(sourceLabels.en || zhLabel).trim().slice(0, 30) || zhLabel;
+    return {
+      id,
+      labels: { ...sourceLabels, 'zh-CN': zhLabel, en: enLabel },
+      enabled: item?.enabled !== false,
+      builtIn: item?.builtIn === true,
+    };
+  }).filter(Boolean);
+  if (!categories.length) throw new Error('平台配置至少需要一个分类。');
+
+  const seenPlatformIds = new Set();
+  const platforms = (Array.isArray(value.platforms) ? value.platforms.slice(0, 150) : []).map((item, index) => {
+    const id = normalizePlatformId(item?.id, `platform-${index + 1}`);
+    if (seenPlatformIds.has(id)) return null;
+    seenPlatformIds.add(id);
+    const name = String(item?.name || '').trim().slice(0, 60);
+    if (!name || !seenCategoryIds.has(String(item?.categoryId || ''))) return null;
+    let url;
+    try { url = normalizePlatformUrl(item?.url); } catch { return null; }
+    return {
+      id,
+      name,
+      url,
+      categoryId: String(item.categoryId),
+      icon: normalizePlatformIcon(item.icon),
+      enabled: item?.enabled !== false,
+      builtIn: item?.builtIn === true,
+    };
+  }).filter(Boolean);
+  return { schemaVersion: 1, categories, platforms };
+}
+
+function loadDefaultPlatformConfiguration() {
+  return normalizePlatformConfiguration(JSON.parse(fsSync.readFileSync(bundledPlatformConfigPath(), 'utf8')));
+}
+
+async function loadPlatformConfiguration() {
+  try {
+    return normalizePlatformConfiguration(JSON.parse(await fs.readFile(PLATFORM_CONFIG_PATH, 'utf8')));
+  } catch {
+    const defaults = loadDefaultPlatformConfiguration();
+    await fs.mkdir(path.dirname(PLATFORM_CONFIG_PATH), { recursive: true });
+    await fs.writeFile(PLATFORM_CONFIG_PATH, `${JSON.stringify(defaults, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+    return defaults;
+  }
+}
+
+async function savePlatformConfiguration(value) {
+  const normalized = normalizePlatformConfiguration(value);
+  await fs.mkdir(path.dirname(PLATFORM_CONFIG_PATH), { recursive: true });
+  const temporaryPath = `${PLATFORM_CONFIG_PATH}.tmp`;
+  await fs.writeFile(temporaryPath, `${JSON.stringify(normalized, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+  await fs.rename(temporaryPath, PLATFORM_CONFIG_PATH);
+  return normalized;
+}
 
 function loadAccountSession() {
   try {
@@ -512,7 +617,7 @@ function createWindow(url = null) {
         height: TITLE_BAR_HEIGHT,
       },
     }),
-    show: !IS_SMOKE_TEST,
+    show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0b1220',
     icon,
@@ -556,6 +661,14 @@ function createWindow(url = null) {
 
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+  if (!IS_SMOKE_TEST) {
+    mainWindow.webContents.once('did-finish-load', () => {
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) mainWindow.show();
+      }, 4000);
+    });
+  }
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -574,7 +687,8 @@ async function runSmokeTest(window) {
         const requiredIds = [
           'window-title',
           'tab-strip',
-          'home-search-input',
+          'platform-groups',
+          'platform-manage-button',
           'browser-stage',
           'candidate-list',
           'url-input',
@@ -586,8 +700,7 @@ async function runSmokeTest(window) {
           'settings-language-control',
           'settings-adblock-control',
           'settings-recording-control',
-          'settings-output-dir',
-          'settings-search-engine'
+          'settings-output-dir'
         ];
         const missing = requiredIds.filter((id) => !document.getElementById(id));
         if (window.__VIDOGO_BOOTSTRAPPED && missing.length === 0) {
@@ -606,16 +719,20 @@ async function runSmokeTest(window) {
                 ? '__VIDOGO_RUN_RECORDER_FLOW_TEST'
                 : (scenario === 'manifest-flow'
                   ? '__VIDOGO_RUN_MANIFEST_FLOW_TEST'
-              : (scenario === 'dash-flow' ? '__VIDOGO_RUN_DASH_FLOW_TEST' : '__VIDOGO_RUN_SELF_TEST')))))));
+                  : (scenario === 'dash-flow'
+                    ? '__VIDOGO_RUN_DASH_FLOW_TEST'
+                    : (scenario === 'resolver-flow' ? '__VIDOGO_RUN_RESOLVER_FLOW_TEST' : '__VIDOGO_RUN_SELF_TEST'))))))));
           const runnerLabel = scenario || 'self test';
           const runnerTimeoutMs = ['browser-youtube-flow', 'browser-platform-flow'].includes(scenario)
             ? 65000
-            : (scenario === 'download-queue-real' ? 60000 : (scenario === 'recorder-flow' ? 40000 : 18000));
+            : (['download-queue-real', 'resolver-flow'].includes(scenario) ? 60000 : (scenario === 'recorder-flow' ? 40000 : 18000));
           const selfTestPromise = Promise.resolve(
             typeof window[runnerName] === 'function'
               ? window[runnerName](scenario === 'owner-flow'
                 ? ${JSON.stringify(process.env.ELECTRON_SMOKE_OWNER_PASSWORD || '')}
-                : ${JSON.stringify(process.env.ELECTRON_SMOKE_MANIFEST_PAGE_URL || null)})
+                : (scenario === 'resolver-flow'
+                  ? ${JSON.stringify(process.env.ELECTRON_SMOKE_BROWSER_URL || process.env.ELECTRON_SMOKE_MANIFEST_PAGE_URL || null)}
+                  : ${JSON.stringify(process.env.ELECTRON_SMOKE_MANIFEST_PAGE_URL || null)}))
               : { ok: false, failures: [runnerLabel + ' function missing'] }
           );
           const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve({
@@ -767,10 +884,24 @@ function getBrowserSession() {
   return session.fromPartition(BROWSER_PARTITION);
 }
 
+function getBackgroundDownloadSession() {
+  const downloadSession = session.fromPartition(BACKGROUND_DOWNLOAD_PARTITION);
+  const browserUserAgent = getBrowserSession().getUserAgent();
+  if (browserUserAgent && downloadSession.getUserAgent() !== browserUserAgent) {
+    downloadSession.setUserAgent(browserUserAgent);
+  }
+  return downloadSession;
+}
+
 function configureBrowserIdentity() {
   const browserSession = getBrowserSession();
   const browserUserAgent = String(browserSession.getUserAgent() || '')
-    .replace(/\s+(?:Electron|VidoGo)(?:-Basic)?\/[^\s]+/gi, '')
+    // Electron converts an application name such as "VidoGo Basic" into the
+    // product token "VidoGoBasic" (and smoke runs append "Smoke<pid>"). The
+    // former expression only removed VidoGo or VidoGo-Basic, so normal site
+    // requests still advertised a custom browser product and repeatedly
+    // triggered anti-bot verification pages.
+    .replace(/\s+(?:Electron|VidoGo(?:-?Basic)?(?:Smoke\d+)?)\/[^\s]+/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
   if (browserUserAgent) browserSession.setUserAgent(browserUserAgent);
@@ -800,14 +931,15 @@ function classifyBrowserWindowOpen(url, openerUrl = '') {
     return 'deny';
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return 'deny';
-  const isGoogleOAuthPopup = parsed.hostname === 'accounts.google.com'
-    && (parsed.pathname.startsWith('/o/oauth2/') || parsed.pathname.startsWith('/gsi/'))
-    && parsed.searchParams.get('display') === 'popup';
+  const openerIsGoogleOrYouTube = /(^|\.)(?:google\.com|youtube\.com)$/i.test((() => {
+    try { return new URL(openerUrl).hostname; } catch { return ''; }
+  })());
+  const isGoogleAccountFlow = parsed.hostname === 'accounts.google.com' && openerIsGoogleOrYouTube;
   const isTelegramDownload = parsed.hostname === 'web.telegram.org'
     && /^\/(a|k)\/download\//.test(parsed.pathname)
     && String(openerUrl || '').includes('web.telegram.org');
   if (isTelegramDownload) return 'allow-hidden-popup';
-  if (isGoogleOAuthPopup) return 'allow-popup';
+  if (isGoogleAccountFlow) return 'allow-popup';
   return 'open-app-tab';
 }
 
@@ -839,7 +971,8 @@ function webContentsUsesAdSupportedPlayback(webContentsId) {
     return false;
   }
   if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return false;
-  return providerSiteForUrl(guest.getURL()) === 'dailymotion';
+  return ['dailymotion', 'pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy']
+    .includes(providerSiteForUrl(guest.getURL()));
 }
 
 function requestUsesAdSupportedPlayback(details = {}) {
@@ -913,6 +1046,12 @@ function createMediaCandidate(details) {
   }
   const mime = String(getResponseHeader(details.responseHeaders, 'content-type') || '').split(';')[0].trim();
   const contentLength = Number(getResponseHeader(details.responseHeaders, 'content-length') || 0);
+  const contentRange = String(getResponseHeader(details.responseHeaders, 'content-range') || '');
+  const rangeTotal = Number(contentRange.match(/\/(\d+)\s*$/)?.[1] || 0);
+  const totalSize = Math.max(
+    Number.isFinite(contentLength) && contentLength > 0 ? contentLength : 0,
+    Number.isFinite(rangeTotal) && rangeTotal > 0 ? rangeTotal : 0,
+  );
   const extension = path.extname(parsed.pathname).replace('.', '').toLowerCase();
   const page = browserPageContext(details.webContentsId);
   const sourceClient = playlistSourceClient(mime, extension);
@@ -932,12 +1071,13 @@ function createMediaCandidate(details) {
     pageUrl: page.pageUrl,
     mime,
     extension,
-    size: Number.isFinite(contentLength) && contentLength > 0 ? contentLength : null,
+    size: totalSize || null,
     kind: isPlaylistResource({ url: details.url, mimeType: mime, extension })
       ? 'playlist'
       : (mime.toLowerCase().startsWith('audio/') ? 'audio' : 'video'),
     resourceType: details.resourceType,
     sourceClient,
+    requestReferrer: normalizePageUrl(details.referrer || details.frame?.url || page.pageUrl),
     webContentsId: details.webContentsId,
     detectedAt: new Date().toISOString(),
   };
@@ -1064,6 +1204,15 @@ function rememberMediaCandidate(details) {
     extension: candidate.extension,
     sizeBytes: candidate.size,
   })) return;
+  // TikTok and Douyin commonly attach a blob: URL to the visible <video>
+  // element while the real MP4 exists only in byte-range network responses.
+  // Keep those responses for enriching the single active-video row, but never
+  // render the fragments as independent media items.
+  const activeShortVideoProvider = providerSiteForUrl(candidate.pageUrl);
+  if (['tiktok', 'douyin'].includes(activeShortVideoProvider) && candidate.kind !== 'playlist') {
+    candidate.hiddenForActiveMedia = true;
+    candidate.sourceClient = `${activeShortVideoProvider}-network`;
+  }
   mediaCandidates.set(candidate.id, candidate);
   if (mediaCandidates.size > 300) {
     const [oldest] = mediaCandidates.keys();
@@ -1078,9 +1227,39 @@ function registerBrowserRequestFeatures() {
   if (requestFeaturesRegistered) return;
   requestFeaturesRegistered = true;
   const browserSession = getBrowserSession();
+  browserSession.on('will-download', (event, item, sourceContents) => {
+    const sourceId = Number(sourceContents?.id || 0);
+    const url = String(item.getURL() || '').trim();
+    const key = `${sourceId}\u0000${url}`;
+    if (programmaticBrowserDownloads.delete(key) || programmaticBrowserDownloadSources.has(sourceId)) return;
+    if (!sourceId || !url || sourceContents?.getType?.() !== 'webview') return;
+    event.preventDefault();
+    const expiresAt = Date.now() + 30_000;
+    nativeDownloadPermits.set(key, expiresAt);
+    setTimeout(() => {
+      if (nativeDownloadPermits.get(key) === expiresAt) nativeDownloadPermits.delete(key);
+    }, 30_500);
+    mainWindow?.webContents.send('browser:native-download-request', {
+      url,
+      webContentsId: sourceId,
+      fileName: String(item.getFilename() || '').slice(0, 260),
+      mimeType: String(item.getMimeType() || '').slice(0, 120),
+      sizeBytes: Math.max(0, Number(item.getTotalBytes() || 0)),
+      pageUrl: sourceContents.getURL(),
+      title: sourceContents.getTitle(),
+    });
+  });
   browserSession.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
     const pageAllowsAds = requestUsesAdSupportedPlayback(details);
-    const cancel = browserAdBlockerEnabled && !pageAllowsAds && shouldBlockRequest(details.url, details.resourceType);
+    const requestWebContentsId = Number(details.webContentsId || 0);
+    const isBackendDirectDownload = (!Number.isInteger(requestWebContentsId) || requestWebContentsId <= 0)
+      && Array.from(activeDownloadJobs.values()).some((job) => job?.task?.directDownload === true && !job.cancelled);
+    // Electron's net.request follows CDN redirects inside the network service.
+    // Redirected requests may no longer match the original URL byte-for-byte,
+    // but they still have no page webContents. Keep those app-owned transfers
+    // outside the browser-page ad filter.
+    const isAppDownload = programmaticMediaRequests.has(details.url) || isBackendDirectDownload;
+    const cancel = !isAppDownload && browserAdBlockerEnabled && !pageAllowsAds && shouldBlockRequest(details.url, details.resourceType);
     if (cancel && IS_SMOKE_TEST) {
       blockedRequestDiagnostics.push({
         url: details.url,
@@ -1098,11 +1277,6 @@ function registerBrowserRequestFeatures() {
   browserSession.webRequest.onBeforeSendHeaders({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
     const requestHeaders = { ...details.requestHeaders };
     setHeader(requestHeaders, 'Accept-Language', browserAcceptLanguage);
-    const chromeMajor = browserChromeVersion.split('.')[0];
-    if (chromeMajor) {
-      setHeader(requestHeaders, 'Sec-CH-UA', `"Not_A Brand";v="99", "Google Chrome";v="${chromeMajor}", "Chromium";v="${chromeMajor}"`);
-      setHeader(requestHeaders, 'Sec-CH-UA-Full-Version-List', `"Not_A Brand";v="99.0.0.0", "Google Chrome";v="${browserChromeVersion}", "Chromium";v="${browserChromeVersion}"`);
-    }
     callback({ requestHeaders });
   });
   browserSession.webRequest.onHeadersReceived({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
@@ -1184,6 +1358,26 @@ function normalizeDownloadReferrer(value) {
   } catch {
     return null;
   }
+}
+
+function consumeNativeDownloadPermit(url, webContentsId) {
+  const key = `${Number(webContentsId || 0)}\u0000${String(url || '').trim()}`;
+  const expiresAt = nativeDownloadPermits.get(key) || 0;
+  nativeDownloadPermits.delete(key);
+  return expiresAt > Date.now();
+}
+
+function isAllowedSiteDownloadIntent(url, referrer, webContentsId) {
+  let guest = null;
+  try { guest = webContents.fromId(Number(webContentsId)); } catch { guest = null; }
+  if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return false;
+  let target;
+  try { target = new URL(String(url || '').trim()); } catch { return false; }
+  if (target.protocol !== 'https:' || target.username || target.password) return false;
+  const pageProvider = providerSiteForUrl(guest.getURL());
+  const referrerProvider = providerSiteForUrl(referrer);
+  return Boolean(pageProvider && pageProvider === referrerProvider
+    && ['pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy', 'distill', 'mazwai', 'lifeofvids', 'dareful'].includes(pageProvider));
 }
 
 function runMetadataWorker(task, cookiePath) {
@@ -1602,6 +1796,12 @@ const DIRECT_MEDIA_HOST_SUFFIXES = [
   'tiktokcdn-us.com',
   'muscdn.com',
   'byteoversea.com',
+  'douyin.com',
+  'douyinvod.com',
+  'bytecdn.cn',
+  'byteimg.com',
+  'zjcdn.com',
+  'toutiao50.com',
 ];
 
 function isTrustedDirectMediaUrl(value) {
@@ -1650,22 +1850,58 @@ async function reserveDirectDownloadPaths(outputDir, title) {
   throw new Error('Could not reserve a download folder.');
 }
 
-function openDirectMediaResponse(url, signal, headers = {}) {
+function openDirectMediaResponse(url, signal, headers = {}, timeoutMs = 20_000, onRedirect = null) {
   return new Promise((resolve, reject) => {
     const request = net.request({
       method: 'GET',
       url,
-      headers,
+      // File transfers use an isolated Electron session. Browser-page ad
+      // filtering is registered only on BROWSER_PARTITION and must never be
+      // able to cancel an app-owned background media transfer.
+      session: getBackgroundDownloadSession(),
     });
-    const abort = () => request.abort();
+    for (const [name, value] of Object.entries(headers)) {
+      if (value !== undefined && value !== null && value !== '') request.setHeader(name, String(value));
+    }
+    let responseStream = null;
+    let settled = false;
+    const cleanup = () => signal?.removeEventListener('abort', abort);
+    const abort = () => {
+      request.abort();
+      responseStream?.destroy?.(new Error('Download paused or cancelled.'));
+    };
+    if (signal?.aborted) {
+      abort();
+      reject(new Error('Download paused or cancelled.'));
+      return;
+    }
     signal?.addEventListener('abort', abort, { once: true });
+    const responseTimeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      abort();
+      cleanup();
+      reject(new Error('Media server connection timed out.'));
+    }, timeoutMs);
     request.once('response', (response) => {
-      signal?.removeEventListener('abort', abort);
+      if (settled) return;
+      settled = true;
+      clearTimeout(responseTimeout);
+      responseStream = response;
+      response.once('close', cleanup);
+      response.once('end', cleanup);
       resolve(response);
     });
     request.once('error', (error) => {
-      signal?.removeEventListener('abort', abort);
+      if (settled) return;
+      settled = true;
+      clearTimeout(responseTimeout);
+      cleanup();
       reject(error);
+    });
+    request.on('redirect', (_statusCode, _method, redirectUrl) => {
+      onRedirect?.(redirectUrl);
+      request.followRedirect();
     });
     request.end();
   });
@@ -1675,6 +1911,7 @@ async function directMediaRequestHeaders(url, referrer, includeRange = false) {
   const cookies = await getBrowserSession().cookies.get({ url }).catch(() => []);
   return {
     Accept: '*/*',
+    'Accept-Encoding': 'identity',
     Referer: referrer || 'https://www.tiktok.com/',
     'User-Agent': getBrowserSession().getUserAgent(),
     ...(cookies.length ? { Cookie: cookies.map((cookie) => cookie.name + '=' + cookie.value).join('; ') } : {}),
@@ -1689,9 +1926,13 @@ function directResponseHeader(response, name) {
 
 async function downloadDirectThumbnail(taskDir, thumbnailUrl, referrer, signal) {
   if (!isTrustedDirectMediaUrl(thumbnailUrl)) return null;
+  const thumbnailController = new AbortController();
+  const forwardAbort = () => thumbnailController.abort();
+  const timeout = setTimeout(() => thumbnailController.abort(), 8_000);
+  signal?.addEventListener('abort', forwardAbort, { once: true });
   try {
     const headers = await directMediaRequestHeaders(thumbnailUrl, referrer);
-    const response = await openDirectMediaResponse(thumbnailUrl, signal, headers);
+    const response = await openDirectMediaResponse(thumbnailUrl, thumbnailController.signal, headers);
     if (response.statusCode < 200 || response.statusCode >= 300) return null;
     const contentType = String(directResponseHeader(response, 'content-type') || '').toLowerCase();
     const extension = contentType.includes('png') ? '.png'
@@ -1709,6 +1950,18 @@ async function downloadDirectThumbnail(taskDir, thumbnailUrl, referrer, signal) 
     return coverPath;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', forwardAbort);
+  }
+}
+
+function failWebviewDownloadsForSender(senderId) {
+  for (const job of activeDownloadJobs.values()) {
+    if (job.finalized || !job.webviewStream || Number(job.task?.webContentsId) !== Number(senderId)) continue;
+    void finalizeWebviewDirectDownloadJob(job, {
+      error: new Error('The source video page was closed during download.'),
+    });
   }
 }
 
@@ -1726,9 +1979,16 @@ function spawnDirectDownloadJob(job) {
     let totalBytes = 0;
     let lastProgressAt = 0;
     let handle = null;
+    const requestUrls = new Set([job.url]);
+    const registerRequestUrl = (url) => {
+      if (!url) return;
+      requestUrls.add(url);
+      programmaticMediaRequests.add(url);
+    };
     try {
+      registerRequestUrl(job.url);
       const headers = await directMediaRequestHeaders(job.url, job.task.referrer, true);
-      const response = await openDirectMediaResponse(job.url, abortController.signal, headers);
+      const response = await openDirectMediaResponse(job.url, abortController.signal, headers, 20_000, registerRequestUrl);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw new Error('Direct media request failed with HTTP ' + response.statusCode + '.');
       }
@@ -1792,12 +2052,126 @@ function spawnDirectDownloadJob(job) {
         sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
       }
     } finally {
+      for (const requestUrl of requestUrls) programmaticMediaRequests.delete(requestUrl);
       activeDownloadJobs.delete(job.id);
       releaseDownloadJobCookie(job);
       pumpDownloadQueue();
       sendDownloadQueueState();
     }
   })();
+}
+
+async function finalizeWebviewDirectDownloadJob(job, outcome = {}) {
+  if (job.finalized) return;
+  job.finalized = true;
+  const stream = job.webviewStream;
+  if (stream) {
+    clearTimeout(stream.inactivityTimer);
+    await stream.writeChain.catch(() => {});
+    if (stream.handle) {
+      await stream.handle.close().catch(() => {});
+      stream.handle = null;
+    }
+  }
+  try {
+    if (outcome.success) {
+      if (!stream?.downloadedBytes) throw new Error('Direct media request returned no data.');
+      await fs.rename(stream.reserved.temporaryPath, stream.reserved.finalPath);
+      const coverPath = await downloadDirectThumbnail(
+        stream.reserved.taskDir,
+        job.task.thumbnailUrl,
+        job.task.referrer,
+        null,
+      );
+      sendDownloadJobEvent(job, {
+        type: 'progress',
+        data: {
+          item_index: 1,
+          item_total: 1,
+          percent: 100,
+          status: 'completed',
+          filename: stream.reserved.finalPath,
+          task_dir: stream.reserved.taskDir,
+          thumbnail_filename: coverPath,
+          downloaded_bytes: stream.downloadedBytes,
+          total_bytes: stream.downloadedBytes,
+          speed: 0,
+          eta: 0,
+        },
+      });
+      sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
+    } else {
+      if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
+      if (stream?.reserved?.taskDir) await fs.rmdir(stream.reserved.taskDir).catch(() => {});
+      if (!job.cancelled && outcome.error) {
+        sendDownloadJobEvent(job, { type: 'error', message: outcome.error?.message || String(outcome.error) });
+      }
+    }
+  } catch (error) {
+    if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
+    if (stream?.reserved?.taskDir) await fs.rmdir(stream.reserved.taskDir).catch(() => {});
+    if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
+  } finally {
+    activeDownloadJobs.delete(job.id);
+    releaseDownloadJobCookie(job);
+    pumpDownloadQueue();
+    sendDownloadQueueState();
+  }
+}
+
+function armWebviewDownloadTimeout(job) {
+  const stream = job.webviewStream;
+  if (!stream || job.finalized) return;
+  clearTimeout(stream.inactivityTimer);
+  stream.inactivityTimer = setTimeout(() => {
+    let guest = null;
+    try { guest = webContents.fromId(Number(job.task.webContentsId)); } catch { guest = null; }
+    if (guest && !guest.isDestroyed()) guest.send('browser:cancel-direct-download', { jobId: job.id });
+    void finalizeWebviewDirectDownloadJob(job, { error: new Error('Media server connection timed out.') });
+  }, 30_000);
+}
+
+function spawnWebviewDirectDownloadJob(job) {
+  let guest = null;
+  try { guest = webContents.fromId(Number(job.task.webContentsId)); } catch { guest = null; }
+  if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') {
+    spawnDirectDownloadJob(job);
+    return;
+  }
+  job.abortController = {
+    abort: () => {
+      if (!guest.isDestroyed()) guest.send('browser:cancel-direct-download', { jobId: job.id });
+      job.abortPromise = finalizeWebviewDirectDownloadJob(job, { cancelled: true });
+      return job.abortPromise;
+    },
+  };
+  activeDownloadJobs.set(job.id, job);
+  sendDownloadQueueState();
+  void (async () => {
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    job.temporaryPath = reserved.temporaryPath;
+    job.taskDir = reserved.taskDir;
+    if (job.cancelled || job.finalized) {
+      await fs.rmdir(reserved.taskDir).catch(() => {});
+      return;
+    }
+    const handle = await fs.open(reserved.temporaryPath, 'w');
+    job.webviewStream = {
+      reserved,
+      handle,
+      writeChain: Promise.resolve(),
+      downloadedBytes: 0,
+      totalBytes: Math.max(0, Number(job.task.sizeBytes || 0)),
+      startedAt: Date.now(),
+      lastProgressAt: 0,
+      inactivityTimer: null,
+    };
+    armWebviewDownloadTimeout(job);
+    guest.send('browser:start-direct-download', {
+      jobId: job.id,
+      url: job.url,
+    });
+  })().catch((error) => finalizeWebviewDirectDownloadJob(job, { error }));
 }
 
 function spawnDownloadWorker(job) {
@@ -1870,6 +2244,19 @@ function spawnDownloadWorker(job) {
   }));
 }
 
+function retainProgrammaticBrowserDownloadSource(sourceId) {
+  const id = Number(sourceId || 0);
+  if (!Number.isInteger(id) || id <= 0) return;
+  programmaticBrowserDownloadSources.set(id, (programmaticBrowserDownloadSources.get(id) || 0) + 1);
+}
+
+function releaseProgrammaticBrowserDownloadSource(sourceId) {
+  const id = Number(sourceId || 0);
+  const remaining = (programmaticBrowserDownloadSources.get(id) || 0) - 1;
+  if (remaining > 0) programmaticBrowserDownloadSources.set(id, remaining);
+  else programmaticBrowserDownloadSources.delete(id);
+}
+
 function spawnBrowserDownloadJob(job) {
   activeDownloadJobs.set(job.id, job);
   sendDownloadQueueState();
@@ -1885,20 +2272,62 @@ function spawnBrowserDownloadJob(job) {
     if (!guest || guest.isDestroyed()) throw new Error('The source tab is no longer available.');
     await new Promise((resolve, reject) => {
       const browserSession = getBrowserSession();
-      const timeout = setTimeout(() => {
+      let item = null;
+      let settled = false;
+      let inactivityTimer = null;
+      let interruptionRetries = 0;
+      let sourcePermitHeld = true;
+      const releaseSourcePermit = () => {
+        if (!sourcePermitHeld) return;
+        sourcePermitHeld = false;
+        releaseProgrammaticBrowserDownloadSource(guestId);
+      };
+      const finish = (error = null) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(startTimeout);
+        clearTimeout(inactivityTimer);
         browserSession.removeListener('will-download', onWillDownload);
-        reject(new Error('The browser did not start the media download.'));
-      }, 12000);
-      const onWillDownload = (_event, item, sourceContents) => {
-        if (sourceContents?.id !== guestId || item.getURL() !== job.url) return;
-        clearTimeout(timeout);
+        programmaticBrowserDownloads.delete(`${guestId}\u0000${job.url}`);
+        releaseSourcePermit();
+        if (error) reject(error);
+        else resolve();
+      };
+      const armInactivityTimeout = () => {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+          item?.cancel();
+          finish(new Error('Media server connection timed out.'));
+        }, 30_000);
+      };
+      const startTimeout = setTimeout(() => {
+        finish(new Error('The browser did not start the media download.'));
+      }, 12_000);
+      const onWillDownload = (_event, downloadItem, sourceContents) => {
+        const urlChain = typeof downloadItem.getURLChain === 'function' ? downloadItem.getURLChain() : [downloadItem.getURL()];
+        if (sourceContents?.id !== guestId || (!urlChain.includes(job.url) && downloadItem.getURL() !== job.url)) return;
+        clearTimeout(startTimeout);
         browserSession.removeListener('will-download', onWillDownload);
-        job.downloadItem = item;
-        item.setSavePath(reserved.temporaryPath);
-        item.on('updated', (_downloadEvent, stateValue) => {
-          if (stateValue === 'interrupted') return;
-          const received = item.getReceivedBytes();
-          const total = item.getTotalBytes();
+        releaseSourcePermit();
+        item = downloadItem;
+        job.downloadItem = downloadItem;
+        downloadItem.setSavePath(reserved.temporaryPath);
+        downloadItem.on('updated', (_downloadEvent, stateValue) => {
+          if (stateValue === 'interrupted') {
+            if (!job.cancelled && downloadItem.canResume() && interruptionRetries < 3) {
+              interruptionRetries += 1;
+              armInactivityTimeout();
+              setTimeout(() => {
+                if (!settled && !job.cancelled && downloadItem.canResume()) downloadItem.resume();
+              }, 400 * interruptionRetries);
+              return;
+            }
+            finish(new Error(job.cancelled ? 'Download cancelled.' : 'Browser media download was interrupted.'));
+            return;
+          }
+          armInactivityTimeout();
+          const received = downloadItem.getReceivedBytes();
+          const total = downloadItem.getTotalBytes();
           sendDownloadJobEvent(job, {
             type: 'progress',
             data: {
@@ -1914,13 +2343,23 @@ function spawnBrowserDownloadJob(job) {
             },
           });
         });
-        item.once('done', (_downloadEvent, stateValue) => {
-          if (stateValue === 'completed') resolve();
-          else reject(new Error(stateValue === 'cancelled' ? 'Download cancelled.' : 'Browser media download failed.'));
+        downloadItem.once('done', (_downloadEvent, stateValue) => {
+          if (stateValue === 'completed') finish();
+          else finish(new Error(stateValue === 'cancelled' ? 'Download cancelled.' : 'Browser media download failed.'));
         });
+        armInactivityTimeout();
       };
       browserSession.on('will-download', onWillDownload);
-      guest.downloadURL(job.url);
+      programmaticBrowserDownloads.add(`${guestId}\u0000${job.url}`);
+      retainProgrammaticBrowserDownloadSource(guestId);
+      programmaticMediaRequests.add(job.url);
+      try {
+        guest.downloadURL(job.url, {
+          headers: job.task.referrer ? { Referer: job.task.referrer } : undefined,
+        });
+      } catch (error) {
+        finish(error);
+      }
     });
     await fs.rename(reserved.temporaryPath, reserved.finalPath);
     const fileStat = await fs.stat(reserved.finalPath);
@@ -1946,6 +2385,83 @@ function spawnBrowserDownloadJob(job) {
     if (job.taskDir) await fs.rmdir(job.taskDir).catch(() => {});
     if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
   }).finally(() => {
+    programmaticMediaRequests.delete(job.url);
+    if (job.task.backgroundResolvedMedia) releaseRetainedMediaResolver(job.task.webContentsId);
+    activeDownloadJobs.delete(job.id);
+    releaseDownloadJobCookie(job);
+    pumpDownloadQueue();
+    sendDownloadQueueState();
+  });
+}
+
+function spawnResolvedPageDownloadJob(job) {
+  job.phase = 'resolving';
+  activeDownloadJobs.set(job.id, job);
+  sendDownloadQueueState();
+  sendDownloadJobEvent(job, {
+    type: 'progress',
+    data: {
+      item_index: 1,
+      item_total: 1,
+      percent: 0,
+      status: 'resolving',
+      filename: null,
+      downloaded_bytes: 0,
+      total_bytes: null,
+      speed: 0,
+      eta: 0,
+    },
+  });
+  void (async () => {
+    const result = await resolvePageMediaInBackground({
+      pageUrl: job.url,
+      title: job.task.title,
+      fileName: job.task.title,
+      thumbnailUrl: job.task.thumbnailUrl,
+      timeoutMs: 22_000,
+    });
+    if (!result?.ok || !result.candidate?.url) {
+      throw new Error(result?.message || '未能解析到该分集的真实视频资源。');
+    }
+    if (job.cancelled) {
+      releaseRetainedMediaResolver(result.candidate.webContentsId);
+      activeDownloadJobs.delete(job.id);
+      releaseDownloadJobCookie(job);
+      pumpDownloadQueue();
+      sendDownloadQueueState();
+      return;
+    }
+    const candidate = result.candidate;
+    job.url = candidate.url;
+    job.phase = 'connecting';
+    Object.assign(job.task, {
+      directDownload: true,
+      backgroundResolvedMedia: true,
+      sourceClient: 'background-resolver',
+      kind: candidate.kind || 'video',
+      mimeType: candidate.mimeType || candidate.mime || 'video/mp4',
+      sizeBytes: Math.max(0, Number(candidate.sizeBytes || candidate.size || 0)),
+      referrer: candidate.referrer || job.task.referrer,
+      webContentsId: candidate.webContentsId,
+    });
+    sendDownloadJobEvent(job, {
+      type: 'progress',
+      data: {
+        item_index: 1,
+        item_total: 1,
+        percent: 0,
+        status: 'connecting',
+        filename: null,
+        downloaded_bytes: 0,
+        total_bytes: job.task.sizeBytes || null,
+        speed: 0,
+        eta: 0,
+        source_client: 'background-resolver',
+      },
+    });
+    spawnBrowserDownloadJob(job);
+  })().catch((error) => {
+    if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
     activeDownloadJobs.delete(job.id);
     releaseDownloadJobCookie(job);
     pumpDownloadQueue();
@@ -1961,8 +2477,22 @@ function pumpDownloadQueue() {
       continue;
     }
     try {
-      if (job.task.directDownload && isTrustedDirectMediaUrl(job.url)) {
+      if (job.task.backgroundResolvePage) {
+        spawnResolvedPageDownloadJob(job);
+      } else if (job.task.directDownload && job.task.nativeBrowserDownload) {
         spawnBrowserDownloadJob(job);
+      } else if (job.task.directDownload && job.task.backgroundResolvedMedia && job.task.webContentsId) {
+        spawnBrowserDownloadJob(job);
+      } else if (job.task.directDownload
+        && job.task.sourceClient === 'douyin-page'
+        && job.task.webContentsId) {
+        spawnBrowserDownloadJob(job);
+      } else if (job.task.directDownload
+        && /^(?:tiktok|douyin)-page$/.test(job.task.sourceClient || '')
+        && job.task.webContentsId) {
+        spawnWebviewDirectDownloadJob(job);
+      } else if (job.task.directDownload) {
+        spawnDirectDownloadJob(job);
       } else {
         spawnDownloadWorker(job);
       }
@@ -2006,7 +2536,17 @@ app.on('web-contents-created', (_event, contents) => {
   if (contents.getType() !== 'webview') return;
   contents.setWindowOpenHandler(({ url }) => {
     const disposition = classifyBrowserWindowOpen(url, contents.getURL());
-    if (disposition === 'allow-popup') return { action: 'allow' };
+    if (disposition === 'allow-popup') {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          backgroundColor: '#ffffff',
+          autoHideMenuBar: true,
+          width: 520,
+          height: 720,
+        },
+      };
+    }
     if (disposition === 'allow-hidden-popup') {
       return { action: 'allow', overrideBrowserWindowOptions: { show: false, skipTaskbar: true } };
     }
@@ -2015,7 +2555,10 @@ app.on('web-contents-created', (_event, contents) => {
     }
     return { action: 'deny' };
   });
-  contents.once('destroyed', () => finishRecordingsForSender(contents.id));
+  contents.once('destroyed', () => {
+    finishRecordingsForSender(contents.id);
+    failWebviewDownloadsForSender(contents.id);
+  });
 });
 
 app.whenReady().then(async () => {
@@ -2046,6 +2589,7 @@ app.on('before-quit', () => {
     try { fsSync.unlinkSync(recording.temporaryPath); } catch { /* best-effort shutdown cleanup */ }
   }
   activeRecordingSessions.clear();
+  for (const resolverId of [...retainedMediaResolvers.keys()]) releaseRetainedMediaResolver(resolverId);
 });
 
 ipcMain.handle('app:get-system-locale', () => app.getLocale());
@@ -2112,7 +2656,193 @@ function filterMediaCandidates(webContentsId = null) {
   return candidates.filter((candidate) => Number(candidate.webContentsId) === id);
 }
 
+function resolverCandidateScore(candidate) {
+  if (!candidate?.url) return -1;
+  let score = 0;
+  if (candidate.kind === 'playlist') score += 100;
+  if (candidate.sourceClient === 'hls' || candidate.sourceClient === 'dash') score += 80;
+  if (candidate.metadataSource === 'hls-manifest' || candidate.metadataSource === 'dash-manifest') score += 30;
+  if (candidate.kind === 'video') score += 40;
+  if (Number(candidate.size || 0) > 1024 * 1024) score += 10;
+  return score;
+}
+
+async function requestResolverPlayback(contents) {
+  if (!contents || contents.isDestroyed()) return;
+  const script = `(() => {
+    for (const video of document.querySelectorAll('video')) {
+      video.muted = true;
+      video.autoplay = true;
+      void video.play().catch(() => {});
+    }
+    const selectors = [
+      '.art-video-player .art-icon-play',
+      '.art-video-player',
+      '[class*="play" i]',
+      '[aria-label*="play" i]',
+      '[aria-label*="播放" i]',
+      '[title*="play" i]',
+      '[title*="播放" i]'
+    ];
+    for (const selector of selectors) {
+      const control = document.querySelector(selector);
+      if (control) { control.click?.(); break; }
+    }
+    return document.querySelectorAll('video').length;
+  })()`;
+  const frames = [];
+  try {
+    frames.push(contents.mainFrame);
+    for (const frame of contents.mainFrame.framesInSubtree || []) {
+      if (frame !== contents.mainFrame) frames.push(frame);
+    }
+  } catch { /* a frame may be replaced while the player initializes */ }
+  await Promise.allSettled(frames.map((frame) => frame.executeJavaScript(script, true)));
+}
+
+function releaseRetainedMediaResolver(webContentsId) {
+  const resolverId = Number(webContentsId || 0);
+  const retained = retainedMediaResolvers.get(resolverId);
+  if (!retained) return;
+  retainedMediaResolvers.delete(resolverId);
+  clearTimeout(retained.expiryTimer);
+  if (!retained.window.isDestroyed()) retained.window.destroy();
+}
+
+function retainMediaResolver(resolver) {
+  const resolverId = resolver.webContents.id;
+  const expiryTimer = setTimeout(() => releaseRetainedMediaResolver(resolverId), 90_000);
+  retainedMediaResolvers.set(resolverId, { window: resolver, expiryTimer });
+  return resolverId;
+}
+
+async function resolverFailureDiagnostics(contents, resolverId) {
+  if (!IS_SMOKE_TEST || !contents || contents.isDestroyed()) return null;
+  const frameUrls = [];
+  try {
+    frameUrls.push(contents.mainFrame.url);
+    for (const frame of contents.mainFrame.framesInSubtree || []) frameUrls.push(frame.url);
+  } catch { /* frames may be replaced while collecting diagnostics */ }
+  const page = await contents.executeJavaScript(`({
+    href: location.href,
+    title: document.title,
+    readyState: document.readyState,
+    text: String(document.body?.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 500),
+    videos: document.querySelectorAll('video').length,
+    iframes: Array.from(document.querySelectorAll('iframe')).map((frame) => frame.src).filter(Boolean).slice(0, 10)
+  })`, true).catch(() => null);
+  return {
+    page,
+    frameUrls: [...new Set(frameUrls.filter(Boolean))].slice(0, 20),
+    candidates: filterMediaCandidates(resolverId).slice(0, 20).map((candidate) => ({
+      url: candidate.url,
+      kind: candidate.kind,
+      mime: candidate.mime,
+      size: candidate.size,
+      sourceClient: candidate.sourceClient,
+      requestReferrer: candidate.requestReferrer,
+    })),
+  };
+}
+
+async function resolvePageMediaInBackground(request = {}) {
+  const pageUrl = normalizePageUrl(request.pageUrl || request.url);
+  if (!pageUrl || !/^https?:\/\//i.test(pageUrl)) {
+    return { ok: false, message: '无效的视频页面地址。' };
+  }
+  const requestedTimeout = Number(request.timeoutMs || 0);
+  const timeoutMs = Math.max(5_000, Math.min(25_000, requestedTimeout || 14_000));
+  const resolver = new BrowserWindow({
+    show: true,
+    skipTaskbar: true,
+    focusable: false,
+    opacity: 0,
+    x: -32000,
+    y: -32000,
+    width: 1100,
+    height: 760,
+    backgroundColor: '#070c17',
+    webPreferences: {
+      partition: BROWSER_PARTITION,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      backgroundThrottling: false,
+      autoplayPolicy: 'no-user-gesture-required',
+    },
+  });
+  resolver.setMenuBarVisibility(false);
+  resolver.setIgnoreMouseEvents(true);
+  resolver.webContents.setAudioMuted(true);
+  resolver.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  const resolverId = resolver.webContents.id;
+  const startedAt = Date.now();
+  let playbackTimer = null;
+  let retainedForDownload = false;
+  try {
+    await resolver.loadURL(pageUrl, { extraHeaders: `Accept-Language: ${browserAcceptLanguage}\r\n` });
+    await requestResolverPlayback(resolver.webContents);
+    playbackTimer = setInterval(() => {
+      void requestResolverPlayback(resolver.webContents);
+    }, 900);
+    while (Date.now() - startedAt < timeoutMs) {
+      const candidate = filterMediaCandidates(resolverId)
+        .filter((item) => item?.url && item.url !== pageUrl)
+        .filter((item) => !item.detectedAt || new Date(item.detectedAt).getTime() >= startedAt - 1_000)
+        .sort((left, right) => resolverCandidateScore(right) - resolverCandidateScore(left))[0];
+      if (candidate && resolverCandidateScore(candidate) >= 40) {
+        // Give manifest inspection a brief chance to attach variants and duration.
+        if (candidate.kind === 'playlist') await new Promise((resolve) => setTimeout(resolve, 350));
+        const latest = mediaCandidates.get(candidate.id) || candidate;
+        let playerFrameUrl = null;
+        try {
+          playerFrameUrl = Array.from(resolver.webContents.mainFrame.framesInSubtree || [], (frame) => frame.url)
+            .find((url) => url && normalizePageUrl(url) !== pageUrl) || null;
+        } catch { /* the player frame may be replaced during handoff */ }
+        retainMediaResolver(resolver);
+        retainedForDownload = true;
+        return {
+          ok: true,
+          candidate: {
+            ...latest,
+            title: String(request.title || latest.title || '').trim() || latest.title,
+            fileName: String(request.fileName || request.title || latest.fileName || '').trim() || latest.fileName,
+            thumbnailUrl: request.thumbnailUrl || latest.thumbnailUrl || null,
+            pageUrl,
+            referrer: latest.requestReferrer || playerFrameUrl || pageUrl,
+            sourceClient: latest.kind === 'video' ? 'background-resolver' : latest.sourceClient,
+            downloadStrategy: latest.kind === 'video' ? 'direct' : latest.downloadStrategy,
+            // Keep the proven player context alive long enough for the
+            // background download to originate from the same browser session.
+            webContentsId: resolverId,
+          },
+        };
+      }
+      await new Promise((resolve) => setTimeout(resolve, 180));
+    }
+    return {
+      ok: false,
+      message: '未能从该分集页面解析到真实视频资源。',
+      diagnostics: await resolverFailureDiagnostics(resolver.webContents, resolverId),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error?.message || '分集页面解析失败。',
+      diagnostics: await resolverFailureDiagnostics(resolver.webContents, resolverId),
+    };
+  } finally {
+    if (playbackTimer) clearInterval(playbackTimer);
+    for (const [candidateId, candidate] of mediaCandidates.entries()) {
+      if (Number(candidate.webContentsId) === resolverId) mediaCandidates.delete(candidateId);
+    }
+    if (!retainedForDownload && !resolver.isDestroyed()) resolver.destroy();
+  }
+}
+
 ipcMain.handle('media:get-candidates', (_event, webContentsId = null) => filterMediaCandidates(webContentsId));
+
+ipcMain.handle('media:resolve-page', (_event, request = {}) => resolvePageMediaInBackground(request));
 
 ipcMain.handle('media:extract-page', (_event, request = {}) => extractPageMediaCandidates(
   request.pageUrl,
@@ -2331,6 +3061,31 @@ ipcMain.handle('dialog:choose-text-file', async () => {
   return fs.readFile(result.filePaths[0], 'utf8');
 });
 
+ipcMain.handle('platforms:get', () => loadPlatformConfiguration());
+
+ipcMain.handle('platforms:save', (_event, configuration) => savePlatformConfiguration(configuration));
+
+ipcMain.handle('platforms:reset', async () => {
+  const defaults = loadDefaultPlatformConfiguration();
+  return savePlatformConfiguration(defaults);
+});
+
+ipcMain.handle('platforms:choose-icon', async () => {
+  if (IS_SMOKE_TEST) return null;
+  if (!mainWindow) return null;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择平台图标',
+    properties: ['openFile'],
+    filters: [
+      { name: '图片', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'ico'] },
+    ],
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  const image = nativeImage.createFromPath(result.filePaths[0]);
+  if (image.isEmpty()) throw new Error('无法读取所选图标。');
+  return image.resize({ width: 64, height: 64, quality: 'best' }).toPNG().toString('base64');
+});
+
 ipcMain.handle('app:open-external', async (_event, url) => {
   if (typeof url !== 'string' || !url.trim()) return false;
   let target;
@@ -2475,6 +3230,94 @@ ipcMain.handle('window:close', () => {
   return true;
 });
 
+ipcMain.handle('download:verify-output', async (_event, item) => {
+  if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
+    return { ok: Boolean(item?.completionVerified || item?.path), path: item?.path || '', size: Number(item?.completedBytes || 2048) };
+  }
+  const resolvedPath = await resolveDownloadedFile(item || {});
+  if (!resolvedPath) return { ok: false, reason: 'file-not-found' };
+  const fileStat = await statPath(resolvedPath);
+  if (!fileStat?.isFile() || fileStat.size <= 0) return { ok: false, reason: 'empty-file' };
+  return { ok: true, path: resolvedPath, taskDir: path.dirname(resolvedPath), size: fileStat.size };
+});
+
+ipcMain.handle('window:renderer-ready', (event) => {
+  if (IS_SMOKE_TEST || !mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return false;
+  mainWindow.show();
+  return true;
+});
+
+ipcMain.handle('browser:direct-download-event', async (event, payload = {}) => {
+  const jobId = String(payload.jobId || '').trim();
+  const job = activeDownloadJobs.get(jobId);
+  if (!job || job.finalized || Number(job.task.webContentsId) !== event.sender.id) {
+    return { ok: false, reason: 'download-not-active' };
+  }
+  const stream = job.webviewStream;
+  if (!stream) return { ok: false, reason: 'download-not-ready' };
+  const type = String(payload.type || '');
+  if (type === 'response') {
+    armWebviewDownloadTimeout(job);
+    const statusCode = Number(payload.statusCode || 0);
+    if (statusCode < 200 || statusCode >= 300) {
+      await finalizeWebviewDirectDownloadJob(job, {
+        error: new Error('Direct media request failed with HTTP ' + statusCode + '.'),
+      });
+      return { ok: false, reason: 'http-error' };
+    }
+    stream.totalBytes = Math.max(stream.totalBytes, Number(payload.totalBytes || 0));
+    return { ok: true };
+  }
+  if (type === 'chunk') {
+    const chunk = Buffer.from(payload.chunk || []);
+    if (!chunk.length || chunk.length > 2 * 1024 * 1024) return { ok: false, reason: 'invalid-chunk' };
+    const writeOperation = stream.writeChain.then(async () => {
+      if (job.cancelled || job.finalized || !stream.handle) return;
+      await stream.handle.write(chunk);
+      stream.downloadedBytes += chunk.length;
+      armWebviewDownloadTimeout(job);
+      const now = Date.now();
+      if (now - stream.lastProgressAt < 250) return;
+      stream.lastProgressAt = now;
+      const elapsedSeconds = Math.max(0.001, (now - stream.startedAt) / 1000);
+      sendDownloadJobEvent(job, {
+        type: 'progress',
+        data: {
+          item_index: 1,
+          item_total: 1,
+          percent: stream.totalBytes > 0 ? Math.min(99, stream.downloadedBytes / stream.totalBytes * 100) : 0,
+          status: 'downloading',
+          filename: stream.reserved.finalPath,
+          downloaded_bytes: stream.downloadedBytes,
+          total_bytes: stream.totalBytes || null,
+          speed: stream.downloadedBytes / elapsedSeconds,
+          eta: stream.totalBytes > stream.downloadedBytes
+            ? (stream.totalBytes - stream.downloadedBytes) / (stream.downloadedBytes / elapsedSeconds)
+            : 0,
+        },
+      });
+    });
+    stream.writeChain = writeOperation.catch(() => {});
+    try {
+      await writeOperation;
+      return { ok: !job.cancelled && !job.finalized };
+    } catch (error) {
+      await finalizeWebviewDirectDownloadJob(job, { error });
+      return { ok: false, reason: 'write-failed' };
+    }
+  }
+  if (type === 'done') {
+    await stream.writeChain;
+    await finalizeWebviewDirectDownloadJob(job, { success: true });
+    return { ok: true };
+  }
+  if (type === 'error') {
+    await finalizeWebviewDirectDownloadJob(job, { error: new Error(String(payload.message || 'Browser media download failed.')) });
+    return { ok: false, reason: 'download-error' };
+  }
+  return { ok: false, reason: 'invalid-event' };
+});
+
 ipcMain.handle('download:start', async (_event, task) => {
   if (!Array.isArray(task?.urls) || !task.urls.length) {
     throw new Error('No URLs provided.');
@@ -2495,6 +3338,13 @@ ipcMain.handle('download:start', async (_event, task) => {
     thumbnailUrl: normalizeDownloadReferrer(task.thumbnailUrl),
     title: String(task.title || task.fileName || 'TikTok video').trim().slice(0, 300),
     directDownload: task.directDownload === true,
+    backgroundResolvedMedia: task.backgroundResolvedMedia === true,
+    backgroundResolvePage: task.backgroundResolvePage === true,
+    siteDownloadIntent: task.siteDownloadIntent === true,
+    sourceClient: String(task.sourceClient || '').trim().slice(0, 80),
+    kind: String(task.kind || '').trim().slice(0, 40),
+    mimeType: String(task.mimeType || '').trim().slice(0, 120),
+    sizeBytes: Math.max(0, Number(task.sizeBytes || 0)),
     webContentsId: Number.isInteger(Number(task.webContentsId)) && Number(task.webContentsId) > 0
       ? Number(task.webContentsId)
       : null,
@@ -2502,6 +3352,10 @@ ipcMain.handle('download:start', async (_event, task) => {
   const requestedEntries = urls.map((url) => ({
     url,
     requestKey: downloadRequestKey(url, baseTask.formatId),
+    nativeBrowserDownload: baseTask.directDownload && (
+      consumeNativeDownloadPermit(url, baseTask.webContentsId)
+      || (baseTask.siteDownloadIntent && isAllowedSiteDownloadIntent(url, baseTask.referrer, baseTask.webContentsId))
+    ),
   }));
   const existingByRequestKey = new Map([
     ...Array.from(activeDownloadJobs.values()),
@@ -2509,8 +3363,9 @@ ipcMain.handle('download:start', async (_event, task) => {
   ].map((job) => [job.requestKey || downloadRequestKey(job.url, job.task?.formatId), job]));
   const newEntries = requestedEntries.filter((entry) => !existingByRequestKey.has(entry.requestKey));
   if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
-    const consumed = consumeCurrentDailyEntitlement(newEntries.length);
+    const consumed = consumeCurrentDailyEntitlement(task.retryExisting === true ? 0 : newEntries.length);
     if (!consumed.ok) {
+      releaseRetainedMediaResolver(baseTask.webContentsId);
       const error = new Error('daily-entitlement-limit-reached');
       error.entitlements = consumed.state;
       throw error;
@@ -2571,6 +3426,7 @@ ipcMain.handle('download:start', async (_event, task) => {
         });
       }
     }, 25 + index * 15));
+    releaseRetainedMediaResolver(baseTask.webContentsId);
     return {
       started: true,
       smoke: true,
@@ -2582,6 +3438,7 @@ ipcMain.handle('download:start', async (_event, task) => {
   }
   const userData = app.getPath('userData');
   if (!newEntries.length) {
+    releaseRetainedMediaResolver(baseTask.webContentsId);
     pumpDownloadQueue();
     return {
       started: true,
@@ -2591,15 +3448,16 @@ ipcMain.handle('download:start', async (_event, task) => {
           jobId: job.id,
           requestKey,
           url,
-          state: activeDownloadJobs.has(job.id) ? 'downloading' : 'queued',
+          state: activeDownloadJobs.has(job.id) ? (job.phase || 'downloading') : 'queued',
         };
       }),
       entitlements: getCurrentEntitlementState(),
       ...getDownloadQueueState(),
     };
   }
-  const consumed = consumeCurrentDailyEntitlement(newEntries.length);
+  const consumed = consumeCurrentDailyEntitlement(task.retryExisting === true ? 0 : newEntries.length);
   if (!consumed.ok) {
+    releaseRetainedMediaResolver(baseTask.webContentsId);
     const error = new Error('daily-entitlement-limit-reached');
     error.entitlements = consumed.state;
     throw error;
@@ -2612,11 +3470,11 @@ ipcMain.handle('download:start', async (_event, task) => {
   );
   await exportCookieJar(cookiePath);
   const cookieGroup = { path: cookiePath, remaining: newEntries.length };
-  const jobs = newEntries.map(({ url, requestKey }) => ({
+  const jobs = newEntries.map(({ url, requestKey, nativeBrowserDownload }) => ({
     id: `download-job-${process.pid}-${++downloadJobCounter}`,
     requestKey,
     url,
-    task: { ...baseTask, urls: [url] },
+    task: { ...baseTask, urls: [url], nativeBrowserDownload },
     cookieGroup,
     cookieReleased: false,
     cancelled: false,
@@ -2632,7 +3490,7 @@ ipcMain.handle('download:start', async (_event, task) => {
         jobId: job.id,
         requestKey,
         url,
-        state: activeDownloadJobs.has(job.id) ? 'downloading' : 'queued',
+        state: activeDownloadJobs.has(job.id) ? (job.phase || 'downloading') : 'queued',
       };
     }),
     entitlements: consumed.state,
@@ -2653,6 +3511,7 @@ ipcMain.handle('download:cancel', async () => {
     job.cancelled = true;
     sendDownloadJobEvent(job, { type: 'cancelled' });
     releaseDownloadJobCookie(job);
+    if (job.task.backgroundResolvedMedia) releaseRetainedMediaResolver(job.task.webContentsId);
   }
   const active = Array.from(activeDownloadJobs.values());
   for (const job of active) {
@@ -2678,4 +3537,36 @@ ipcMain.handle('download:cancel', async () => {
     cancelled: queued.length + active.length,
     recordingsStopping: activeRecordingSessions.size,
   };
+});
+
+ipcMain.handle('download:control', async (_event, payload = {}) => {
+  const jobId = String(payload.jobId || '').trim();
+  const requestKey = String(payload.requestKey || '').trim();
+  const action = String(payload.action || '').trim();
+  if ((!jobId && !requestKey) || !['pause', 'cancel'].includes(action)) return { ok: false, reason: 'invalid-request' };
+
+  const queuedIndex = queuedDownloadJobs.findIndex((job) => job.id === jobId || (requestKey && job.requestKey === requestKey));
+  if (queuedIndex >= 0) {
+    const [job] = queuedDownloadJobs.splice(queuedIndex, 1);
+    job.cancelled = true;
+    sendDownloadJobEvent(job, { type: action === 'pause' ? 'paused' : 'cancelled' });
+    releaseDownloadJobCookie(job);
+    if (job.task.backgroundResolvedMedia) releaseRetainedMediaResolver(job.task.webContentsId);
+    sendDownloadQueueState();
+    return { ok: true, action, state: action === 'pause' ? 'paused' : 'cancelled' };
+  }
+
+  const job = activeDownloadJobs.get(jobId)
+    || Array.from(activeDownloadJobs.values()).find((item) => requestKey && item.requestKey === requestKey);
+  if (!job) return { ok: true, action, state: 'not-running' };
+  job.cancelled = true;
+  sendDownloadJobEvent(job, { type: action === 'pause' ? 'paused' : 'cancelled' });
+  const abortResult = job.abortController?.abort();
+  job.downloadItem?.cancel();
+  job.process?.kill();
+  if (abortResult && typeof abortResult.then === 'function') await abortResult;
+  activeDownloadJobs.delete(job.id);
+  pumpDownloadQueue();
+  sendDownloadQueueState();
+  return { ok: true, action, state: action === 'pause' ? 'paused' : 'cancelled' };
 });

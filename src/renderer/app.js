@@ -5,7 +5,7 @@ const SEARCH_ENGINES = {
   bing: 'https://www.bing.com/search?q=',
   duckduckgo: 'https://duckduckgo.com/?q=',
 };
-const FALLBACK_PARTITION = 'persist:vidogo-rebuild-v1';
+const FALLBACK_PARTITION = 'persist:vidogo-basic-0.1.3';
 const STORAGE_KEYS = {
   theme: 'vidogo:theme',
   locale: 'vidogo:locale',
@@ -572,6 +572,27 @@ const TEXT = {
 const I18N = window.VidoGoI18n;
 if (!I18N) throw new Error('VidoGo locale module did not load');
 const TEXT_TABLES = I18N.createTextTables(TEXT);
+const PLATFORM_MANAGER_TEXT = {
+  'zh-CN': {
+    platformLauncher: '常用平台', platformManager: '平台管理', platformManagerSubtitle: '管理主页显示的平台和分类',
+    platformCategory: '分类', platformSite: '平台', addPlatform: '添加平台', addCategory: '添加分类', restoreDefaults: '恢复默认',
+    platformName: '名称', platformUrl: '网址', platformIcon: '图标', categoryName: '分类名称', autoIcon: '自动获取', chooseImage: '选择图片',
+    edit: '编辑', hide: '隐藏', show: '显示', cannotDeleteUsedCategory: '请先移动或删除该分类中的平台。',
+    platformSaved: '平台配置已保存', platformReset: '平台配置已恢复默认', platformInvalidUrl: '请输入有效的 HTTP(S) 网址。',
+    platformNameRequired: '请输入平台名称。', categoryNameRequired: '请输入分类名称。', emptyCategory: '该分类还没有平台。',
+    currentAddress: '当前网页地址', close: '关闭', cancel: '取消', save: '保存', remove: '删除',
+  },
+  en: {
+    platformLauncher: 'Platforms', platformManager: 'Manage platforms', platformManagerSubtitle: 'Choose the platforms and categories shown on Home',
+    platformCategory: 'Categories', platformSite: 'Platforms', addPlatform: 'Add platform', addCategory: 'Add category', restoreDefaults: 'Restore defaults',
+    platformName: 'Name', platformUrl: 'Website', platformIcon: 'Icon', categoryName: 'Category name', autoIcon: 'Auto icon', chooseImage: 'Choose image',
+    edit: 'Edit', hide: 'Hide', show: 'Show', cannotDeleteUsedCategory: 'Move or delete the platforms in this category first.',
+    platformSaved: 'Platform settings saved', platformReset: 'Platform settings restored', platformInvalidUrl: 'Enter a valid HTTP(S) website.',
+    platformNameRequired: 'Enter a platform name.', categoryNameRequired: 'Enter a category name.', emptyCategory: 'No platforms in this category.',
+    currentAddress: 'Current page address', close: 'Close', cancel: 'Cancel', save: 'Save', remove: 'Remove',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], PLATFORM_MANAGER_TEXT[locale] || PLATFORM_MANAGER_TEXT.en);
 const AUTH_FAILURE_TEXT = {
   'zh-CN': { loginFailed: '邮箱或密码不正确。' },
   'zh-TW': { loginFailed: '電子郵件或密碼不正確。' },
@@ -649,6 +670,28 @@ const DOWNLOAD_OPEN_TEXT = {
   ar: { openFileFailed: 'تعذر العثور على ملف الفيديو الذي تم تنزيله.', openFolderFailed: 'تعذر العثور على مجلد مهمة التنزيل هذه.' },
 };
 for (const [locale, copy] of Object.entries(DOWNLOAD_OPEN_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
+
+const DOWNLOAD_CONTROL_TEXT = {
+  'zh-CN': {
+    paused: '已暂停', resolving: '正在解析', connecting: '正在连接', finalizing: '正在完成', pause: '暂停', resume: '继续下载', retryAllFailed: '批量重试失败项',
+    retryingFailed: '正在重试 {current}/{total}', retriedFailed: '已重新提交 {count} 个失败任务。',
+    retryFailedPartial: '已重新提交 {started} 个，仍有 {failed} 个无法重试。', noRetryableFailed: '暂无可重试的失败任务。',
+    invalidDownloadOutput: '下载结果无有效文件，任务已标记为失败，请重试。', batchQueued: '已添加 {count} 个下载任务，正在后台解析。',
+  },
+  'zh-TW': {
+    paused: '已暫停', resolving: '正在解析', connecting: '正在連線', finalizing: '正在完成', pause: '暫停', resume: '繼續下載', retryAllFailed: '批次重試失敗項目',
+    retryingFailed: '正在重試 {current}/{total}', retriedFailed: '已重新提交 {count} 個失敗任務。',
+    retryFailedPartial: '已重新提交 {started} 個，仍有 {failed} 個無法重試。', noRetryableFailed: '暫無可重試的失敗任務。',
+    invalidDownloadOutput: '下載結果沒有有效檔案，任務已標記為失敗，請重試。', batchQueued: '已加入 {count} 個下載任務，正在背景解析。',
+  },
+  en: {
+    paused: 'Paused', resolving: 'Resolving', connecting: 'Connecting', finalizing: 'Finishing', pause: 'Pause', resume: 'Resume', retryAllFailed: 'Retry all failed',
+    retryingFailed: 'Retrying {current}/{total}', retriedFailed: 'Resubmitted {count} failed tasks.',
+    retryFailedPartial: 'Resubmitted {started}; {failed} could not be retried.', noRetryableFailed: 'There are no retryable failed tasks.',
+    invalidDownloadOutput: 'No valid output file was produced. The task was marked as failed; please retry.', batchQueued: 'Added {count} download tasks; resolving in the background.',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], DOWNLOAD_CONTROL_TEXT[locale] || DOWNLOAD_CONTROL_TEXT.en);
 const UPDATE_TEXT = {
   'zh-CN': { checkingUpdates: '正在检查…', updateAvailable: '发现新版本 {version}。', openRelease: '打开下载页面', updateNotPublished: '项目尚未发布公开版本。', updateCheckFailed: '检查更新失败：{message}' },
   'zh-TW': { checkingUpdates: '正在檢查…', updateAvailable: '發現新版本 {version}。', openRelease: '開啟下載頁面', updateNotPublished: '專案尚未發布公開版本。', updateCheckFailed: '檢查更新失敗：{message}' },
@@ -661,10 +704,21 @@ const UPDATE_TEXT = {
 };
 for (const [locale, copy] of Object.entries(UPDATE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const BROWSER_STATUS_TEXT = {
-  'zh-CN': { media: '媒体识别', local: '本地保存', adblock: '广告过滤', queue: '下载队列', openQueue: '打开下载队列' },
-  'zh-TW': { media: '媒體識別', local: '本機儲存', adblock: '廣告過濾', queue: '下載佇列', openQueue: '開啟下載佇列' },
-  en: { media: 'Media', local: 'Local save', adblock: 'Ad blocker', queue: 'Queue', openQueue: 'Open download queue' },
+  'zh-CN': { media: '媒体识别', local: '本地保存', adblock: '广告过滤', network: '网速', currentSpeed: '当前下载总速度', queue: '下载队列', openQueue: '打开下载队列' },
+  'zh-TW': { media: '媒體識別', local: '本機儲存', adblock: '廣告過濾', network: '網速', currentSpeed: '目前下載總速度', queue: '下載佇列', openQueue: '開啟下載佇列' },
+  en: { media: 'Media', local: 'Local save', adblock: 'Ad blocker', network: 'Speed', currentSpeed: 'Current total download speed', queue: 'Queue', openQueue: 'Open download queue' },
 };
+const TITLEBAR_ACCOUNT_TEXT = {
+  'zh-CN': { signedOut: '未登录 · 免费版', remaining: '今日剩余 {remaining}/{limit}', unlimited: '下载不限', open: '查看账户信息' },
+  'zh-TW': { signedOut: '未登入 · 免費版', remaining: '今日剩餘 {remaining}/{limit}', unlimited: '下載不限', open: '查看帳戶資訊' },
+  en: { signedOut: 'Signed out · Free', remaining: '{remaining}/{limit} left today', unlimited: 'Unlimited downloads', open: 'View account' },
+};
+const MEDIA_CONTEXT_TEXT = {
+  'zh-CN': { currentMedia: '当前视频', batchMedia: '批量', selectAllMedia: '全选', downloadSelectedMedia: '下载所选', selectMediaFirst: '请先选择要下载的视频。', resolvingEpisode: '正在识别第 {current}/{total} 集…', batchResolveDone: '批量处理完成：已开始 {started} 个，未识别 {failed} 个。', batchResolveFailed: '未能识别所选分集的真实视频，请先打开其中一集并播放后再试。' },
+  'zh-TW': { currentMedia: '目前影片', batchMedia: '批次', selectAllMedia: '全選', downloadSelectedMedia: '下載所選', selectMediaFirst: '請先選擇要下載的影片。', resolvingEpisode: '正在辨識第 {current}/{total} 集…', batchResolveDone: '批次處理完成：已開始 {started} 個，未辨識 {failed} 個。', batchResolveFailed: '無法辨識所選分集的真實影片，請先開啟其中一集並播放後再試。' },
+  en: { currentMedia: 'Current', batchMedia: 'Batch', selectAllMedia: 'Select all', downloadSelectedMedia: 'Download selected', selectMediaFirst: 'Select at least one video.', resolvingEpisode: 'Detecting episode {current}/{total}…', batchResolveDone: 'Batch ready: {started} started, {failed} not detected.', batchResolveFailed: 'The selected episodes could not be detected. Open and play one episode, then try again.' },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], MEDIA_CONTEXT_TEXT[locale] || MEDIA_CONTEXT_TEXT.en);
 
 const SHELL_EXPERIENCE_TEXT = {
   'zh-CN': {
@@ -728,6 +782,9 @@ const SHELL_EXPERIENCE_TEXT = {
 const els = {
   body: document.body,
   title: document.getElementById('window-title'),
+  titlebarAccount: document.getElementById('titlebar-account'),
+  titlebarAccountState: document.getElementById('titlebar-account-state'),
+  titlebarAccountQuota: document.getElementById('titlebar-account-quota'),
   sidebar: Array.from(document.querySelectorAll('.sidebar-btn')),
   downloadBadge: document.getElementById('download-badge'),
   pages: Object.fromEntries(Array.from(document.querySelectorAll('.page')).map((page) => [page.id.replace('page-', ''), page])),
@@ -735,16 +792,13 @@ const els = {
   tabbar: document.getElementById('browser-tabbar'),
   tabAdd: document.getElementById('tab-add'),
   homeTagline: document.getElementById('home-tagline'),
-  homeSearch: document.getElementById('home-search-input'),
+  platformGroups: document.getElementById('platform-groups'),
+  platformManageButton: document.getElementById('platform-manage-button'),
+  platformManageLabel: document.getElementById('platform-manage-label'),
   homeFlowBrowser: document.getElementById('home-flow-browser'),
   homeFlowDetect: document.getElementById('home-flow-detect'),
   homeFlowChoose: document.getElementById('home-flow-choose'),
   homeFlowSave: document.getElementById('home-flow-save'),
-  labels: {
-    video: document.getElementById('quick-video-label'),
-    social: document.getElementById('quick-social-label'),
-    live: document.getElementById('quick-live-label'),
-  },
   browserStage: document.getElementById('browser-stage'),
   browserSplit: document.getElementById('browser-split'),
   browserSide: document.getElementById('browser-side'),
@@ -753,7 +807,6 @@ const els = {
   reload: document.getElementById('nav-reload'),
   reloadIcon: document.getElementById('nav-reload-icon'),
   address: document.getElementById('address-input'),
-  addressGo: document.getElementById('address-go'),
   browserSideTitle: document.getElementById('browser-side-title'),
   recommend: document.querySelector('[data-side-tab="recommend"]'),
   allMedia: document.querySelector('[data-side-tab="all"]'),
@@ -763,11 +816,23 @@ const els = {
   browserStatusLocalLabel: document.getElementById('browser-status-local-label'),
   browserStatusAdblockLabel: document.getElementById('browser-status-adblock-label'),
   browserStatusAdblockState: document.getElementById('browser-status-adblock-state'),
+  browserStatusNetwork: document.getElementById('browser-status-network'),
+  browserStatusNetworkLabel: document.getElementById('browser-status-network-label'),
+  browserStatusNetworkSpeed: document.getElementById('browser-status-network-speed'),
   browserStatusDownloads: document.getElementById('browser-status-downloads'),
   browserStatusDownloadLabel: document.getElementById('browser-status-download-label'),
   browserStatusDownloadCount: document.getElementById('browser-status-download-count'),
   recommendCount: document.getElementById('recommend-count'),
   allCount: document.getElementById('all-count'),
+  mediaPanelTabs: document.querySelector('.media-panel-tabs'),
+  mediaContextSwitch: document.getElementById('media-context-switch'),
+  mediaModeButtons: Array.from(document.querySelectorAll('[data-media-mode]')),
+  batchMediaCount: document.getElementById('batch-media-count'),
+  batchMediaToolbar: document.getElementById('batch-media-toolbar'),
+  batchSelectAll: document.getElementById('batch-select-all'),
+  batchSelectAllLabel: document.getElementById('batch-select-all-label'),
+  batchDownloadSelected: document.getElementById('batch-download-selected'),
+  batchDownloadLabel: document.getElementById('batch-download-label'),
   browserQualityLabel: document.getElementById('browser-quality-label'),
   browserQuality: document.getElementById('browser-quality'),
   downloadQuality: document.getElementById('download-quality'),
@@ -795,6 +860,7 @@ const els = {
   downloadHeader: document.getElementById('downloads-header'),
   downloadRange: document.getElementById('download-range'),
   clearFinished: document.getElementById('clear-finished'),
+  retryFailedDownloads: document.getElementById('retry-failed-downloads'),
   downloadFilters: document.getElementById('download-filters'),
   historyList: document.getElementById('history-list'),
   historyRange: document.getElementById('history-range'),
@@ -852,12 +918,31 @@ const els = {
   settingsConcurrencyIncrease: document.getElementById('settings-concurrency-increase'),
   settingsConcurrencyLimit: document.getElementById('settings-concurrency-limit'),
   settingsConcurrencyPlans: document.getElementById('settings-concurrency-plans'),
-  settingsSearchEngine: document.getElementById('settings-search-engine'),
   settingsRecording: document.getElementById('settings-recording-control'),
   settingsRecordingState: document.getElementById('settings-recording-state'),
   settingsCheckUpdate: document.getElementById('settings-check-update'),
   settingsVersion: document.getElementById('settings-version'),
   settingsLatestVersion: document.getElementById('settings-latest-version'),
+  platformManagerOverlay: document.getElementById('platform-manager-overlay'),
+  platformManagerClose: document.getElementById('platform-manager-close'),
+  platformResetButton: document.getElementById('platform-reset-button'),
+  platformCategoryAdd: document.getElementById('platform-category-add'),
+  platformCategoryList: document.getElementById('platform-category-list'),
+  platformSiteAdd: document.getElementById('platform-site-add'),
+  platformSiteList: document.getElementById('platform-site-list'),
+  platformEditor: document.getElementById('platform-editor'),
+  platformEditId: document.getElementById('platform-edit-id'),
+  platformEditName: document.getElementById('platform-edit-name'),
+  platformEditUrl: document.getElementById('platform-edit-url'),
+  platformEditCategory: document.getElementById('platform-edit-category'),
+  platformIconPreview: document.getElementById('platform-icon-preview'),
+  platformIconAuto: document.getElementById('platform-icon-auto'),
+  platformIconChoose: document.getElementById('platform-icon-choose'),
+  platformEditCancel: document.getElementById('platform-edit-cancel'),
+  categoryEditor: document.getElementById('category-editor'),
+  categoryEditId: document.getElementById('category-edit-id'),
+  categoryEditName: document.getElementById('category-edit-name'),
+  categoryEditCancel: document.getElementById('category-edit-cancel'),
   toastRegion: document.getElementById('toast-region'),
 };
 
@@ -874,6 +959,7 @@ const state = {
   activeTabId: null,
   tabCounter: 0,
   running: false,
+  retryingFailedDownloads: false,
   activeDownloadStatus: 'all',
   downloadPage: 1,
   accountMode: 'login',
@@ -888,7 +974,13 @@ const state = {
   historyRange: 'all',
   history: readArray(STORAGE_KEYS.history),
   favorites: readArray(STORAGE_KEYS.favorites),
+  platformConfig: { schemaVersion: 1, categories: [], platforms: [] },
+  activePlatformCategoryId: null,
+  platformEditorIcon: '',
   candidatesByTabId: {},
+  mediaCollectionsByTabId: {},
+  mediaModeByTabId: {},
+  selectedBatchCandidateIdsByTabId: {},
   selectedCandidateIdsByTabId: {},
   expandedCandidateIdsByTabId: {},
   selectedMinimumResolutionByTabId: {},
@@ -984,11 +1076,30 @@ function applyLocale() {
   document.documentElement.dir = I18N.getDirection(state.locale);
   document.title = text('title');
   els.title.textContent = text('title');
+  updateTitlebarAccount();
   els.homeTagline.textContent = text('homeSlogan');
-  els.homeSearch.placeholder = text('search');
-  els.labels.video.textContent = text('video');
-  els.labels.social.textContent = text('social');
-  els.labels.live.textContent = text('live');
+  els.platformManageLabel.textContent = text('platformManager');
+  els.platformManageButton.title = text('platformManager');
+  els.platformManageButton.setAttribute('aria-label', text('platformManager'));
+  document.getElementById('platform-manager-title').textContent = text('platformManager');
+  document.getElementById('platform-manager-subtitle').textContent = text('platformManagerSubtitle');
+  document.getElementById('platform-category-title').textContent = text('platformCategory');
+  document.getElementById('platform-site-title').textContent = text('platformSite');
+  document.getElementById('platform-site-add-label').textContent = text('addPlatform');
+  document.getElementById('platform-edit-name-label').textContent = text('platformName');
+  document.getElementById('platform-edit-url-label').textContent = text('platformUrl');
+  document.getElementById('platform-edit-category-label').textContent = text('platformCategory');
+  document.getElementById('platform-edit-icon-label').textContent = text('platformIcon');
+  document.getElementById('category-edit-name-label').textContent = text('categoryName');
+  els.platformIconAuto.textContent = text('autoIcon');
+  els.platformIconChoose.textContent = text('chooseImage');
+  els.platformEditCancel.textContent = text('cancel');
+  document.getElementById('platform-edit-save').textContent = text('save');
+  els.categoryEditCancel.textContent = text('cancel');
+  document.getElementById('category-edit-save').textContent = text('save');
+  els.platformResetButton.textContent = text('restoreDefaults');
+  els.platformManagerClose.title = text('close');
+  els.platformManagerClose.setAttribute('aria-label', text('close'));
   const shellCopy = SHELL_EXPERIENCE_TEXT[state.locale] || SHELL_EXPERIENCE_TEXT.en;
   [els.homeFlowBrowser, els.homeFlowDetect, els.homeFlowChoose, els.homeFlowSave].forEach((element, index) => {
     if (element) element.textContent = shellCopy.flow[index];
@@ -999,8 +1110,7 @@ function applyLocale() {
     if (element) element.textContent = shellCopy.benefits[index];
   });
   if (els.authFootnote) els.authFootnote.textContent = shellCopy.footnote;
-  els.address.placeholder = text('browserAddress');
-  els.addressGo.textContent = text('visit');
+  els.address.placeholder = text('currentAddress');
   els.back.title = text('back');
   els.back.setAttribute('aria-label', text('back'));
   els.forward.title = text('forward');
@@ -1019,6 +1129,10 @@ function applyLocale() {
   els.sideClose.title = text('closePanel');
   els.sideClose.setAttribute('aria-label', text('closePanel'));
   els.browserQualityLabel.textContent = text('quality');
+  els.mediaModeButtons.find((button) => button.dataset.mediaMode === 'current').childNodes[0].textContent = text('currentMedia');
+  els.mediaModeButtons.find((button) => button.dataset.mediaMode === 'batch').childNodes[0].textContent = `${text('batchMedia')} `;
+  els.batchSelectAllLabel.textContent = text('selectAllMedia');
+  els.batchDownloadLabel.textContent = text('downloadSelectedMedia');
   document.getElementById('download-url-summary').textContent = text('addDownloadTask');
   document.getElementById('output-dir-label').textContent = text('outputFolder');
   document.getElementById('download-quality-label').textContent = text('quality');
@@ -1029,6 +1143,7 @@ function applyLocale() {
   els.cancelDownload.textContent = text('cancel');
   els.startDownload.textContent = text('startDownload');
   els.clearFinished.querySelector('span:last-child').textContent = text('clearFinished');
+  els.retryFailedDownloads.querySelector('span:last-child').textContent = text('retryAllFailed');
   document.getElementById('head-file').textContent = text('fileName');
   document.getElementById('head-progress').textContent = text('progress');
   document.getElementById('head-downloaded').textContent = text('downloaded');
@@ -1063,6 +1178,8 @@ function applyLocale() {
   renderHistory();
   renderFavorites();
   renderPlans();
+  renderQuickSites();
+  renderPlatformManager();
   hydrateIcons();
 }
 
@@ -1097,8 +1214,6 @@ function updateSettingsCopy() {
   els.settingsConcurrencyIncrease.title = text('increase');
   els.settingsConcurrencyIncrease.setAttribute('aria-label', text('increase'));
   els.settingsConcurrencyPlans.textContent = text('viewPlans');
-  document.getElementById('settings-search-title').textContent = text('defaultSearchEngine');
-  document.getElementById('settings-search-description').textContent = text('defaultSearchEngineDescription');
   document.getElementById('settings-recording-title').textContent = text('recordingFeature');
   document.getElementById('settings-recording-description').textContent = text('recordingFeatureDescription');
   document.getElementById('settings-adblock-title').textContent = text('adBlocker');
@@ -1224,7 +1339,6 @@ function syncSettingsControls() {
     : text('increase');
   els.settingsConcurrencyIncrease.title = increaseLabel;
   els.settingsConcurrencyIncrease.setAttribute('aria-label', increaseLabel);
-  els.settingsSearchEngine.value = state.settings.searchEngine || 'google';
   els.settingsTheme.value = state.theme;
   els.settingsLanguage.value = state.locale;
   els.settingsAdBlock.checked = state.settings.adBlocker !== false;
@@ -1259,7 +1373,28 @@ function applyEntitlementState(value) {
   const requested = Number.parseInt(String(state.settings.maxConcurrentDownloads || 1), 10) || 1;
   if (concurrencyLimit !== null) state.settings.maxConcurrentDownloads = Math.max(1, Math.min(concurrencyLimit, requested));
   syncSettingsControls();
+  updateTitlebarAccount();
   if (state.section === 'account') renderAccount();
+}
+
+function updateTitlebarAccount() {
+  if (!els.titlebarAccount || !els.titlebarAccountState || !els.titlebarAccountQuota) return;
+  const copy = TITLEBAR_ACCOUNT_TEXT[state.locale] || TITLEBAR_ACCOUNT_TEXT.en;
+  const planLevel = currentPlanLevel();
+  const planLimit = PLAN_LIMITS[planLevel]?.dailyDownloadLimit ?? null;
+  const limit = state.entitlements?.dailyLimit === null ? null : (Number(state.entitlements?.dailyLimit) || planLimit);
+  const fallbackRemaining = limit === null ? null : Math.max(0, limit);
+  const remaining = state.entitlements?.remainingToday === null
+    ? null
+    : Math.max(0, Number(state.entitlements?.remainingToday ?? fallbackRemaining) || 0);
+  els.titlebarAccountState.textContent = state.account?.email
+    ? `${state.account.email} · ${text(planLevel)}`
+    : copy.signedOut;
+  els.titlebarAccountQuota.textContent = limit === null
+    ? copy.unlimited
+    : copy.remaining.replace('{remaining}', String(remaining)).replace('{limit}', String(limit));
+  els.titlebarAccount.title = `${els.titlebarAccountState.textContent} · ${els.titlebarAccountQuota.textContent}`;
+  els.titlebarAccount.setAttribute('aria-label', `${copy.open}：${els.titlebarAccount.title}`);
 }
 
 function updateConcurrentDownloads(value, announce = true) {
@@ -1291,22 +1426,70 @@ async function syncRecordingConfiguration() {
 
 function userFacingDownloadError(error) {
   const message = String(error?.message || error || '');
-  return message.includes('daily-entitlement-limit-reached') ? text('dailyLimitReached') : message;
+  if (message.includes('daily-entitlement-limit-reached')) return text('dailyLimitReached');
+  if (/ERR_BLOCKED_BY_CLIENT/i.test(message)) return state.locale.startsWith('zh')
+    ? '媒体连接被浏览器中断，请重新识别视频后再试。'
+    : 'The browser interrupted the media connection. Detect the video again and retry.';
+  if (/Fresh cookies|confirm you are on the latest version|yt-dlp.*issue/i.test(message)) return state.locale.startsWith('zh')
+    ? '当前站点会话无法用于下载，请刷新播放页并重新识别视频。'
+    : 'The current site session cannot be used for downloading. Refresh the playback page and detect the video again.';
+  if (/Browser media download failed/i.test(message)) return state.locale.startsWith('zh')
+    ? '媒体下载连接已中断，请重新下载。'
+    : 'The media download connection was interrupted. Please retry.';
+  if (/Media server connection timed out/i.test(message)) return state.locale.startsWith('zh')
+    ? '媒体服务器连接超时，请重新下载。'
+    : 'The media server connection timed out. Please retry.';
+  if (/Direct media request failed with HTTP\s+(\d+)/i.test(message)) {
+    const statusCode = message.match(/HTTP\s+(\d+)/i)?.[1] || '';
+    return state.locale.startsWith('zh')
+      ? `媒体服务器拒绝了下载请求（HTTP ${statusCode}），请重新识别后再试。`
+      : `The media server rejected the download request (HTTP ${statusCode}). Detect the video again and retry.`;
+  }
+  if (/Direct media request returned no data/i.test(message)) return state.locale.startsWith('zh')
+    ? '媒体服务器没有返回视频数据，请重新识别后再试。'
+    : 'The media server returned no video data. Detect the video again and retry.';
+  if (/Unsupported URL/i.test(message)) return state.locale.startsWith('zh')
+    ? '该视频地址暂不支持直接下载，请在播放页重新识别后再试。'
+    : 'This video URL cannot be downloaded directly yet. Open its playback page and detect it again.';
+  if (/Failed to fetch|NetworkError|Load failed|ECONNRESET|socket hang up/i.test(message)) return state.locale.startsWith('zh')
+    ? '媒体连接已中断，请刷新播放页后重新下载。'
+    : 'The media connection was interrupted. Refresh the playback page and retry.';
+  return state.locale.startsWith('zh')
+    ? '下载失败，请刷新播放页并重新识别视频后再试。'
+    : (message || 'The download failed. Refresh the playback page and retry.');
 }
 
 function updateDownloadBadge() {
   const hasActiveDownloads = state.running || state.queue.some((item) => {
     const status = normalizeDownloadState(item.status || item.state);
-    return status === 'queued' || status === 'downloading';
+    return ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(status);
   });
   els.downloadBadge.hidden = !hasActiveDownloads;
   updateBrowserStatusBar();
 }
 
+function parseTransferSpeed(value) {
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric > 0) return numeric;
+  const match = String(value || '').trim().match(/^([\d.]+)\s*(B|KB|MB|GB|TB)\/s$/i);
+  if (!match) return 0;
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const unitIndex = units.indexOf(match[2].toUpperCase());
+  return Number(match[1]) * (1024 ** Math.max(0, unitIndex));
+}
+
+function activeDownloadSpeed() {
+  return state.queue.reduce((total, item) => {
+    if (item.source === 'recording' || normalizeDownloadState(item.status || item.state) !== 'downloading') return total;
+    return total + parseTransferSpeed(item.speedBytesPerSecond || item.speed);
+  }, 0);
+}
+
 function updateBrowserStatusBar() {
   if (!els.browserStatusDownloads) return;
   const copy = BROWSER_STATUS_TEXT[state.locale] || BROWSER_STATUS_TEXT.en;
-  const activePageAllowsAds = tabProvider(activeTab()) === 'dailymotion';
+  const activePageAllowsAds = ['dailymotion', 'pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy']
+    .includes(tabProvider(activeTab()));
   const adBlockerActive = state.settings.adBlocker !== false && !activePageAllowsAds;
   els.browserStatusMediaLabel.textContent = copy.media;
   els.browserStatusMediaCount.textContent = String(mediaCandidatesForTab().length);
@@ -1314,6 +1497,12 @@ function updateBrowserStatusBar() {
   els.browserStatusAdblockLabel.textContent = copy.adblock;
   els.browserStatusAdblockState.textContent = adBlockerActive ? 'ON' : 'OFF';
   els.browserStatusAdblockState.classList.toggle('is-off', !adBlockerActive);
+  const totalSpeed = activeDownloadSpeed();
+  const speedText = totalSpeed > 0 ? `${formatBytes(totalSpeed)}/s` : '0 B/s';
+  els.browserStatusNetworkLabel.textContent = copy.network;
+  els.browserStatusNetworkSpeed.querySelector('bdi').textContent = speedText;
+  els.browserStatusNetwork.classList.toggle('is-active', totalSpeed > 0);
+  els.browserStatusNetwork.title = `${copy.currentSpeed}: ${speedText}`;
   els.browserStatusDownloadLabel.textContent = copy.queue;
   els.browserStatusDownloadCount.textContent = String(state.queue.length);
   els.browserStatusDownloads.title = copy.openQueue;
@@ -1370,7 +1559,7 @@ function setSection(section) {
   updateBrowserControls();
 }
 
-function createTab(url = HOME_URL, title = text('newTab')) {
+function createTab(url = HOME_URL, title = text('newTab'), options = {}) {
   const webview = document.createElement('webview');
   const tab = {
     id: `tab-${++state.tabCounter}`,
@@ -1385,23 +1574,32 @@ function createTab(url = HOME_URL, title = text('newTab')) {
     lastEnrichedUrl: null,
     activeMediaContext: null,
     activeMediaExtractionKey: null,
+    activeMediaNetworkCandidates: [],
+    recentStockMediaCandidate: null,
+    pendingNativeDownloadMetadata: null,
     activeMediaProbeTimer: 0,
     dailymotionRecoveryUrl: '',
     dailymotionRecoveryTimer: 0,
+    internal: options.internal === true,
   };
-  webview.className = 'browser-view';
+  webview.className = `browser-view${tab.internal ? ' is-internal-resolver' : ''}`;
   webview.setAttribute('partition', FALLBACK_PARTITION);
   webview.setAttribute('allowpopups', 'true');
+  if (tab.internal) webview.setAttribute('webpreferences', 'backgroundThrottling=no');
   webview.src = url;
   els.browserStage.appendChild(webview);
   attachWebviewEvents(tab);
   state.tabs.push(tab);
-  state.activeTabId = tab.id;
+  if (!tab.internal) state.activeTabId = tab.id;
   renderTabs();
   setVisibleWebviews();
   updateBrowserControls();
   scheduleActiveWebviewResize();
   return tab;
+}
+
+function createInternalResolverTab(url, title) {
+  return createTab(url, title, { internal: true });
 }
 
 function activeTab() {
@@ -1433,6 +1631,7 @@ function attachWebviewEvents(tab) {
     sync();
     scheduleActiveWebviewResize();
     scheduleActiveMediaProbe(tab, 300);
+    void tab.webview.executeJavaScript('window.__vidogoActiveMediaReporter?.report?.()', true).catch(() => null);
   });
   tab.webview.addEventListener('did-start-loading', () => {
     tab.loading = true;
@@ -1468,8 +1667,17 @@ function attachWebviewEvents(tab) {
     if (event.isMainFrame && event.errorCode !== -3) toast(`${text('loadFailed')}: ${event.validatedURL || tab.url}`);
   });
   tab.webview.addEventListener('ipc-message', (event) => {
-    if (event.channel !== 'vidogo:active-media') return;
-    void handleActiveMediaContext(tab, event.args?.[0]);
+    if (event.channel === 'vidogo:active-media') {
+      void handleActiveMediaContext(tab, event.args?.[0]);
+    } else if (event.channel === 'vidogo:media-collection') {
+      handleMediaCollection(tab, event.args?.[0]);
+    } else if (event.channel === 'vidogo:stock-media') {
+      handleStockMediaContext(tab, event.args?.[0]);
+    } else if (event.channel === 'vidogo:site-download-metadata') {
+      handleSiteDownloadMetadata(tab, event.args?.[0]);
+    } else if (event.channel === 'vidogo:site-download-intent') {
+      handleSiteDownloadIntent(tab, event.args?.[0]);
+    }
   });
 }
 
@@ -1537,6 +1745,7 @@ function renderTabs() {
   els.tabStrip.appendChild(home);
 
   state.tabs.forEach((tab) => {
+    if (tab.internal) return;
     const button = document.createElement('div');
     button.className = `tab browser-tab ${state.section === 'browser' && tab.id === state.activeTabId ? 'active is-active' : ''}`;
     button.tabIndex = 0;
@@ -1607,17 +1816,20 @@ function closeTab(id) {
   closingTab.mediaEnrichmentSequence += 1;
   closingTab.webview.remove();
   state.tabs.splice(index, 1);
-  if (state.activeTabId === id) state.activeTabId = state.tabs[index]?.id || state.tabs[index - 1]?.id || null;
+  if (state.activeTabId === id) {
+    const visibleTabs = state.tabs.filter((tab) => !tab.internal);
+    state.activeTabId = visibleTabs[Math.min(index, visibleTabs.length - 1)]?.id || visibleTabs.at(-1)?.id || null;
+  }
   delete state.candidatesByTabId[id];
+  delete state.mediaCollectionsByTabId[id];
+  delete state.mediaModeByTabId[id];
+  delete state.selectedBatchCandidateIdsByTabId[id];
   delete state.selectedCandidateIdsByTabId[id];
   delete state.expandedCandidateIdsByTabId[id];
   delete state.selectedMinimumResolutionByTabId[id];
-  if (!state.tabs.length) {
-    state.section = 'home';
-    renderTabs();
-    setVisibleWebviews();
-    renderCandidates();
-    updateBrowserControls();
+  if (!state.tabs.some((tab) => !tab.internal)) {
+    state.activeTabId = null;
+    setSection('home');
     return;
   }
   renderTabs();
@@ -1710,6 +1922,8 @@ async function inspectActiveGuestPage() {
           const style = getComputedStyle(item);
           return {
             className: item.className,
+            currentSrc: String(item.currentSrc || item.src || '').slice(0, 500),
+            poster: String(item.poster || '').slice(0, 500),
             currentTime: Number(item.currentTime) || 0,
             decodedFrames: Number(item.webkitDecodedFrameCount) || 0,
             display: style.display,
@@ -1733,6 +1947,14 @@ async function inspectActiveGuestPage() {
           href: location.href,
           title: document.title,
           readyState: document.readyState,
+          identity: {
+            userAgent: navigator.userAgent,
+            brands: Array.from(navigator.userAgentData?.brands || []),
+            mobile: navigator.userAgentData?.mobile ?? null,
+            platform: navigator.userAgentData?.platform || navigator.platform,
+            webdriver: navigator.webdriver,
+            language: navigator.language,
+          },
           innerHeight: window.innerHeight,
           innerWidth: window.innerWidth,
           clientHeight: document.documentElement.clientHeight,
@@ -1742,6 +1964,22 @@ async function inspectActiveGuestPage() {
             document.body?.scrollHeight || 0
           ),
           visibleTextLength: document.body ? document.body.innerText.trim().length : 0,
+          tiktokDiagnostics: location.hostname.endsWith('tiktok.com') ? {
+            videoLinks: Array.from(document.querySelectorAll('a[href*="/video/"]')).slice(0, 8).map((item) => item.href),
+            reactAncestors: video ? Array.from((() => {
+              const items = [];
+              for (let node = video, depth = 0; node && depth < 12; node = node.parentElement, depth += 1) {
+                items.push({
+                  tag: node.tagName,
+                  e2e: node.getAttribute?.('data-e2e') || '',
+                  reactKeys: Object.keys(node).filter((key) => key.startsWith('__react')).slice(0, 4),
+                });
+              }
+              return items;
+            })()) : [],
+            mediaResources: performance.getEntriesByType('resource').map((entry) => entry.name)
+              .filter((url) => /(?:video|mime_type=video|\.mp4)/i.test(url)).slice(-8),
+          } : null,
           videoCount: videos.length,
           videos: videos.slice(0, 4).map(describeVideo),
           player: player ? {
@@ -1791,7 +2029,7 @@ async function startActiveGuestPlaybackForSmoke() {
   const view = activeTab()?.webview;
   if (!view) return false;
   try {
-    return await view.executeJavaScript(`
+    return await Promise.race([view.executeJavaScript(`
       (() => {
         const videos = Array.from(document.querySelectorAll('video'));
         const video = videos.find((item) => {
@@ -1803,7 +2041,7 @@ async function startActiveGuestPlaybackForSmoke() {
         video.muted = true;
         return Promise.resolve(video.play()).then(() => true, () => false);
       })()
-    `, true);
+    `, true), new Promise((resolve) => window.setTimeout(() => resolve(false), 3000))]);
   } catch {
     return false;
   }
@@ -1849,7 +2087,6 @@ function updateBrowserControls() {
   els.forward.disabled = !ready || !view.canGoForward();
   els.reload.disabled = !view;
   els.address.disabled = !view;
-  els.addressGo.disabled = !view;
   els.address.value = tab?.url || '';
   const reloadLabel = tab?.loading ? text('stopLoading') : text('refresh');
   els.reload.title = reloadLabel;
@@ -1899,27 +2136,283 @@ function removeHistory(url) {
 function siteIcon(url) {
   try {
     const host = new URL(url).hostname;
-    return Object.values(QUICK_SITES).flat().find((item) => host.includes(new URL(item.url).hostname.replace('www.', '')))
+    return state.platformConfig.platforms.find((item) => host.includes(new URL(item.url).hostname.replace('www.', '')))
+      || Object.values(QUICK_SITES).flat().find((item) => host.includes(new URL(item.url).hostname.replace('www.', '')))
       || { color: '#2b3440', short: '●' };
   } catch {
     return { color: '#2b3440', short: '●' };
   }
 }
 
+function localizedCategoryName(category) {
+  const language = String(state.locale || '').split('-')[0];
+  return category?.labels?.[state.locale]
+    || category?.labels?.[language]
+    || category?.labels?.en
+    || category?.labels?.['zh-CN']
+    || category?.id
+    || '';
+}
+
+function faviconForUrl(url) {
+  try { return `${new URL(url).origin}/favicon.ico`; } catch { return ''; }
+}
+
+function platformIconMarkup(platform, className = 'site-icon favorite-site-icon') {
+  const icon = platform?.icon || faviconForUrl(platform?.url);
+  if (!icon) return `<span class="${className}">${iconSvg('monitor')}</span>`;
+  return `<span class="${className}"><img src="${escapeHtml(icon)}" alt="" loading="lazy" /></span>`;
+}
+
+function bindPlatformIconFallbacks(root) {
+  root?.querySelectorAll?.('.site-icon img, .platform-site-row-icon img, .platform-icon-preview img').forEach((image) => {
+    image.addEventListener('error', () => {
+      const wrapper = image.parentElement;
+      if (wrapper) wrapper.innerHTML = iconSvg('monitor');
+    }, { once: true });
+  });
+}
+
 function renderQuickSites() {
-  Object.entries(QUICK_SITES).forEach(([group, sites]) => {
-    const grid = document.querySelector(`.popular-site-list[data-group="${group}"], .quick-cards[data-group="${group}"]`);
-    if (!grid) return;
-    grid.innerHTML = '';
-    sites.forEach((site) => {
-      const button = document.createElement('button');
-      button.className = 'popular-site-button site-card';
-      button.type = 'button';
-      button.title = site.name;
-      button.innerHTML = `<span class="site-icon favorite-site-icon"><img src="${escapeHtml(site.icon)}" alt="" /></span><span class="site-name"><bdi>${escapeHtml(site.name)}</bdi></span>`;
-      button.addEventListener('click', () => openUrl(site.url, site.name));
-      grid.appendChild(button);
+  if (!els.platformGroups) return;
+  els.platformGroups.innerHTML = state.platformConfig.categories
+    .filter((category) => category.enabled !== false)
+    .map((category) => {
+      const sites = state.platformConfig.platforms.filter((site) => site.categoryId === category.id && site.enabled !== false);
+      if (!sites.length) return '';
+      return `<div class="quick-row popular-site-group" data-platform-category="${escapeHtml(category.id)}">
+        <div class="quick-label">${escapeHtml(localizedCategoryName(category))}</div>
+        <div class="quick-cards popular-site-list">${sites.map((site) => `
+          <button class="popular-site-button site-card" type="button" data-platform-open="${escapeHtml(site.id)}" title="${escapeHtml(site.name)}">
+            ${platformIconMarkup(site)}<span class="site-name"><bdi>${escapeHtml(site.name)}</bdi></span>
+          </button>`).join('')}</div>
+      </div>`;
+    }).join('');
+  els.platformGroups.querySelectorAll('[data-platform-open]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const site = state.platformConfig.platforms.find((item) => item.id === button.dataset.platformOpen);
+      if (site) openUrl(site.url, site.name);
     });
+  });
+  bindPlatformIconFallbacks(els.platformGroups);
+}
+
+function renderPlatformIconPreview() {
+  const icon = state.platformEditorIcon || faviconForUrl(els.platformEditUrl.value);
+  els.platformIconPreview.innerHTML = icon ? `<img src="${escapeHtml(icon)}" alt="" />` : iconSvg('monitor');
+  bindPlatformIconFallbacks(els.platformIconPreview);
+}
+
+function closePlatformEditors() {
+  els.platformEditor.hidden = true;
+  els.categoryEditor.hidden = true;
+  els.platformEditId.value = '';
+  els.categoryEditId.value = '';
+  state.platformEditorIcon = '';
+}
+
+function openPlatformEditor(platform = null) {
+  els.categoryEditor.hidden = true;
+  els.platformEditor.hidden = false;
+  els.platformEditId.value = platform?.id || '';
+  els.platformEditName.value = platform?.name || '';
+  els.platformEditUrl.value = platform?.url || '';
+  els.platformEditCategory.innerHTML = state.platformConfig.categories.map((category) => (
+    `<option value="${escapeHtml(category.id)}">${escapeHtml(localizedCategoryName(category))}</option>`
+  )).join('');
+  els.platformEditCategory.value = platform?.categoryId || state.activePlatformCategoryId || state.platformConfig.categories[0]?.id || '';
+  state.platformEditorIcon = platform?.icon || '';
+  renderPlatformIconPreview();
+  els.platformEditName.focus();
+}
+
+function openCategoryEditor(category = null) {
+  els.platformEditor.hidden = true;
+  els.categoryEditor.hidden = false;
+  els.categoryEditId.value = category?.id || '';
+  els.categoryEditName.value = category ? localizedCategoryName(category) : '';
+  els.categoryEditName.focus();
+}
+
+async function persistPlatformConfiguration(successMessage = 'platformSaved') {
+  try {
+    state.platformConfig = await window.mediaDeck.savePlatforms(state.platformConfig);
+    if (!state.platformConfig.categories.some((category) => category.id === state.activePlatformCategoryId)) {
+      state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
+    }
+    renderQuickSites();
+    renderPlatformManager();
+    toast(text(successMessage), 'success');
+    return true;
+  } catch (error) {
+    toast(error?.message || text('platformInvalidUrl'), 'error');
+    return false;
+  }
+}
+
+function renderPlatformManager() {
+  if (!els.platformCategoryList || !els.platformSiteList) return;
+  const categories = state.platformConfig.categories;
+  if (!categories.some((category) => category.id === state.activePlatformCategoryId)) {
+    state.activePlatformCategoryId = categories[0]?.id || null;
+  }
+  els.platformCategoryAdd.title = text('addCategory');
+  els.platformCategoryAdd.setAttribute('aria-label', text('addCategory'));
+  els.platformCategoryList.innerHTML = categories.map((category) => `
+    <div class="platform-category-row${category.id === state.activePlatformCategoryId ? ' is-active' : ''}">
+      <button class="platform-category-select" type="button" data-category-select="${escapeHtml(category.id)}">${escapeHtml(localizedCategoryName(category))}</button>
+      <span class="platform-row-actions">
+        <button class="platform-toggle${category.enabled !== false ? ' is-enabled' : ''}" type="button" data-category-toggle="${escapeHtml(category.id)}" title="${text(category.enabled !== false ? 'hide' : 'show')}" aria-label="${text(category.enabled !== false ? 'hide' : 'show')}"></button>
+        <button class="platform-row-action" type="button" data-category-edit="${escapeHtml(category.id)}" title="${text('edit')}" aria-label="${text('edit')}">${iconSvg('document')}</button>
+        <button class="platform-row-action is-danger" type="button" data-category-delete="${escapeHtml(category.id)}" title="${text('remove')}" aria-label="${text('remove')}">${iconSvg('delete')}</button>
+      </span>
+    </div>`).join('');
+  const platforms = state.platformConfig.platforms.filter((site) => site.categoryId === state.activePlatformCategoryId);
+  els.platformSiteList.innerHTML = platforms.length ? platforms.map((site) => `
+    <div class="platform-site-row">
+      ${platformIconMarkup(site, 'platform-site-row-icon')}
+      <div class="platform-site-row-copy"><b><bdi>${escapeHtml(site.name)}</bdi></b><span title="${escapeHtml(site.url)}">${escapeHtml(site.url)}</span></div>
+      <span class="platform-row-actions">
+        <button class="platform-toggle${site.enabled !== false ? ' is-enabled' : ''}" type="button" data-platform-toggle="${escapeHtml(site.id)}" title="${text(site.enabled !== false ? 'hide' : 'show')}" aria-label="${text(site.enabled !== false ? 'hide' : 'show')}"></button>
+        <button class="platform-row-action" type="button" data-platform-edit="${escapeHtml(site.id)}" title="${text('edit')}" aria-label="${text('edit')}">${iconSvg('document')}</button>
+        <button class="platform-row-action is-danger" type="button" data-platform-delete="${escapeHtml(site.id)}" title="${text('remove')}" aria-label="${text('remove')}">${iconSvg('delete')}</button>
+      </span>
+    </div>`).join('') : `<div class="platform-list-empty">${escapeHtml(text('emptyCategory'))}</div>`;
+  bindPlatformIconFallbacks(els.platformSiteList);
+
+  els.platformCategoryList.querySelectorAll('[data-category-select]').forEach((button) => button.addEventListener('click', () => {
+    state.activePlatformCategoryId = button.dataset.categorySelect;
+    closePlatformEditors();
+    renderPlatformManager();
+  }));
+  els.platformCategoryList.querySelectorAll('[data-category-toggle]').forEach((button) => button.addEventListener('click', () => {
+    const category = categories.find((item) => item.id === button.dataset.categoryToggle);
+    if (!category) return;
+    category.enabled = category.enabled === false;
+    void persistPlatformConfiguration();
+  }));
+  els.platformCategoryList.querySelectorAll('[data-category-edit]').forEach((button) => button.addEventListener('click', () => {
+    openCategoryEditor(categories.find((item) => item.id === button.dataset.categoryEdit));
+  }));
+  els.platformCategoryList.querySelectorAll('[data-category-delete]').forEach((button) => button.addEventListener('click', () => {
+    const id = button.dataset.categoryDelete;
+    if (state.platformConfig.platforms.some((site) => site.categoryId === id)) return toast(text('cannotDeleteUsedCategory'), 'warning');
+    state.platformConfig.categories = categories.filter((item) => item.id !== id);
+    state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
+    void persistPlatformConfiguration();
+  }));
+  els.platformSiteList.querySelectorAll('[data-platform-toggle]').forEach((button) => button.addEventListener('click', () => {
+    const site = state.platformConfig.platforms.find((item) => item.id === button.dataset.platformToggle);
+    if (!site) return;
+    site.enabled = site.enabled === false;
+    void persistPlatformConfiguration();
+  }));
+  els.platformSiteList.querySelectorAll('[data-platform-edit]').forEach((button) => button.addEventListener('click', () => {
+    openPlatformEditor(state.platformConfig.platforms.find((item) => item.id === button.dataset.platformEdit));
+  }));
+  els.platformSiteList.querySelectorAll('[data-platform-delete]').forEach((button) => button.addEventListener('click', () => {
+    state.platformConfig.platforms = state.platformConfig.platforms.filter((item) => item.id !== button.dataset.platformDelete);
+    void persistPlatformConfiguration();
+  }));
+}
+
+function normalizedPlatformEditorUrl(value) {
+  const raw = String(value || '').trim();
+  try {
+    const parsed = new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`);
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) return '';
+    return parsed.href;
+  } catch {
+    return '';
+  }
+}
+
+function uniquePlatformId(prefix, name) {
+  const stem = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36) || prefix;
+  let candidate = `${prefix}-${stem}`;
+  let index = 2;
+  const used = new Set([...state.platformConfig.categories, ...state.platformConfig.platforms].map((item) => item.id));
+  while (used.has(candidate)) candidate = `${prefix}-${stem}-${index++}`;
+  return candidate;
+}
+
+function bindPlatformManagerEvents() {
+  els.platformManageButton.addEventListener('click', () => {
+    closePlatformEditors();
+    renderPlatformManager();
+    els.platformManagerOverlay.hidden = false;
+  });
+  els.platformManagerClose.addEventListener('click', () => { els.platformManagerOverlay.hidden = true; closePlatformEditors(); });
+  els.platformManagerOverlay.addEventListener('click', (event) => {
+    if (event.target === els.platformManagerOverlay) { els.platformManagerOverlay.hidden = true; closePlatformEditors(); }
+  });
+  els.platformResetButton.addEventListener('click', async () => {
+    try {
+      state.platformConfig = await window.mediaDeck.resetPlatforms();
+      state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
+      closePlatformEditors();
+      renderQuickSites();
+      renderPlatformManager();
+      toast(text('platformReset'), 'success');
+    } catch (error) { toast(error?.message || text('platformInvalidUrl'), 'error'); }
+  });
+  els.platformCategoryAdd.addEventListener('click', () => openCategoryEditor());
+  els.platformSiteAdd.addEventListener('click', () => openPlatformEditor());
+  els.platformEditCancel.addEventListener('click', closePlatformEditors);
+  els.categoryEditCancel.addEventListener('click', closePlatformEditors);
+  els.platformEditUrl.addEventListener('input', () => {
+    if (!state.platformEditorIcon || /^https:\/\//i.test(state.platformEditorIcon)) {
+      state.platformEditorIcon = faviconForUrl(normalizedPlatformEditorUrl(els.platformEditUrl.value));
+      renderPlatformIconPreview();
+    }
+  });
+  els.platformIconAuto.addEventListener('click', () => {
+    state.platformEditorIcon = faviconForUrl(normalizedPlatformEditorUrl(els.platformEditUrl.value));
+    renderPlatformIconPreview();
+  });
+  els.platformIconChoose.addEventListener('click', async () => {
+    try {
+      const base64 = await window.mediaDeck.choosePlatformIcon();
+      if (!base64) return;
+      state.platformEditorIcon = `data:image/png;base64,${base64}`;
+      renderPlatformIconPreview();
+    } catch (error) { toast(error?.message || text('platformIcon'), 'error'); }
+  });
+  els.platformEditor.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = els.platformEditName.value.trim();
+    const url = normalizedPlatformEditorUrl(els.platformEditUrl.value);
+    if (!name) return toast(text('platformNameRequired'), 'warning');
+    if (!url) return toast(text('platformInvalidUrl'), 'warning');
+    const existing = state.platformConfig.platforms.find((site) => site.id === els.platformEditId.value);
+    const next = {
+      id: existing?.id || uniquePlatformId('custom', name),
+      name,
+      url,
+      categoryId: els.platformEditCategory.value,
+      icon: state.platformEditorIcon || faviconForUrl(url),
+      enabled: existing?.enabled !== false,
+      builtIn: existing?.builtIn === true,
+    };
+    if (existing) Object.assign(existing, next);
+    else state.platformConfig.platforms.push(next);
+    state.activePlatformCategoryId = next.categoryId;
+    closePlatformEditors();
+    void persistPlatformConfiguration();
+  });
+  els.categoryEditor.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = els.categoryEditName.value.trim();
+    if (!name) return toast(text('categoryNameRequired'), 'warning');
+    const existing = state.platformConfig.categories.find((category) => category.id === els.categoryEditId.value);
+    if (existing) existing.labels[state.locale] = name;
+    else {
+      const category = { id: uniquePlatformId('category', name), labels: { 'zh-CN': name, en: name }, enabled: true, builtIn: false };
+      state.platformConfig.categories.push(category);
+      state.activePlatformCategoryId = category.id;
+    }
+    closePlatformEditors();
+    void persistPlatformConfiguration();
   });
 }
 
@@ -1948,7 +2441,7 @@ function normalizeDownloadState(status) {
   if (value === 'failed') return 'error';
   if (value === 'canceled') return 'cancelled';
   if (value === 'finished') return 'completed';
-  if (['queued', 'downloading', 'completed', 'error', 'cancelled'].includes(value)) return value;
+  if (['queued', 'resolving', 'connecting', 'downloading', 'finalizing', 'paused', 'completed', 'error', 'cancelled'].includes(value)) return value;
   return 'queued';
 }
 
@@ -2009,7 +2502,7 @@ function tabProvider(tab) {
 }
 
 function isSingleActiveMediaTab(tab) {
-  return tabProvider(tab) === 'tiktok';
+  return ['tiktok', 'douyin'].includes(tabProvider(tab));
 }
 
 function createTikTokActiveMediaProbeScript() {
@@ -2025,17 +2518,46 @@ function createTikTokActiveMediaProbeScript() {
       return { item, score: (!item.paused && !item.ended ? innerWidth * innerHeight * 2 : 0) + area };
     }).filter(Boolean).sort((left, right) => right.score - left.score)[0]?.item;
     if (!video) return null;
-    const feed = video.closest('[data-e2e="feed-video"]');
-    const fiberKey = feed ? Object.keys(feed).find((key) => key.startsWith('__reactFiber')) : null;
-    let fiber = fiberKey ? feed[fiberKey] : null;
-    let item = null;
-    for (let level = 0; fiber && level < 24; level += 1, fiber = fiber.return) {
-      const props = fiber.memoizedProps || fiber.pendingProps;
-      const value = props?.item || props?.value?.item;
-      const id = String(value?.id || value?.itemId || value?.aweme_id || '');
-      if (/^\\d{12,}$/.test(id)) { item = value; break; }
+    let rootFiber = null;
+    for (let node = video; node && !rootFiber; node = node.parentElement) {
+      const fiberKey = Object.keys(node).find((key) => key.startsWith('__reactFiber'));
+      if (fiberKey) rootFiber = node[fiberKey];
     }
-    if (!item) return null;
+    let item = null;
+    const items = [];
+    const itemIds = new Set();
+    const seen = new WeakSet();
+    let visited = 0;
+    const scan = (value, depth) => {
+      if (!value || typeof value !== 'object' || seen.has(value) || depth > 9 || visited >= 16000 || items.length >= 80) return;
+      seen.add(value);
+      visited += 1;
+      const id = String(value.id || value.itemId || value.item_id || value.awemeId || value.aweme_id || '');
+      if (/^\\d{12,}$/.test(id) && value.video && typeof value.video === 'object') {
+        if (!itemIds.has(id)) { itemIds.add(id); items.push(value); }
+        return;
+      }
+      for (const key of Object.keys(value).slice(0, 140)) {
+        if (/^(?:return|child|sibling|stateNode|_owner|ref)$/i.test(key)) continue;
+        let next;
+        try { next = value[key]; } catch { continue; }
+        scan(next, depth + 1);
+      }
+    };
+    for (let fiber = rootFiber, level = 0; fiber && level < 36 && items.length < 80; fiber = fiber.return, level += 1) {
+      scan(fiber.memoizedProps, 0);
+      scan(fiber.pendingProps, 0);
+      scan(fiber.memoizedState, 0);
+    }
+    let nearbyCanonicalUrl = /^\\/@[^/]+\\/video\\/\\d+/i.test(location.pathname) ? location.href : '';
+    for (let node = video, depth = 0; node && !nearbyCanonicalUrl && depth < 12; node = node.parentElement, depth += 1) {
+      const link = node.matches?.('a[href*="/video/"]') ? node : node.querySelector?.('a[href*="/video/"]');
+      if (!link?.href) continue;
+      try {
+        const parsed = new URL(link.href, location.href);
+        if (/^\\/@[^/]+\\/video\\/\\d+/i.test(parsed.pathname)) nearbyCanonicalUrl = parsed.href;
+      } catch { /* ignore transient feed links */ }
+    }
     const firstUrl = (value) => {
       if (typeof value === 'string' && /^https?:/i.test(value)) return value;
       if (!value || typeof value !== 'object') return '';
@@ -2079,25 +2601,161 @@ function createTikTokActiveMediaProbeScript() {
         sourceClient: 'tiktok-page',
       };
     };
-    const primary = toVariant(item.video?.PlayAddrStruct || item.video?.playAddr || item.video?.play_addr, '原画');
-    const variants = [primary, ...((item.video?.bitrateInfo || item.video?.bit_rate || [])
-      .map((entry) => toVariant(entry)))]
+    let media = item?.video || {};
+    let primary = toVariant(media.PlayAddrStruct || media.playAddr || media.play_addr, '原画');
+    const mediaResourceUrls = (() => {
+      const urls = [];
+      const entries = performance.getEntriesByType?.('resource') || [];
+      for (const entry of entries) {
+        try {
+          const url = new URL(entry.name);
+          const mediaHost = /(?:tiktokcdn|byteoversea|ibytedtos|bytevcdn|\\.tiktok\\.com)$/i.test(url.hostname);
+          const mediaPath = /(?:mime_type=video_mp4|\\/video\\/tos\\/|\\.mp4(?:$|[?#]))/i.test(url.href);
+          if (url.protocol === 'https:' && mediaHost && mediaPath && !urls.includes(url.href)) urls.push(url.href);
+        } catch { /* ignore non-URL performance entries */ }
+      }
+      return urls;
+    })();
+    const scope = video.closest('[data-e2e="recommend-list-item-container"], [data-e2e="browse-video"], [data-e2e="feed-video"], article')
+      || video.parentElement?.parentElement || document;
+    const titleForVideo = (itemVideo) => {
+      const itemScope = itemVideo.closest?.('[data-e2e="recommend-list-item-container"], [data-e2e="browse-video"], [data-e2e="feed-video"], article')
+        || itemVideo.parentElement?.parentElement || document;
+      return ['[data-e2e="browse-video-desc"]', '[data-e2e="video-desc"]', '[data-e2e="search-card-desc"]', 'h1']
+        .map((selector) => itemScope.querySelector?.(selector)?.textContent?.replace(/\\s+/g, ' ').trim())
+        .find(Boolean) || '';
+    };
+    const domTitle = titleForVideo(video);
+    const visibleThumbnail = Array.from(scope.querySelectorAll?.('img') || []).map((image) => {
+      const url = String(image.currentSrc || image.src || '').trim();
+      if (!/^https?:/i.test(url)) return null;
+      const rect = image.getBoundingClientRect();
+      const area = visibleArea(rect);
+      return area >= 10000 ? { url, area } : null;
+    }).filter(Boolean).sort((left, right) => right.area - left.area)[0]?.url || '';
+    const rawVideoUrl = String(video.currentSrc || video.src || '').trim();
+    const contentKeyForVideo = (itemVideo) => {
+      const source = String(itemVideo.currentSrc || itemVideo.src || '').trim();
+      return source + '|' + titleForVideo(itemVideo);
+    };
+    const currentContentKey = rawVideoUrl + '|' + domTitle;
+    const currentIdentityKey = currentContentKey + '|' + visibleThumbnail;
+    const targetPreviousKey = String(video.__vidogoTikTokContentKey || '');
+    const targetSourceReused = Boolean(targetPreviousKey && targetPreviousKey !== currentContentKey
+      && targetPreviousKey.startsWith(rawVideoUrl + '|'));
+    const normalizedDomTitle = domTitle.toLowerCase();
+    const matchingItem = items.find((candidate) => {
+      const title = String(candidate?.desc || candidate?.description || candidate?.title || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+      return normalizedDomTitle && title && (normalizedDomTitle.includes(title) || title.includes(normalizedDomTitle));
+    }) || null;
+    item = matchingItem || items[0] || null;
+    const normalizedReactTitle = String(item?.desc || item?.description || item?.title || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+    const reactItemMatches = !normalizedDomTitle || !normalizedReactTitle
+      || normalizedDomTitle.includes(normalizedReactTitle)
+      || normalizedReactTitle.includes(normalizedDomTitle);
+    const activeItem = reactItemMatches ? item : null;
+    media = activeItem?.video || {};
+    primary = toVariant(media.PlayAddrStruct || media.playAddr || media.play_addr, '原画');
+    const mediaRegistry = window.__vidogoTikTokMediaRegistry || {
+      mediaToUrl: Object.create(null),
+      assignedUrls: Object.create(null),
+      activeContentKey: '',
+    };
+    mediaRegistry.mediaToUrl ||= Object.create(null);
+    mediaRegistry.assignedUrls ||= Object.create(null);
+    window.__vidogoTikTokMediaRegistry = mediaRegistry;
+    const previousActiveSource = String(mediaRegistry.activeContentKey || '').split('|')[0];
+    const activeContentChanged = mediaRegistry.activeContentKey !== currentContentKey;
+    mediaRegistry.activeContentKey = currentContentKey;
+    for (const itemVideo of Array.from(document.querySelectorAll('video'))) {
+      const blobUrl = String(itemVideo.currentSrc || itemVideo.src || '').trim();
+      if (!blobUrl || /^https?:/i.test(blobUrl)) continue;
+      const mediaKey = itemVideo === video ? currentContentKey : contentKeyForVideo(itemVideo);
+      const previousVideoKey = String(itemVideo.__vidogoTikTokContentKey || '');
+      const sourceReused = Boolean(previousVideoKey && previousVideoKey !== mediaKey && previousVideoKey.startsWith(blobUrl + '|'));
+      itemVideo.__vidogoTikTokContentKey = mediaKey;
+      if (mediaRegistry.mediaToUrl[mediaKey]) continue;
+      const sameSourceUrl = !sourceReused && blobUrl !== previousActiveSource
+        ? Object.entries(mediaRegistry.mediaToUrl).find(([key]) => key.startsWith(blobUrl + '|'))?.[1]
+        : '';
+      if (sameSourceUrl) {
+        mediaRegistry.mediaToUrl[mediaKey] = sameSourceUrl;
+        continue;
+      }
+      const itemTitle = titleForVideo(itemVideo);
+      const matchingContentUrl = itemTitle
+        ? Object.entries(mediaRegistry.mediaToUrl).find(([key]) => key.endsWith('|' + itemTitle))?.[1]
+        : '';
+      if (matchingContentUrl) {
+        mediaRegistry.mediaToUrl[mediaKey] = matchingContentUrl;
+        continue;
+      }
+      const nextUrl = mediaResourceUrls.find((url) => !mediaRegistry.assignedUrls[url]);
+      if (!nextUrl) continue;
+      mediaRegistry.mediaToUrl[mediaKey] = nextUrl;
+      mediaRegistry.assignedUrls[nextUrl] = true;
+    }
+    if (activeContentChanged && !mediaRegistry.mediaToUrl[currentContentKey] && mediaResourceUrls.length) {
+      const sameSourceUrl = !targetSourceReused && rawVideoUrl !== previousActiveSource
+        ? Object.entries(mediaRegistry.mediaToUrl).find(([key]) => key.startsWith(rawVideoUrl + '|'))?.[1]
+        : '';
+      const matchingContentUrl = domTitle
+        ? Object.entries(mediaRegistry.mediaToUrl).find(([key]) => key.endsWith('|' + domTitle))?.[1]
+        : '';
+      mediaRegistry.mediaToUrl[currentContentKey] = matchingContentUrl || sameSourceUrl || mediaResourceUrls[mediaResourceUrls.length - 1];
+      mediaRegistry.assignedUrls[mediaRegistry.mediaToUrl[currentContentKey]] = true;
+    }
+    const playingUrl = firstUrl(rawVideoUrl) || mediaRegistry.mediaToUrl[currentContentKey] || '';
+    const playingWidth = integer(video.videoWidth);
+    const playingHeight = integer(video.videoHeight);
+    const playingResolution = Math.min(playingWidth || playingHeight, playingHeight || playingWidth);
+    const playingVariant = playingUrl ? {
+      url: playingUrl,
+      extension: 'mp4',
+      mimeType: 'video/mp4',
+      width: playingWidth,
+      height: playingHeight,
+      resolution: playingResolution,
+      qualityLabel: playingResolution ? (playingResolution + 'p') : '当前播放',
+      videoCodec: '',
+      bitrateKbps: 0,
+      bandwidthBitsPerSecond: 0,
+      sizeBytes: 0,
+      hasAudio: true,
+      hasVideo: true,
+      isDrmProtected: false,
+      sourceClient: 'tiktok-page',
+    } : null;
+    const variants = [primary, ...((media.bitrateInfo || media.bit_rate || [])
+      .map((entry) => toVariant(entry))), playingVariant]
       .filter(Boolean)
       .filter((entry, index, all) => all.findIndex((other) => other.url === entry.url) === index)
       .slice(0, 12);
-    const mediaId = String(item.id || item.itemId || item.aweme_id || '');
-    const author = String(item.author?.uniqueId || item.author?.unique_id || item.author || '').replace(/^@/, '');
-    if (!mediaId || !author) return null;
-    const playingUrl = firstUrl(video.currentSrc) || firstUrl(video.src);
+    const nearbyMatch = (() => {
+      try { return new URL(nearbyCanonicalUrl).pathname.match(/^\\/@([^/]+)\\/video\\/(\\d+)/i); } catch { return null; }
+    })();
+    const isDirectVideoPage = /^\\/@[^/]+\\/video\\/\\d+/i.test(location.pathname);
+    const reportedMediaId = isDirectVideoPage
+      ? String(activeItem?.id || activeItem?.itemId || activeItem?.item_id || activeItem?.awemeId || activeItem?.aweme_id || nearbyMatch?.[2] || '')
+      : '';
+    const authorValue = activeItem?.author || activeItem?.authorInfo || activeItem?.author_info || {};
+    const author = String(authorValue?.uniqueId || authorValue?.unique_id || nearbyMatch?.[1] || '').replace(/^@/, '');
+    const hashSource = currentIdentityKey || currentContentKey || rawVideoUrl || playingUrl || (location.href + ':' + Math.floor(Number(video.currentTime || 0)));
+    const mediaHash = Array.from(hashSource).reduce(
+      (value, character) => Math.imul(value ^ character.charCodeAt(0), 16777619) >>> 0,
+      2166136261,
+    ).toString(36);
+    const mediaId = reportedMediaId || ('active-' + mediaHash);
     const selected = primary || variants[0] || null;
+    if (!playingUrl && !selected?.url && (!reportedMediaId || !author)) return null;
     return {
       provider: 'tiktok',
       mediaId,
-      canonicalUrl: location.origin + '/@' + author + '/video/' + mediaId,
-      title: String(item.desc || item.description || item.title || '').replace(/\\s+/g, ' ').trim() || (author + ' · TikTok'),
-      thumbnailUrl: firstUrl(item.video?.cover) || firstUrl(item.video?.originCover)
-        || firstUrl(item.video?.dynamicCover) || firstUrl(item.cover),
-      directUrl: playingUrl || selected?.url || '',
+      canonicalUrl: reportedMediaId && author ? (location.origin + '/@' + author + '/video/' + reportedMediaId) : location.href,
+      title: String(domTitle || activeItem?.desc || activeItem?.description || activeItem?.title || '').replace(/\\s+/g, ' ').trim() || (author + ' · TikTok'),
+      thumbnailUrl: firstUrl(video.poster) || visibleThumbnail || firstUrl(media.cover) || firstUrl(media.originCover)
+        || firstUrl(media.dynamicCover) || firstUrl(activeItem?.cover),
+      directUrl: selected?.url || playingUrl || '',
       width: integer(video.videoWidth) || selected?.width || 0,
       height: integer(video.videoHeight) || selected?.height || 0,
       resolution: Math.min(integer(video.videoWidth) || selected?.width || 0, integer(video.videoHeight) || selected?.height || 0),
@@ -2108,11 +2766,138 @@ function createTikTokActiveMediaProbeScript() {
   })()`;
 }
 
+function createDouyinActiveMediaProbeScript() {
+  return `(() => {
+    const targetId = new URLSearchParams(location.search).get('modal_id')
+      || location.pathname.match(/^\\/video\\/(\\d+)/i)?.[1]
+      || '';
+    if (!/^\\d{12,}$/.test(targetId)) return null;
+    const visibleArea = (rect) => Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0))
+      * Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+    const activeVideo = Array.from(document.querySelectorAll('video')).map((video) => {
+      const rect = video.getBoundingClientRect();
+      const area = visibleArea(rect);
+      return area > 0 ? { video, score: (!video.paused && !video.ended ? innerWidth * innerHeight * 2 : 0) + area } : null;
+    }).filter(Boolean).sort((left, right) => right.score - left.score)[0]?.video || null;
+    if (!activeVideo) return null;
+    let rootFiber = null;
+    for (let node = activeVideo; node && !rootFiber; node = node.parentElement) {
+      const key = Object.keys(node).find((name) => name.startsWith('__reactFiber'));
+      if (key) rootFiber = node[key];
+    }
+    if (!rootFiber) return null;
+    let item = null;
+    const findItem = (root) => {
+      const seen = new WeakSet();
+      let visited = 0;
+      const scan = (value, depth) => {
+        if (item || !value || typeof value !== 'object' || seen.has(value) || depth > 8 || visited >= 4000) return;
+        seen.add(value);
+        visited += 1;
+        const id = String(value.awemeId || value.aweme_id || value.itemId || value.item_id || value.id || '');
+        if (id === targetId && value.video) { item = value; return; }
+        const keys = Object.keys(value).slice(0, 140).sort((left, right) => {
+          const score = (key) => /(?:aweme|item|video|detail|data|state|props|list)/i.test(key) ? 1 : 0;
+          return score(right) - score(left);
+        });
+        for (const key of keys) {
+          if (/^(?:return|child|sibling|stateNode|_owner|ref)$/i.test(key)) continue;
+          let next;
+          try { next = value[key]; } catch { continue; }
+          scan(next, depth + 1);
+          if (item) return;
+        }
+      };
+      scan(root, 0);
+    };
+    for (let fiber = rootFiber, level = 0; fiber && level < 36 && !item; fiber = fiber.return, level += 1) {
+      findItem(fiber.memoizedProps);
+      findItem(fiber.pendingProps);
+      findItem(fiber.memoizedState);
+    }
+    if (!item?.video) return null;
+    const firstUrl = (value) => {
+      if (typeof value === 'string' && /^https?:/i.test(value)) return value;
+      if (Array.isArray(value)) return value.find((entry) => typeof entry === 'string' && /^https?:/i.test(entry)) || '';
+      if (!value || typeof value !== 'object') return '';
+      const values = [value.url, value.src, ...(value.urlList || []), ...(value.UrlList || []), ...(value.url_list || [])];
+      return values.find((entry) => typeof entry === 'string' && /^https?:/i.test(entry)) || '';
+    };
+    const integer = (value) => {
+      const number = Number(value || 0);
+      return Number.isFinite(number) && number > 0 ? Math.round(number) : 0;
+    };
+    const media = item.video;
+    const toVariant = (entry, fallbackLabel = '') => {
+      const address = entry?.playAddr || entry?.play_addr || entry?.PlayAddr || entry;
+      const url = firstUrl(address) || firstUrl(entry?.playApi || entry?.play_api || entry?.PlayApi);
+      if (!url) return null;
+      const width = integer(address?.width || address?.Width || entry?.width || entry?.Width || media.width);
+      const height = integer(address?.height || address?.Height || entry?.height || entry?.Height || media.height);
+      const resolution = Math.min(width || height, height || width);
+      const isH265 = Boolean(entry?.isH265 || entry?.is_h265 || /265|hevc|bytevc/i.test(String(entry?.codecType || entry?.codec || '')));
+      const codec = isH265 ? 'H.265' : 'H.264';
+      const sizeBytes = integer(entry?.playAddrSize || entry?.play_addr_size || address?.dataSize || address?.data_size || entry?.dataSize || entry?.data_size || media.dataSize);
+      const bitrate = integer(entry?.bitRate || entry?.bit_rate || entry?.bitrate);
+      return {
+        url,
+        extension: 'mp4',
+        mimeType: 'video/mp4',
+        width,
+        height,
+        resolution,
+        qualityLabel: resolution ? (resolution + 'p · ' + codec) : (fallbackLabel || codec),
+        videoCodec: codec,
+        bitrateKbps: bitrate ? Math.round(bitrate / 1000) : 0,
+        bandwidthBitsPerSecond: bitrate,
+        sizeBytes,
+        hasAudio: true,
+        hasVideo: true,
+        isDrmProtected: false,
+        sourceClient: 'douyin-page',
+      };
+    };
+    const primary = toVariant({
+      playAddr: media.playAddr || media.play_addr,
+      playApi: media.playApi || media.play_api,
+      width: media.width,
+      height: media.height,
+      dataSize: media.dataSize,
+    }, '原画');
+    const variants = [primary, ...((media.bitRateList || media.bit_rate || media.bitrateInfo || []).map((entry) => toVariant(entry)))]
+      .filter(Boolean)
+      .filter((entry, index, all) => all.findIndex((other) => other.url === entry.url) === index)
+      .sort((left, right) => (right.resolution - left.resolution) || (right.sizeBytes - left.sizeBytes))
+      .slice(0, 12);
+    const selected = primary || variants[0] || null;
+    const thumbnailUrl = firstUrl(media.cover) || firstUrl(media.coverUrlList)
+      || firstUrl(media.originCover) || firstUrl(media.originCoverUrlList)
+      || firstUrl(media.dynamicCover);
+    return {
+      provider: 'douyin',
+      mediaId: targetId,
+      canonicalUrl: location.origin + '/video/' + targetId,
+      title: String(item.desc || item.itemTitle || item.caption || document.title || '抖音视频').replace(/\\s+/g, ' ').trim(),
+      thumbnailUrl,
+      directUrl: selected?.url || '',
+      width: integer(activeVideo.videoWidth) || selected?.width || integer(media.width),
+      height: integer(activeVideo.videoHeight) || selected?.height || integer(media.height),
+      resolution: Math.min(integer(activeVideo.videoWidth) || selected?.width || integer(media.width), integer(activeVideo.videoHeight) || selected?.height || integer(media.height)),
+      qualityLabel: selected?.qualityLabel || '',
+      sizeBytes: selected?.sizeBytes || integer(media.dataSize),
+      variants,
+    };
+  })()`;
+}
+
 async function probeActiveMedia(tab) {
-  if (!tab || !state.tabs.includes(tab) || tabProvider(tab) !== 'tiktok' || !tab.ready) return;
+  const provider = tabProvider(tab);
+  if (!tab || !state.tabs.includes(tab) || !['tiktok', 'douyin'].includes(provider) || !tab.ready) return;
   try {
     const payload = await Promise.race([
-      tab.webview.executeJavaScript(createTikTokActiveMediaProbeScript(), true),
+      tab.webview.executeJavaScript(provider === 'douyin'
+        ? createDouyinActiveMediaProbeScript()
+        : createTikTokActiveMediaProbeScript(), true),
       new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
     ]);
     if (payload) await handleActiveMediaContext(tab, payload);
@@ -2124,14 +2909,16 @@ async function probeActiveMedia(tab) {
 function scheduleActiveMediaProbe(tab, delay = 900) {
   if (!tab) return;
   if (tab.activeMediaProbeTimer) clearTimeout(tab.activeMediaProbeTimer);
-  if (tabProvider(tab) !== 'tiktok') {
+  if (!['tiktok', 'douyin'].includes(tabProvider(tab))) {
     tab.activeMediaProbeTimer = 0;
     return;
   }
   tab.activeMediaProbeTimer = window.setTimeout(async () => {
     tab.activeMediaProbeTimer = 0;
     await probeActiveMedia(tab);
-    if (state.tabs.includes(tab) && tabProvider(tab) === 'tiktok') scheduleActiveMediaProbe(tab, 900);
+    if (state.tabs.includes(tab) && ['tiktok', 'douyin'].includes(tabProvider(tab))) {
+      scheduleActiveMediaProbe(tab, tabProvider(tab) === 'tiktok' ? 450 : 900);
+    }
   }, delay);
 }
 
@@ -2157,7 +2944,7 @@ function activeMediaPlaceholder(tab, context) {
     hasVideo: true,
     isRecommended: true,
     downloadStrategy: context.directUrl ? 'direct' : 'merge',
-    sourceClient: context.directUrl ? 'tiktok-page' : 'active-page',
+    sourceClient: context.directUrl ? `${context.provider}-page` : 'active-page',
     metadataSource: `${context.provider}-active-video`,
     detectedAt: new Date().toISOString(),
   };
@@ -2180,7 +2967,7 @@ function safePositiveInteger(value) {
   return Number.isFinite(number) && number > 0 ? Math.round(number) : null;
 }
 
-function safeTikTokVariant(value) {
+function safeActiveMediaVariant(value, provider = 'web') {
   const url = safeActiveMediaUrl(value?.url);
   if (!url) return null;
   const width = safePositiveInteger(value?.width);
@@ -2202,7 +2989,7 @@ function safeTikTokVariant(value) {
     hasAudio: true,
     hasVideo: true,
     isDrmProtected: false,
-    sourceClient: 'tiktok-page',
+    sourceClient: `${provider}-page`,
   };
 }
 
@@ -2213,20 +3000,35 @@ function candidateMatchesActiveMedia(candidate, context) {
 }
 
 async function handleActiveMediaContext(tab, payload) {
-  if (!tab || tabProvider(tab) !== 'tiktok' || payload?.provider !== 'tiktok') return;
-  const canonicalPage = MEDIA_RULES?.classifyMediaPage?.(payload.canonicalUrl);
-  if (!canonicalPage || canonicalPage.provider !== 'tiktok' || canonicalPage.mediaId !== String(payload.mediaId || '')) return;
+  const provider = tabProvider(tab);
+  if (!tab || !['tiktok', 'douyin'].includes(provider) || payload?.provider !== provider) return;
+  if (payload?.cleared) {
+    tab.activeMediaContext = null;
+    tab.activeMediaExtractionKey = null;
+    clearMediaCandidatesForTab(tab.id);
+    if (tab.id === state.activeTabId) renderCandidates();
+    return;
+  }
+  const reportedMediaId = String(payload.mediaId || '');
+  const reportedCanonicalUrl = safeActiveMediaUrl(payload.canonicalUrl) || tab.url;
+  const canonicalPage = MEDIA_RULES?.classifyMediaPage?.(reportedCanonicalUrl);
   const variants = (Array.isArray(payload.variants) ? payload.variants : [])
-    .map(safeTikTokVariant)
+    .map((variant) => safeActiveMediaVariant(variant, provider))
     .filter(Boolean)
     .filter((variant, index, all) => all.findIndex((other) => other.url === variant.url) === index)
     .slice(0, 12);
   const directUrl = safeActiveMediaUrl(payload.directUrl) || variants[0]?.url || null;
-  const context = {
-    provider: canonicalPage.provider,
-    mediaId: canonicalPage.mediaId,
-    canonicalUrl: canonicalPage.normalizedUrl,
-    title: String(payload.title || 'TikTok video').trim().slice(0, 300),
+  const canonicalMatches = canonicalPage?.provider === provider && canonicalPage?.mediaId === reportedMediaId;
+  const directHomepageFallback = provider === 'tiktok'
+    && /^active-[a-z0-9]+$/i.test(reportedMediaId)
+    && Boolean(directUrl)
+    && MEDIA_RULES?.providerSiteForUrl?.(reportedCanonicalUrl) === provider;
+  if (!canonicalMatches && !directHomepageFallback) return;
+  let context = {
+    provider,
+    mediaId: canonicalMatches ? canonicalPage.mediaId : reportedMediaId,
+    canonicalUrl: canonicalMatches ? canonicalPage.normalizedUrl : reportedCanonicalUrl,
+    title: String(payload.title || (provider === 'douyin' ? '抖音视频' : 'TikTok video')).trim().slice(0, 300),
     thumbnailUrl: safeActiveMediaUrl(payload.thumbnailUrl, 8192),
     directUrl,
     width: safePositiveInteger(payload.width),
@@ -2236,6 +3038,7 @@ async function handleActiveMediaContext(tab, payload) {
     sizeBytes: safePositiveInteger(payload.sizeBytes),
     variants,
   };
+  context = enrichActiveMediaContextFromNetwork(tab, context);
   const extractionKey = `${context.provider}:${context.mediaId}`;
   const activeChanged = tab.activeMediaExtractionKey !== extractionKey;
   tab.activeMediaContext = context;
@@ -2283,6 +3086,154 @@ async function handleActiveMediaContext(tab, payload) {
   })();
 }
 
+function enrichActiveMediaContextFromNetwork(tab, context) {
+  if (!tab || !context || context.directUrl) return context;
+  const selected = (tab.activeMediaNetworkCandidates || [])
+    .filter((candidate) => candidate?.kind === 'video' && (
+      candidateMatchesActiveMedia(candidate, context)
+      || (context.provider === 'tiktok' && MEDIA_RULES?.providerSiteForUrl?.(candidate.pageUrl) === 'tiktok')
+    ))
+    .sort((left, right) => Number(right.size || right.sizeBytes || 0) - Number(left.size || left.sizeBytes || 0))[0];
+  const directUrl = safeActiveMediaUrl(selected?.url);
+  if (!directUrl) return context;
+  const variant = safeActiveMediaVariant({
+    ...selected,
+    sizeBytes: selected.sizeBytes || selected.size,
+    qualityLabel: selected.qualityLabel || (selected.resolution ? `${selected.resolution}p` : ''),
+  }, context.provider);
+  return {
+    ...context,
+    directUrl,
+    sizeBytes: safePositiveInteger(selected.sizeBytes || selected.size) || context.sizeBytes,
+    variants: variant ? [variant, ...(context.variants || []).filter((item) => item.url !== variant.url)] : context.variants,
+  };
+}
+
+function refreshActiveMediaFromNetwork(tab) {
+  if (!tab?.activeMediaContext || tab.activeMediaContext.directUrl) return;
+  const enriched = enrichActiveMediaContextFromNetwork(tab, tab.activeMediaContext);
+  if (!enriched.directUrl) return;
+  tab.activeMediaContext = enriched;
+  setMediaCandidatesForTab(tab.id, [activeMediaPlaceholder(tab, enriched)]);
+  if (tab.id === state.activeTabId) renderCandidates();
+}
+
+function handleMediaCollection(tab, payload) {
+  if (!tab || !state.tabs.includes(tab)) return;
+  const provider = tabProvider(tab) || String(payload?.provider || '');
+  if (!provider || payload?.provider !== provider) return;
+  const pageOrigin = (() => {
+    try { return new URL(tab.url).origin; } catch { return ''; }
+  })();
+  const entries = (Array.isArray(payload?.entries) ? payload.entries : []).map((entry, index) => {
+    const canonicalUrl = safeActiveMediaUrl(entry?.canonicalUrl);
+    if (!canonicalUrl) return null;
+    try {
+      if (new URL(canonicalUrl).origin !== pageOrigin) return null;
+    } catch {
+      return null;
+    }
+    return {
+      id: `collection-${tab.id}-${index}-${String(entry?.id || '').replace(/[^a-z0-9_-]/gi, '').slice(0, 50)}`,
+      webContentsId: tab.webContentsId,
+      url: canonicalUrl,
+      pageUrl: canonicalUrl,
+      provider,
+      title: String(entry?.title || `${provider} ${index + 1}`).replace(/\s+/g, ' ').trim().slice(0, 300),
+      fileName: String(entry?.title || '').replace(/\s+/g, ' ').trim().slice(0, 300),
+      thumbnailUrl: safeActiveMediaUrl(entry?.thumbnailUrl, 8192),
+      kind: 'video',
+      extension: 'mp4',
+      hasAudio: true,
+      hasVideo: true,
+      isRecommended: false,
+      downloadStrategy: 'merge',
+      sourceClient: 'collection-page',
+      metadataSource: `${provider}-collection`,
+      detectedAt: new Date().toISOString(),
+    };
+  }).filter(Boolean).filter((entry, index, all) => all.findIndex((other) => other.url === entry.url) === index).slice(0, 50);
+  state.mediaCollectionsByTabId[tab.id] = entries.length >= 2 ? entries : [];
+  const validIds = new Set(state.mediaCollectionsByTabId[tab.id].map((entry) => entry.id));
+  state.selectedBatchCandidateIdsByTabId[tab.id] = (state.selectedBatchCandidateIdsByTabId[tab.id] || [])
+    .filter((id) => validIds.has(id));
+  if (entries.length < 2) state.mediaModeByTabId[tab.id] = 'current';
+  else if (!state.mediaModeByTabId[tab.id]) {
+    state.mediaModeByTabId[tab.id] = mediaCandidatesForTab(tab.id).length ? 'current' : 'batch';
+  }
+  if (tab.id === state.activeTabId) renderCandidates();
+}
+
+function handleStockMediaContext(tab, payload) {
+  if (!tab || !state.tabs.includes(tab) || payload?.cleared) return;
+  const provider = tabProvider(tab);
+  if (!provider || payload?.provider !== provider) return;
+  const canonicalUrl = safeActiveMediaUrl(payload?.canonicalUrl);
+  if (!canonicalUrl) return;
+  const variants = (Array.isArray(payload?.variants) ? payload.variants : [])
+    .map((variant) => safeActiveMediaVariant(variant, provider))
+    .filter(Boolean)
+    .filter((variant, index, all) => all.findIndex((other) => other.url === variant.url) === index)
+    .slice(0, 12);
+  const context = {
+    provider,
+    mediaId: String(payload?.mediaId || canonicalUrl).slice(0, 300),
+    canonicalUrl,
+    title: String(payload?.title || `${provider} video`).replace(/\s+/g, ' ').trim().slice(0, 300),
+    thumbnailUrl: safeActiveMediaUrl(payload?.thumbnailUrl, 8192),
+    directUrl: safeActiveMediaUrl(payload?.directUrl) || variants[0]?.url || null,
+    width: safePositiveInteger(payload?.width),
+    height: safePositiveInteger(payload?.height),
+    resolution: safePositiveInteger(payload?.resolution),
+    qualityLabel: String(payload?.qualityLabel || '').slice(0, 80),
+    sizeBytes: safePositiveInteger(payload?.sizeBytes),
+    variants,
+  };
+  const candidate = activeMediaPlaceholder(tab, context);
+  candidate.sourceClient = `${provider}-page`;
+  candidate.pageUrl = canonicalUrl;
+  tab.recentStockMediaCandidate = { ...candidate, capturedAt: Date.now() };
+  setMediaCandidatesForTab(tab.id, [candidate]);
+  if (tab.id === state.activeTabId) renderCandidates();
+}
+
+function handleSiteDownloadMetadata(tab, payload) {
+  const provider = String(payload?.provider || '');
+  if (!tab || !provider || provider !== tabProvider(tab)) return;
+  tab.pendingNativeDownloadMetadata = {
+    provider,
+    pageUrl: safeActiveMediaUrl(payload?.pageUrl) || tab.url,
+    title: String(payload?.title || tab.title || 'Video').replace(/\s+/g, ' ').trim().slice(0, 300),
+    thumbnailUrl: safeActiveMediaUrl(payload?.thumbnailUrl, 8192),
+    width: safePositiveInteger(payload?.width),
+    height: safePositiveInteger(payload?.height),
+    qualityLabel: String(payload?.qualityLabel || '').slice(0, 80),
+    capturedAt: Date.now(),
+  };
+}
+
+function handleSiteDownloadIntent(tab, payload) {
+  const url = safeActiveMediaUrl(payload?.url);
+  if (!tab || !url || payload?.provider !== tabProvider(tab)) return;
+  void startDownload({
+    id: `site-download-${Date.now()}`,
+    url,
+    pageUrl: safeActiveMediaUrl(payload?.pageUrl) || tab.url,
+    webContentsId: tab.webContentsId,
+    provider: payload.provider,
+    title: String(payload?.title || tab.title || 'Video').replace(/\s+/g, ' ').trim().slice(0, 300),
+    thumbnailUrl: safeActiveMediaUrl(payload?.thumbnailUrl, 8192),
+    width: safePositiveInteger(payload?.width),
+    height: safePositiveInteger(payload?.height),
+    resolution: Math.min(safePositiveInteger(payload?.width) || 0, safePositiveInteger(payload?.height) || 0) || null,
+    qualityLabel: String(payload?.qualityLabel || '').slice(0, 80),
+    kind: 'video',
+    isRecommended: true,
+    sourceClient: 'site-download-intent',
+    downloadStrategy: 'direct',
+  });
+}
+
 function setMediaCandidatesForTab(tabId, candidates) {
   if (!tabId) return;
   const nextCandidates = Array.isArray(candidates)
@@ -2297,6 +3248,8 @@ function setMediaCandidatesForTab(tabId, candidates) {
 
 function clearMediaCandidatesForTab(tabId = state.activeTabId) {
   if (!tabId) return;
+  const tab = state.tabs.find((item) => item.id === tabId);
+  if (tab) tab.activeMediaNetworkCandidates = [];
   state.candidatesByTabId[tabId] = [];
   state.selectedCandidateIdsByTabId[tabId] = null;
   state.expandedCandidateIdsByTabId[tabId] = [];
@@ -2312,6 +3265,10 @@ function resetTabMediaForNavigation(tab) {
   tab.lastEnrichedUrl = null;
   tab.activeMediaContext = null;
   tab.activeMediaExtractionKey = null;
+  tab.activeMediaNetworkCandidates = [];
+  state.mediaCollectionsByTabId[tab.id] = [];
+  delete state.mediaModeByTabId[tab.id];
+  state.selectedBatchCandidateIdsByTabId[tab.id] = [];
   state.selectedMinimumResolutionByTabId[tab.id] = 0;
   clearMediaCandidatesForTab(tab.id);
   if (tab.id === state.activeTabId) renderCandidates();
@@ -2323,6 +3280,7 @@ function resetTabMediaForNavigation(tab) {
 
 function candidateMatchesTabPage(candidate, tab) {
   if (isSingleActiveMediaTab(tab)) return candidateMatchesActiveMedia(candidate, tab.activeMediaContext);
+  if (tabProvider(tab) === 'agedm') return true;
   if (!tab || !candidate?.pageUrl) return true;
   const candidateUrl = MEDIA_RULES?.normalizePageUrl?.(candidate.pageUrl) || candidate.pageUrl;
   const tabUrl = MEDIA_RULES?.normalizePageUrl?.(tab.url) || tab.url;
@@ -2360,8 +3318,41 @@ function addCandidate(candidate) {
   const tabId = mediaTabIdForCandidate(candidate);
   if (!tabId) return;
   const tab = state.tabs.find((item) => item.id === tabId);
+  if (candidate.hiddenForActiveMedia === true) {
+    const retained = tab?.activeMediaNetworkCandidates || [];
+    if (tab) {
+      tab.activeMediaNetworkCandidates = [
+        candidate,
+        ...retained.filter((item) => item.url !== candidate.url),
+      ].slice(0, 20);
+      refreshActiveMediaFromNetwork(tab);
+    }
+    return;
+  }
   if (isSingleActiveMediaTab(tab) && !candidateMatchesActiveMedia(candidate, tab.activeMediaContext)) return;
   if (!candidateMatchesTabPage(candidate, tab)) return;
+  const stockProvider = tabProvider(tab);
+  const structuredStock = tab?.recentStockMediaCandidate;
+  if (['pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy'].includes(stockProvider)
+    && structuredStock?.provider === stockProvider
+    && Date.now() - Number(structuredStock.capturedAt || 0) <= 120_000) {
+    const variants = candidateVariants(structuredStock).map((variant) => variant.url === candidate.url ? {
+      ...variant,
+      sizeBytes: safePositiveInteger(candidate.sizeBytes || candidate.size) || variant.sizeBytes,
+      mimeType: candidate.mimeType || candidate.mime || variant.mimeType,
+    } : variant);
+    const enriched = {
+      ...structuredStock,
+      sizeBytes: candidate.url === structuredStock.url
+        ? safePositiveInteger(candidate.sizeBytes || candidate.size) || structuredStock.sizeBytes
+        : structuredStock.sizeBytes,
+      variants,
+    };
+    tab.recentStockMediaCandidate = enriched;
+    setMediaCandidatesForTab(tabId, [enriched]);
+    if (tabId === state.activeTabId) renderCandidates();
+    return;
+  }
   const current = mediaCandidatesForTab(tabId);
   setMediaCandidatesForTab(tabId, [candidate, ...current.filter((item) => item.url !== candidate.url)]);
   if (tabId === state.activeTabId) renderCandidates();
@@ -3057,12 +4048,47 @@ function renderCandidateRow(candidate) {
   `;
 }
 
+function renderBatchCandidateRow(candidate, selected) {
+  return `<label class="batch-candidate-row${selected ? ' is-selected' : ''}">
+    <input class="batch-candidate-checkbox" type="checkbox" data-batch-candidate="${escapeHtml(candidate.id)}" ${selected ? 'checked' : ''} />
+    <span class="batch-candidate-title" title="${escapeHtml(candidateTitle(candidate))}"><bdi>${escapeHtml(candidateTitle(candidate))}</bdi></span>
+  </label>`;
+}
+
 function renderCandidates() {
-  const unfilteredCandidates = mediaCandidatesForTab();
+  const collection = state.activeTabId ? state.mediaCollectionsByTabId[state.activeTabId] || [] : [];
+  const supportsBatch = collection.length >= 2;
+  const currentCandidates = mediaCandidatesForTab();
+  const hasCurrentMedia = currentCandidates.length > 0;
+  const mediaMode = supportsBatch && (!hasCurrentMedia || state.mediaModeByTabId[state.activeTabId] === 'batch') ? 'batch' : 'current';
+  if (state.activeTabId) state.mediaModeByTabId[state.activeTabId] = mediaMode;
+  els.mediaContextSwitch.hidden = !supportsBatch;
+  els.mediaModeButtons.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.mediaMode === mediaMode);
+    button.disabled = button.dataset.mediaMode === 'current' && !hasCurrentMedia;
+  });
+  els.batchMediaCount.textContent = String(collection.length);
+  els.batchMediaToolbar.hidden = mediaMode !== 'batch';
+  els.mediaPanelTabs.hidden = mediaMode === 'batch';
+  els.browserQuality.closest('.media-resolution-filter').hidden = mediaMode === 'batch';
+
+  const selectedBatch = new Set(state.selectedBatchCandidateIdsByTabId[state.activeTabId] || []);
+  const unfilteredCandidates = mediaMode === 'batch' ? collection : currentCandidates;
+  if (mediaMode === 'batch') {
+    const selectedCount = collection.filter((candidate) => selectedBatch.has(candidate.id)).length;
+    els.batchSelectAll.checked = selectedCount > 0 && selectedCount === collection.length;
+    els.batchSelectAll.indeterminate = selectedCount > 0 && selectedCount < collection.length;
+    els.batchDownloadSelected.disabled = selectedCount === 0;
+  }
   renderMediaResolutionFilter(unfilteredCandidates);
-  const activeCandidates = filterCandidatesByResolution(unfilteredCandidates, selectedMinimumResolution());
+  if (mediaMode === 'batch') els.browserQuality.closest('.media-resolution-filter').hidden = true;
+  const activeCandidates = mediaMode === 'batch'
+    ? unfilteredCandidates
+    : filterCandidatesByResolution(unfilteredCandidates, selectedMinimumResolution());
   const recommendedCandidates = activeCandidates.filter((candidate) => candidate.isRecommended === true);
-  const rows = state.browserSideTab === 'recommend' ? recommendedCandidates.slice(0, 1) : activeCandidates;
+  const rows = mediaMode === 'batch'
+    ? activeCandidates
+    : (state.browserSideTab === 'recommend' ? recommendedCandidates.slice(0, 1) : activeCandidates);
   els.recommend.childNodes[0].textContent = `${text('recommend')} `;
   els.allMedia.childNodes[0].textContent = `${text('all')} `;
   els.recommendCount.textContent = String(recommendedCandidates.length);
@@ -3078,7 +4104,9 @@ function renderCandidates() {
     els.candidateList.innerHTML = `<div class="media-empty"><img class="app-empty-image is-compact" src="./assets/vidogo-empty.png" alt="" /><p>${escapeHtml(emptyMessage === text('scanning') ? text('noMedia') : emptyMessage)}</p></div>`;
     return;
   }
-  els.candidateList.innerHTML = rows.map((item) => renderCandidateRow(item)).join('');
+  els.candidateList.innerHTML = rows.map((item) => mediaMode === 'batch'
+    ? renderBatchCandidateRow(item, selectedBatch.has(item.id))
+    : renderCandidateRow(item)).join('');
   els.candidateList.querySelectorAll('.sniffer-resource-thumbnail img').forEach((image) => {
     image.addEventListener('error', () => {
       const row = image.closest('[data-candidate]');
@@ -3129,19 +4157,261 @@ function renderCandidates() {
   });
 }
 
-function startCandidateDownload(candidate, variant = null) {
+function agedmPlaybackUrl(candidate, tab = activeTab()) {
+  const candidates = [
+    candidate?.pageUrl,
+    tabProvider(tab) === 'agedm' ? tab?.url : null,
+    candidate?.provider === 'agedm' ? candidate?.url : null,
+  ];
+  return candidates.find((value) => {
+    const page = MEDIA_RULES?.classifyMediaPage?.(value);
+    return page?.provider === 'agedm' && page?.pageKind === 'episode';
+  }) || null;
+}
+
+async function startResolvedAgedmDownload(candidate) {
+  const pageUrl = agedmPlaybackUrl(candidate);
+  if (!pageUrl) return null;
+  const pending = {
+    ...candidate,
+    url: pageUrl,
+    pageUrl,
+    provider: 'agedm',
+    sourceClient: 'collection-page',
+    downloadStrategy: 'merge',
+  };
+  const [row] = queueUrls([pageUrl], pending);
+  if (!row) return null;
+  row.status = 'resolving';
+  row.state = 'resolving';
+  row.percent = 0;
+  row.downloaded = '-';
+  row.size = '-';
+  row.errorMessage = null;
+  saveState();
+  renderDownloads();
+  toast(text('batchQueued', { count: 1 }), 'success');
+
+  return startDownload({
+    ...pending,
+    pageUrl,
+    provider: 'agedm',
+    backgroundResolvePage: true,
+    retryRowId: String(row.id || row.downloadId),
+    suppressToast: true,
+  });
+}
+
+async function startCandidateDownload(candidate, variant = null) {
   if (candidateRequiresRecording(candidate)) {
     toast(text(state.settings.recordingEnabled ? 'recordingRequired' : 'enableRecordingFirst'));
     return;
   }
   const selectedVariant = variant
-    || (candidate?.sourceClient === 'tiktok-page' ? null : candidateVariants(candidate)[0] || null);
+    || (/^(?:tiktok|douyin)-page$/.test(candidate?.sourceClient) ? null : candidateVariants(candidate)[0] || null);
   const target = selectedVariant ? candidateForVariant(candidate, selectedVariant) : { ...candidate };
   target.url = candidateDownloadUrl(candidate, selectedVariant);
   if (!target.url) return;
   els.urlInput.value = target.url;
-  setSection('downloads');
+  if (agedmPlaybackUrl(candidate)) return startResolvedAgedmDownload(target);
   return startDownload(target);
+}
+
+function waitForDelay(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function resolveCollectionDownloadCandidate(candidate) {
+  if (candidate?.sourceClient !== 'collection-page') return candidate;
+  const targetUrl = candidate.pageUrl || candidate.url;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await window.mediaDeck.resolvePageMedia({
+        pageUrl: targetUrl,
+        title: candidate.title,
+        fileName: candidate.fileName,
+        thumbnailUrl: candidate.thumbnailUrl,
+        timeoutMs: attempt === 0 ? 14000 : 18000,
+      });
+      if (result?.ok && result.candidate?.url) {
+        return {
+          ...result.candidate,
+          title: candidate.title || result.candidate.title,
+          fileName: candidate.fileName || candidate.title || result.candidate.fileName,
+          thumbnailUrl: candidate.thumbnailUrl || result.candidate.thumbnailUrl,
+          pageUrl: targetUrl,
+          webContentsId: result.candidate.webContentsId || null,
+        };
+      }
+    } catch { /* retry transient player startup failures once */ }
+    if (attempt === 0) await waitForDelay(700);
+  }
+  return null;
+}
+
+function addFailedBatchRow(candidate, message) {
+  const [row] = queueUrls([candidate.url], candidate);
+  if (!row) return;
+  row.status = 'error';
+  row.state = 'error';
+  row.errorMessage = message;
+  saveState();
+  renderDownloads();
+}
+
+async function startSelectedBatchDownloads() {
+  const tabId = state.activeTabId;
+  const selectedIds = new Set(state.selectedBatchCandidateIdsByTabId[tabId] || []);
+  const candidates = (state.mediaCollectionsByTabId[tabId] || []).filter((candidate) => selectedIds.has(candidate.id));
+  if (!candidates.length) {
+    toast(text('selectMediaFirst'));
+    return;
+  }
+  const originalLabel = els.batchDownloadLabel.textContent;
+  const sourceTab = activeTab();
+  const currentDetectedMedia = mediaCandidatesForTab(tabId)
+    .find((item) => item?.sourceClient !== 'collection-page' && item?.url);
+  els.batchDownloadSelected.disabled = true;
+  const queuedTasks = candidates.map((candidate) => {
+    const [row] = queueUrls([candidate.url], candidate);
+    if (!row) return null;
+    // Mount every selected episode immediately, but do not claim that all of
+    // them are already resolving. The batch coordinator promotes each row only
+    // when its page resolver actually begins working on that episode.
+    row.status = 'queued';
+    row.state = 'queued';
+    row.errorMessage = null;
+    return { candidate, rowId: String(row.id || row.downloadId) };
+  }).filter(Boolean);
+  saveState();
+  renderDownloads();
+  toast(text('batchQueued', { count: queuedTasks.length }), 'success');
+  let started = 0;
+  let failed = 0;
+  let completedResolutions = 0;
+  let nextTaskIndex = 0;
+  const processTask = async ({ candidate, rowId }) => {
+    let row = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+    if (!row || normalizeDownloadState(row.state || row.status) === 'paused') return;
+    try {
+      // A mounted row is only a user-visible plan. Promote it to resolving when
+      // this worker actually starts, then reuse the proven page resolver before
+      // handing a real media URL to the download queue. This keeps immediate UI
+      // feedback without changing the previously reliable transfer pipeline.
+      row.status = 'resolving';
+      row.state = 'resolving';
+      row.errorMessage = null;
+      saveState();
+      renderDownloads();
+      const isCurrentEpisode = sourceTab && MEDIA_RULES?.normalizePageUrl?.(candidate.pageUrl)
+        === MEDIA_RULES?.normalizePageUrl?.(sourceTab.url);
+      const resolved = isCurrentEpisode && currentDetectedMedia
+        ? {
+          ...currentDetectedMedia,
+          title: candidate.title || currentDetectedMedia.title,
+          fileName: candidate.fileName || currentDetectedMedia.fileName,
+          thumbnailUrl: candidate.thumbnailUrl || currentDetectedMedia.thumbnailUrl,
+          pageUrl: candidate.pageUrl,
+          webContentsId: sourceTab.webContentsId,
+        }
+        : await resolveCollectionDownloadCandidate(candidate);
+      row = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+      if (!row || normalizeDownloadState(row.state || row.status) === 'paused') return;
+      if (!resolved) throw new Error(text('batchResolveFailed'));
+      const result = await startDownload({
+        ...resolved,
+        // `resolveCollectionDownloadCandidate` already returned a real media
+        // candidate. Do not send the page through a second independent resolver.
+        backgroundResolvePage: false,
+        retryRowId: rowId,
+        suppressToast: true,
+      });
+      if (result) started += 1;
+      else failed += 1;
+    } catch {
+      row = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+      if (row && normalizeDownloadState(row.state || row.status) !== 'paused') {
+        failed += 1;
+        row.status = 'error';
+        row.state = 'error';
+        row.errorMessage = text('batchResolveFailed');
+        saveState();
+        renderDownloads();
+      }
+    } finally {
+      completedResolutions += 1;
+      els.batchDownloadLabel.textContent = text('resolvingEpisode', {
+        current: completedResolutions,
+        total: queuedTasks.length,
+      });
+    }
+  };
+  const worker = async () => {
+    while (nextTaskIndex < queuedTasks.length) {
+      const task = queuedTasks[nextTaskIndex];
+      nextTaskIndex += 1;
+      await processTask(task);
+    }
+  };
+  try {
+    // AGE and similar episode pages are stateful and depend on a shared browser
+    // session. Resolving them serially matches the stable pre-mount behavior and
+    // avoids several invisible players competing for cookies/player resources.
+    const hasCollectionPages = queuedTasks.some(({ candidate }) => candidate?.sourceClient === 'collection-page');
+    const resolverConcurrency = hasCollectionPages ? 1 : Math.min(3, queuedTasks.length);
+    await Promise.all(Array.from({ length: resolverConcurrency }, () => worker()));
+  } finally {
+    els.batchDownloadLabel.textContent = originalLabel;
+    els.batchDownloadSelected.disabled = false;
+  }
+  // The queue rows already expose per-episode progress and errors. Avoid a
+  // second top-level notification after the initial "tasks added" message.
+}
+
+function handleNativeDownloadRequest(payload) {
+  const tab = tabForWebContentsId(payload?.webContentsId);
+  const url = String(payload?.url || '').trim();
+  if (!tab || !/^https?:\/\//i.test(url)) return;
+  const fileName = String(payload?.fileName || '').trim();
+  const provider = MEDIA_RULES?.providerSiteForUrl?.(payload?.pageUrl) || tabProvider(tab) || 'web';
+  const pending = tab.pendingNativeDownloadMetadata?.provider === provider
+    && Date.now() - Number(tab.pendingNativeDownloadMetadata.capturedAt || 0) <= 30_000
+    ? tab.pendingNativeDownloadMetadata
+    : null;
+  const recent = tab.recentStockMediaCandidate?.provider === provider
+    && Date.now() - Number(tab.recentStockMediaCandidate.capturedAt || 0) <= 120_000
+    ? tab.recentStockMediaCandidate
+    : null;
+  const detected = mediaCandidatesForTab(tab.id).find((candidate) => candidate?.provider === provider) || recent || null;
+  const qualityFromFileName = (() => {
+    const copy = fileName.toLowerCase();
+    if (/\b(?:2160|4k)\b/.test(copy)) return '2160p';
+    if (/\b(?:1440|2k)\b/.test(copy)) return '1440p';
+    if (/\b1080\b|full[-_ ]?hd/.test(copy)) return '1080p';
+    if (/\b720\b|hd[-_ ]?ready/.test(copy)) return '720p';
+    return copy.match(/\b(?:576|480|360)p?\b/)?.[0]?.replace(/p?$/, 'p') || '';
+  })();
+  tab.pendingNativeDownloadMetadata = null;
+  void startDownload({
+    id: `native-${Date.now()}`,
+    url,
+    pageUrl: String(pending?.pageUrl || payload?.pageUrl || tab.url || ''),
+    webContentsId: tab.webContentsId,
+    provider,
+    title: fileName || pending?.title || detected?.title || String(payload?.title || tab.title || 'Video'),
+    fileName: fileName || null,
+    thumbnailUrl: pending?.thumbnailUrl || detected?.thumbnailUrl || null,
+    width: safePositiveInteger(pending?.width || detected?.width),
+    height: safePositiveInteger(pending?.height || detected?.height),
+    resolution: safePositiveInteger(pending?.height || detected?.resolution || detected?.height),
+    qualityLabel: String(pending?.qualityLabel || qualityFromFileName || candidateResolution(detected) || '').slice(0, 80),
+    mimeType: String(payload?.mimeType || ''),
+    sizeBytes: safePositiveInteger(payload?.sizeBytes),
+    kind: 'video',
+    isRecommended: true,
+    sourceClient: 'native-download',
+    downloadStrategy: 'direct',
+  });
 }
 
 function setFavorite(url, title, enabled) {
@@ -3190,10 +4460,49 @@ function queueUrls(urls, downloadTarget = null) {
   const now = new Date().toISOString();
   const formatId = downloadTarget?.formatId || null;
   const existingActive = new Set(state.queue
-    .filter((item) => ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state)))
+    .filter((item) => ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)))
     .map((item) => item.requestKey || downloadRequestKey(item.url, item.formatId)));
+  const retryRowId = String(downloadTarget?.retryRowId || '').trim();
+  const retryRow = retryRowId
+    ? state.queue.find((item) => String(item.id || item.downloadId) === retryRowId)
+    : null;
   const requested = urls.map((url) => ({ url, requestKey: downloadRequestKey(url, formatId) }));
-  const rows = requested.filter((item) => !existingActive.has(item.requestKey)).map(({ url, requestKey }) => {
+  const rows = requested.filter((item) => retryRow || !existingActive.has(item.requestKey)).map(({ url, requestKey }) => {
+    if (retryRow) {
+      Object.assign(retryRow, {
+        requestKey,
+        formatId,
+        url,
+        title: downloadTarget?.title || retryRow.title || url,
+        fileName: downloadTarget?.fileName || retryRow.fileName || getFileName(url) || url,
+        thumbnailUrl: downloadTarget?.thumbnailUrl || retryRow.thumbnailUrl || null,
+        qualityLabel: candidateResolution(downloadTarget) || retryRow.qualityLabel,
+        percent: 0,
+        downloaded: '-',
+        speed: '-',
+        size: downloadTarget ? formatBytes(candidateSize(downloadTarget)) : '-',
+        time: now,
+        createdAt: Date.now(),
+        status: 'queued',
+        state: 'queued',
+        jobId: null,
+        errorMessage: null,
+        completionVerified: false,
+        completedBytes: 0,
+        path: state.settings.outputDir,
+        savePath: state.settings.outputDir,
+        provider: downloadTarget?.provider || retryRow.provider || null,
+        kind: downloadTarget?.kind || retryRow.kind || null,
+        mimeType: downloadTarget?.mimeType || downloadTarget?.mime || retryRow.mimeType || null,
+        sourceClient: downloadTarget?.sourceClient || retryRow.sourceClient || null,
+        pageUrl: downloadTarget?.pageUrl || retryRow.pageUrl || null,
+        referrer: downloadTarget?.referrer || retryRow.referrer || null,
+        webContentsId: downloadTarget?.webContentsId || retryRow.webContentsId || null,
+        downloadStrategy: downloadTarget?.downloadStrategy || retryRow.downloadStrategy || null,
+        backgroundResolvePage: downloadTarget?.backgroundResolvePage === true,
+      });
+      return retryRow;
+    }
     const id = `dl-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     return {
       id,
@@ -3215,9 +4524,20 @@ function queueUrls(urls, downloadTarget = null) {
       state: 'queued',
       path: state.settings.outputDir,
       savePath: state.settings.outputDir,
+      provider: downloadTarget?.provider || null,
+      kind: downloadTarget?.kind || null,
+      mimeType: downloadTarget?.mimeType || downloadTarget?.mime || null,
+      sourceClient: downloadTarget?.sourceClient || null,
+      pageUrl: downloadTarget?.pageUrl || null,
+      referrer: downloadTarget?.referrer || null,
+      webContentsId: downloadTarget?.webContentsId || null,
+      downloadStrategy: downloadTarget?.downloadStrategy || null,
+      backgroundResolvePage: downloadTarget?.backgroundResolvePage === true,
+      completionVerified: false,
+      completedBytes: 0,
     };
   });
-  state.queue = [...rows, ...state.queue].slice(0, 300);
+  if (!retryRow) state.queue = [...rows, ...state.queue].slice(0, 300);
   state.downloadPage = 1;
   saveState();
   updateDownloadBadge();
@@ -3228,15 +4548,18 @@ function queueUrls(urls, downloadTarget = null) {
 async function startDownload(downloadTarget = null) {
   const urls = downloadTarget?.url ? [downloadTarget.url] : readUrls();
   if (!urls.length) {
-    toast(text('noUrls'));
-    return;
+    if (!downloadTarget?.suppressToast) toast(text('noUrls'));
+    return null;
   }
   const queuedRows = queueUrls(urls, downloadTarget);
   const activeUrls = [...new Set(urls)];
   const requestKeys = new Set(activeUrls.map((url) => downloadRequestKey(url, downloadTarget?.formatId || null)));
-  const requestRows = requestKeys.size > 0
+  const retryRowId = String(downloadTarget?.retryRowId || '').trim();
+  const requestRows = retryRowId
+    ? state.queue.filter((item) => String(item.id || item.downloadId) === retryRowId)
+    : requestKeys.size > 0
     ? state.queue.filter((item) => requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId))
-      && ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state)))
+      && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)))
     : queuedRows;
   requestRows.forEach((item) => {
       item.status = 'queued';
@@ -3247,6 +4570,10 @@ async function startDownload(downloadTarget = null) {
       item.savePath = item.savePath || state.settings.outputDir;
       item.fileName = item.fileName || getFileName(item.title || item.url) || item.url;
       item.createdAt = item.createdAt || new Date(item.time || Date.now()).getTime();
+      item.completionVerified = false;
+      item.completedBytes = 0;
+      item.errorMessage = null;
+      item.suppressCompletionToast = Boolean(downloadTarget?.suppressToast);
     if (downloadTarget) {
       item.title = downloadTarget.title || item.title;
       item.fileName = downloadTarget.fileName || item.fileName;
@@ -3255,12 +4582,27 @@ async function startDownload(downloadTarget = null) {
       item.qualityLabel = candidateResolution(downloadTarget);
       item.formatId = downloadTarget.formatId || null;
       item.requestKey = downloadRequestKey(item.url, item.formatId);
+      item.provider = downloadTarget.provider || item.provider || null;
+      item.kind = downloadTarget.kind || item.kind || null;
+      item.mimeType = downloadTarget.mimeType || downloadTarget.mime || item.mimeType || null;
+      item.sourceClient = downloadTarget.sourceClient || item.sourceClient || null;
+      item.pageUrl = downloadTarget.pageUrl || item.pageUrl || null;
+      item.referrer = downloadTarget.referrer || item.referrer || null;
+      item.webContentsId = downloadTarget.webContentsId || item.webContentsId || null;
+      item.downloadStrategy = downloadTarget.downloadStrategy || item.downloadStrategy || null;
+      item.backgroundResolvePage = downloadTarget.backgroundResolvePage === true;
     }
   });
   saveState();
   updateDownloadBadge();
   renderDownloads();
   try {
+    const normalizedTargetUrl = MEDIA_RULES?.normalizePageUrl?.(downloadTarget?.url) || String(downloadTarget?.url || '');
+    const normalizedPageUrl = MEDIA_RULES?.normalizePageUrl?.(downloadTarget?.pageUrl) || String(downloadTarget?.pageUrl || '');
+    const detectedDirectMedia = downloadTarget?.kind === 'video'
+      && Boolean(normalizedTargetUrl)
+      && normalizedTargetUrl !== normalizedPageUrl
+      && downloadTarget?.sourceClient !== 'yt-dlp';
     const result = await window.mediaDeck.startDownload({
       urls: activeUrls,
       outputDir: state.settings.outputDir,
@@ -3271,33 +4613,44 @@ async function startDownload(downloadTarget = null) {
       ffmpegLocation: null,
       formatId: downloadTarget?.formatId || null,
       mergeOutputFormat: candidateMergeOutputFormat(downloadTarget),
-      referrer: downloadTarget?.pageUrl || null,
+      referrer: downloadTarget?.referrer || downloadTarget?.pageUrl || null,
       thumbnailUrl: downloadTarget?.thumbnailUrl || window.mediaDeckSmokeDownload?.thumbnailUrl || null,
       title: downloadTarget?.title || downloadTarget?.fileName || null,
-      directDownload: downloadTarget?.sourceClient === 'tiktok-page',
+      directDownload: detectedDirectMedia || downloadTarget?.downloadStrategy === 'direct'
+        || /^(?:(?:tiktok|douyin)-page|native-download|site-download-intent|background-resolver)$/.test(downloadTarget?.sourceClient || ''),
+      backgroundResolvedMedia: downloadTarget?.sourceClient === 'background-resolver',
+      backgroundResolvePage: downloadTarget?.backgroundResolvePage === true,
+      siteDownloadIntent: downloadTarget?.sourceClient === 'site-download-intent',
+      sourceClient: downloadTarget?.sourceClient || null,
+      kind: downloadTarget?.kind || null,
+      mimeType: downloadTarget?.mimeType || downloadTarget?.mime || null,
+      sizeBytes: candidateSize(downloadTarget),
       webContentsId: downloadTarget?.webContentsId || null,
       maxConcurrentDownloads: state.settings.maxConcurrentDownloads,
+      retryExisting: Boolean(downloadTarget?.retryRowId),
     });
     if (result?.entitlements) applyEntitlementState(result.entitlements);
     for (const job of Array.isArray(result?.jobs) ? result.jobs : []) {
       const jobRequestKey = job.requestKey || downloadRequestKey(job.url, downloadTarget?.formatId || null);
       const row = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId)) === jobRequestKey
-        && ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state)));
+        && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
       if (!row) continue;
       row.jobId = job.jobId;
-      row.status = normalizeDownloadState(job.state || 'queued');
+      row.status = normalizeDownloadState(job.state || 'queued') === 'downloading'
+        ? 'connecting'
+        : normalizeDownloadState(job.state || 'queued');
       row.state = row.status;
     }
     state.running = result?.running !== false;
     saveState();
     renderDownloads();
     updateDownloadBadge();
-    toast(text('started'));
+    return result;
   } catch (error) {
     const message = userFacingDownloadError(error);
     state.queue.forEach((item) => {
       if (requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId))
-        && ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state))) {
+        && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state))) {
         item.status = 'error';
         item.state = 'error';
         item.errorMessage = message;
@@ -3307,8 +4660,146 @@ async function startDownload(downloadTarget = null) {
     saveState();
     updateDownloadBadge();
     renderDownloads();
-    toast(message);
+    if (!downloadTarget?.suppressToast) toast(message);
+    return null;
   }
+}
+
+async function retryDownloadRow(row, options = {}) {
+  const rowId = String(row?.id || row?.downloadId || '').trim();
+  if (!row?.url || !rowId) return null;
+  let target = { ...row };
+  const needsCollectionResolution = row.sourceClient === 'collection-page'
+    || row.provider === 'agedm'
+    || /(?:^|\.)agedm\.io\/play\//i.test(String(row.pageUrl || row.url));
+  if (needsCollectionResolution) {
+    const pageTarget = {
+      ...row,
+      url: row.pageUrl || row.url,
+      pageUrl: row.pageUrl || row.url,
+      provider: 'agedm',
+      sourceClient: 'collection-page',
+    };
+    row.status = 'resolving';
+    row.state = 'resolving';
+    row.percent = 0;
+    row.downloaded = '-';
+    row.speed = '-';
+    row.errorMessage = null;
+    saveState();
+    renderDownloads();
+    const resolved = await resolveCollectionDownloadCandidate(pageTarget).catch(() => null);
+    const currentRow = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+    if (!currentRow || normalizeDownloadState(currentRow.state || currentRow.status) === 'paused') return null;
+    if (!resolved) {
+      currentRow.status = 'error';
+      currentRow.state = 'error';
+      currentRow.errorMessage = text('batchResolveFailed');
+      saveState();
+      renderDownloads();
+      return null;
+    }
+    target = {
+      ...resolved,
+      title: row.title || resolved.title,
+      fileName: row.fileName || resolved.fileName,
+      thumbnailUrl: row.thumbnailUrl || resolved.thumbnailUrl,
+      pageUrl: pageTarget.pageUrl,
+      backgroundResolvePage: false,
+    };
+  }
+  return startDownload({
+    ...target,
+    retryRowId: rowId,
+    suppressToast: Boolean(options.suppressToast),
+  });
+}
+
+async function retryAllFailedDownloads() {
+  if (state.retryingFailedDownloads) return;
+  const failedRows = state.queue
+    .filter((item) => normalizeDownloadState(item.status || item.state) === 'error')
+    .filter((item) => isInRange(item.time, state.downloadRange));
+  const uniqueRows = [];
+  const seen = new Set();
+  const duplicateIds = new Set();
+  for (const row of failedRows) {
+    const collectionPage = row.provider === 'agedm'
+      ? (MEDIA_RULES?.normalizePageUrl?.(row.pageUrl) || String(row.pageUrl || ''))
+      : '';
+    const key = collectionPage || row.requestKey || downloadRequestKey(row.pageUrl || row.url, row.formatId);
+    if (seen.has(key)) {
+      duplicateIds.add(String(row.id || row.downloadId));
+      continue;
+    }
+    seen.add(key);
+    uniqueRows.push(row);
+  }
+  if (duplicateIds.size) {
+    state.queue = state.queue.filter((item) => !duplicateIds.has(String(item.id || item.downloadId)));
+  }
+  if (!uniqueRows.length) {
+    toast(text('noRetryableFailed'), 'warning');
+    return;
+  }
+  state.retryingFailedDownloads = true;
+  let started = 0;
+  let failed = 0;
+  let completed = 0;
+  let nextIndex = 0;
+  renderDownloads();
+  const worker = async () => {
+    while (nextIndex < uniqueRows.length) {
+      const row = uniqueRows[nextIndex];
+      nextIndex += 1;
+      const result = await retryDownloadRow(row, { suppressToast: true }).catch(() => null);
+      if (result) started += 1;
+      else failed += 1;
+      completed += 1;
+      els.retryFailedDownloads.querySelector('span:last-child').textContent = text('retryingFailed', {
+        current: completed,
+        total: uniqueRows.length,
+      });
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(3, uniqueRows.length) }, () => worker()));
+  state.retryingFailedDownloads = false;
+  saveState();
+  renderDownloads();
+  toast(
+    failed ? text('retryFailedPartial', { started, failed }) : text('retriedFailed', { count: started }),
+    failed ? 'warning' : 'success',
+  );
+}
+
+async function controlDownloadRow(row, action) {
+  if (!row) return false;
+  if (action === 'resume') return Boolean(await retryDownloadRow(row));
+  const rowState = normalizeDownloadState(row.status || row.state);
+  if (action === 'pause' && !row.jobId && ['queued', 'resolving', 'connecting'].includes(rowState)) {
+    row.status = 'paused';
+    row.state = 'paused';
+    row.speed = '-';
+    saveState();
+    renderDownloads();
+    updateDownloadBadge();
+    return true;
+  }
+  const result = await window.mediaDeck.controlDownload({
+    jobId: row.jobId || null,
+    requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+    action,
+  });
+  if (!result?.ok || result.state === 'not-running') return false;
+  if (action === 'pause') {
+    row.status = 'paused';
+    row.state = 'paused';
+    row.speed = '-';
+  }
+  saveState();
+  renderDownloads();
+  updateDownloadBadge();
+  return true;
 }
 
 function markActiveDownloads(status) {
@@ -3331,17 +4822,18 @@ function downloadRowForEvent(payload, data = {}) {
   }
   if (payload?.requestKey) {
     const byRequest = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId)) === payload.requestKey
-      && ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state)));
-    if (byRequest) return byRequest;
+      && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
+    if (byRequest && (!byRequest.jobId || !payload?.jobId || byRequest.jobId === payload.jobId)) return byRequest;
+    if (payload?.jobId) return null;
   }
   if (payload?.url) {
     const byUrl = state.queue.find((item) => item.url === payload.url
-      && ['queued', 'downloading'].includes(normalizeDownloadState(item.status || item.state)));
+      && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
     if (byUrl) return byUrl;
   }
   const index = Math.max(0, Number(data.item_index || 1) - 1);
   const activeRows = state.queue.filter((item) => item.source !== 'recording'
-    && normalizeDownloadState(item.status || item.state) === 'downloading');
+    && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
   return activeRows[index] || null;
 }
 
@@ -3350,6 +4842,60 @@ function recordingRowForEvent(payload) {
   return sessionId
     ? state.queue.find((item) => item.jobId === sessionId || item.downloadId === sessionId)
     : null;
+}
+
+// Download workers can finish several jobs during the same renderer tick. Keep
+// the comparatively small output-verification/state-commit step ordered while
+// allowing the downloads and their progress events to remain fully concurrent.
+// This also prevents multiple context-bridge file verification calls from
+// leaving earlier rows stranded in the transient `finalizing` state.
+let downloadCompletionChain = Promise.resolve();
+
+async function finalizeDownloadEvent(payload) {
+  const row = downloadRowForEvent(payload);
+  if (row) {
+    if (normalizeDownloadState(row.status || row.state) === 'paused') return;
+    row.jobId = payload.jobId || row.jobId;
+    const output = !payload.failed && row.completionCandidate
+      ? await window.mediaDeck.verifyDownloadedFile(row).catch(() => ({ ok: false }))
+      : { ok: false };
+    row.completionVerified = Boolean(output?.ok);
+    if (output?.ok) {
+      row.path = output.path || row.path;
+      row.savePath = output.taskDir || row.savePath;
+      row.completedBytes = Number(output.size || row.completedBytes || 0);
+      row.downloaded = formatBytes(row.completedBytes);
+      row.size = formatBytes(row.completedBytes);
+    }
+    row.percent = row.completionVerified ? 100 : Math.min(99, Number(row.percent || 0));
+    row.status = row.completionVerified ? 'completed' : 'error';
+    row.state = row.status;
+    if (!row.completionVerified && !row.errorMessage) row.errorMessage = text('invalidDownloadOutput');
+  }
+  saveState();
+  updateDownloadBadge();
+  renderDownloads();
+  const completedWithFailure = Number(payload.failed || 0) > 0 || Boolean(row && !row.completionVerified);
+  if (!row?.suppressCompletionToast) {
+    toast(
+      completedWithFailure && row?.errorMessage
+        ? row.errorMessage
+        : text('downloadDone', { success: payload.downloaded || 0, failed: payload.failed || 0 }),
+      completedWithFailure ? 'error' : 'success',
+    );
+  }
+  if (row) {
+    delete row.suppressCompletionToast;
+    saveState();
+  }
+}
+
+function queueDownloadCompletion(payload) {
+  const completion = downloadCompletionChain
+    .catch(() => undefined)
+    .then(() => finalizeDownloadEvent(payload));
+  downloadCompletionChain = completion.catch(() => undefined);
+  return completion;
 }
 
 function formatRecordingDuration(milliseconds) {
@@ -3434,7 +4980,6 @@ function handleRecordingEvent(payload) {
 function prepareSmokeVisualAudit(section) {
   const now = new Date().toISOString();
   if (section === 'home') {
-    els.homeSearch.value = '';
     state.tabs.forEach((tab) => tab.webview.remove());
     state.tabs = [];
     state.activeTabId = null;
@@ -3481,13 +5026,13 @@ function prepareSmokeVisualAudit(section) {
         title: 'This Swiss Train Offers Stunning Views to Travelers',
         fileName: 'This Swiss Train Offers Stunning Views to Travelers.webm',
         percent: 0,
-        downloaded: '0 B',
+        downloaded: '-',
         speed: '-',
-        size: '3.2 GB',
+        size: '-',
         time: now,
         createdAt: Date.now() - 1000,
-        status: 'queued',
-        state: 'queued',
+        status: 'resolving',
+        state: 'resolving',
         path: outputDir,
         savePath: taskDir1440,
       },
@@ -3510,6 +5055,29 @@ function prepareSmokeVisualAudit(section) {
         path: `${taskDir1080}\\video.mp4`,
         savePath: taskDir1080,
         thumbnailPath: `${taskDir1080}\\cover.webp`,
+      },
+      {
+        id: 'visual-download-failed',
+        downloadId: 'visual-download-failed',
+        source: 'download',
+        url: 'https://www.agedm.io/play/20260210/1/2',
+        pageUrl: 'https://www.agedm.io/play/20260210/1/2',
+        provider: 'agedm',
+        sourceClient: 'collection-page',
+        title: '第02集',
+        fileName: '第02集',
+        thumbnailUrl: './assets/vidogo-empty.png',
+        percent: 0,
+        downloaded: '-',
+        speed: '-',
+        size: '-',
+        time: now,
+        createdAt: Date.now() - 3000,
+        status: 'error',
+        state: 'error',
+        path: outputDir,
+        savePath: outputDir,
+        errorMessage: text('invalidDownloadOutput'),
       },
     ];
     renderDownloads();
@@ -3564,25 +5132,45 @@ function prepareSmokeVisualAudit(section) {
 }
 
 function renderDownloads() {
-  const normalizedQueue = state.queue.map((item) => ({
-    ...item,
-    state: normalizeDownloadState(item.state || item.status),
-    status: normalizeDownloadState(item.status || item.state),
-    createdAt: item.createdAt || new Date(item.time || Date.now()).getTime(),
-    time: item.time || new Date(item.createdAt || Date.now()).toISOString(),
-    fileName: item.fileName || getFileName(item.title || item.path || item.url) || item.url,
-    savePath: item.savePath || item.path || state.settings.outputDir,
-    path: item.path || item.savePath || state.settings.outputDir,
-  }));
+  const normalizedQueue = state.queue.map((item) => {
+    let normalizedState = normalizeDownloadState(item.state || item.status);
+    const hasOutputEvidence = item.completionVerified === true || (
+      item.path
+      && item.path !== state.settings.outputDir
+      && item.path !== item.savePath
+      && item.downloaded !== '-'
+      && item.size !== '-'
+    );
+    if (normalizedState === 'completed' && !hasOutputEvidence) normalizedState = 'error';
+    return {
+      ...item,
+      state: normalizedState,
+      status: normalizedState,
+      percent: normalizedState === 'error' && Number(item.percent) >= 100 ? 0 : item.percent,
+      errorMessage: normalizedState === 'error'
+        ? userFacingDownloadError(item.errorMessage || text('invalidDownloadOutput'))
+        : item.errorMessage,
+      createdAt: item.createdAt || new Date(item.time || Date.now()).getTime(),
+      time: item.time || new Date(item.createdAt || Date.now()).toISOString(),
+      fileName: item.fileName || getFileName(item.title || item.path || item.url) || item.url,
+      savePath: item.savePath || item.path || state.settings.outputDir,
+      path: item.path || item.savePath || state.settings.outputDir,
+    };
+  });
   state.queue = normalizedQueue;
   updateDownloadBadge();
   const counts = {
     all: normalizedQueue.length,
-    queued: normalizedQueue.filter((item) => item.state === 'queued').length,
-    downloading: normalizedQueue.filter((item) => item.state === 'downloading').length,
+    queued: normalizedQueue.filter((item) => ['queued', 'resolving', 'connecting', 'paused'].includes(item.state)).length,
+    downloading: normalizedQueue.filter((item) => ['downloading', 'finalizing'].includes(item.state)).length,
     completed: normalizedQueue.filter((item) => item.state === 'completed').length,
     error: normalizedQueue.filter((item) => item.state === 'error').length,
   };
+  els.retryFailedDownloads.hidden = counts.error === 0;
+  els.retryFailedDownloads.disabled = state.retryingFailedDownloads || counts.error === 0;
+  els.retryFailedDownloads.querySelector('span:last-child').textContent = state.retryingFailedDownloads
+    ? els.retryFailedDownloads.querySelector('span:last-child').textContent
+    : text('retryAllFailed');
   els.clearFinished.disabled = normalizedQueue.every((item) => !isTerminalDownloadState(item.state));
   els.downloadFilters.querySelectorAll('.downloads-tab').forEach((button) => {
     const status = button.dataset.status;
@@ -3592,7 +5180,10 @@ function renderDownloads() {
     button.querySelector('.downloads-tab-count').textContent = String(counts[status] || 0);
   });
   const rows = normalizedQueue
-    .filter((item) => state.activeDownloadStatus === 'all' || item.state === state.activeDownloadStatus)
+    .filter((item) => state.activeDownloadStatus === 'all'
+      || item.state === state.activeDownloadStatus
+      || (state.activeDownloadStatus === 'queued' && ['resolving', 'connecting', 'paused'].includes(item.state))
+      || (state.activeDownloadStatus === 'downloading' && item.state === 'finalizing'))
     .filter((item) => isInRange(item.time, state.downloadRange));
   els.downloadHeader.hidden = rows.length === 0;
   if (!rows.length) {
@@ -3616,15 +5207,21 @@ function renderDownloads() {
   ` : '';
   els.downloadBody.innerHTML = visibleRows.map((item) => {
     const percent = Math.max(0, Math.min(100, Number(item.percent || 0)));
+    const isResolving = item.state === 'resolving';
+    const isConnecting = item.state === 'connecting';
     const id = escapeHtml(item.id || item.downloadId);
     const canOpen = item.state === 'completed' && item.path && item.path !== state.settings.outputDir;
     const canRetry = item.source !== 'recording' && ['error', 'cancelled'].includes(item.state);
+    const canPause = item.source !== 'recording' && ['queued', 'resolving', 'connecting', 'downloading'].includes(item.state);
+    const canResume = item.source !== 'recording' && item.state === 'paused';
     const thumbnail = item.thumbnailUrl
       ? `<span class="download-thumbnail has-thumbnail"><img src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.fileName)}" loading="lazy" /></span>`
       : `<span class="download-thumbnail" aria-hidden="true">${iconSvg('video-play')}</span>`;
     const actionButtons = [
       canOpen ? `<button class="el-button" type="button" title="${text('openFile')}" aria-label="${text('openFile')}" data-open="${id}">${iconSvg('view')}</button>` : '',
       item.savePath ? `<button class="el-button" type="button" title="${text('openFolder')}" aria-label="${text('openFolder')}" data-folder="${id}">${iconSvg('folder-opened')}</button>` : '',
+      canPause ? `<button class="el-button" type="button" title="${text('pause')}" aria-label="${text('pause')}" data-pause="${id}">${iconSvg('pause')}</button>` : '',
+      canResume ? `<button class="el-button" type="button" title="${text('resume')}" aria-label="${text('resume')}" data-resume="${id}">${iconSvg('video-play')}</button>` : '',
       canRetry ? `<button class="el-button" type="button" title="${text('retry')}" aria-label="${text('retry')}" data-retry="${id}">${iconSvg('refresh')}</button>` : '',
       `<button class="el-button" type="button" title="${text('remove')}" aria-label="${text('remove')}" data-remove="${id}">${iconSvg('delete')}</button>`,
     ].filter(Boolean).join('');
@@ -3634,17 +5231,17 @@ function renderDownloads() {
           ${thumbnail}
           <span class="download-file-name" title="${escapeHtml(item.fileName)}"><bdi>${escapeHtml(item.fileName)}</bdi></span>
         </div>
-        <div class="download-progress-cell">
-          <div class="download-list-progress"><div class="download-progress-track"><span style="width:${percent}%"></span></div></div>
+        <div class="download-progress-cell${isResolving || isConnecting ? ' is-resolving' : ''}">
+          ${isResolving || isConnecting ? '' : `<div class="download-list-progress"><div class="download-progress-track"><span style="width:${percent}%"></span></div></div>
           <div class="download-progress-meta">
             <span class="download-progress-speed"><bdi>${escapeHtml(item.speed || item.downloaded || '-')}</bdi></span>
-            <span class="download-progress-ratio"><bdi>${item.state === 'completed' ? '100' : Math.round(percent)}%</bdi></span>
-          </div>
+            <span class="download-progress-ratio"><bdi>${item.state === 'completed' && item.completionVerified ? '100' : Math.round(percent)}%</bdi></span>
+          </div>`}
         </div>
-        <div class="download-text-cell download-size-cell"><bdi>${escapeHtml(item.downloaded || '0 B')}</bdi></div>
-        <div class="download-text-cell download-size-cell"><bdi>${escapeHtml(item.size || '-')}</bdi></div>
+        <div class="download-text-cell download-size-cell"><bdi>${isResolving || isConnecting ? '' : escapeHtml(item.downloaded || '0 B')}</bdi></div>
+        <div class="download-text-cell download-size-cell"><bdi>${isResolving ? '' : escapeHtml(item.size || '-')}</bdi></div>
         <div class="download-text-cell download-time-cell" title="${escapeHtml(formatTime(item.time))}">${escapeHtml(formatTime(item.time))}</div>
-        <div class="download-status-cell is-${escapeHtml(item.state)}">${escapeHtml(text(item.state))}</div>
+        <div class="download-status-cell is-${escapeHtml(item.state)}" title="${escapeHtml(item.errorMessage || text(item.state))}">${escapeHtml(text(item.state))}</div>
         <div class="download-actions-cell">${actionButtons}</div>
       </article>
     `;
@@ -3691,12 +5288,36 @@ function renderDownloads() {
     button.addEventListener('click', () => {
       const item = state.queue.find((row) => (row.id || row.downloadId) === button.dataset.retry);
       if (!item?.url) return;
-      els.urlInput.value = item.url;
-      void startDownload(item);
+      void retryDownloadRow(item);
+    });
+  });
+  els.downloadBody.querySelectorAll('[data-pause]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = state.queue.find((row) => (row.id || row.downloadId) === button.dataset.pause);
+      void controlDownloadRow(item, 'pause');
+    });
+  });
+  els.downloadBody.querySelectorAll('[data-resume]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const item = state.queue.find((row) => (row.id || row.downloadId) === button.dataset.resume);
+      void controlDownloadRow(item, 'resume');
     });
   });
   els.downloadBody.querySelectorAll('[data-remove]').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
+      const row = state.queue.find((item) => (item.id || item.downloadId) === button.dataset.remove);
+      if (row?.jobId && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(row.status || row.state))) {
+        await window.mediaDeck.controlDownload({
+          jobId: row.jobId,
+          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+          action: 'cancel',
+        });
+      } else if (row && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(row.status || row.state))) {
+        await window.mediaDeck.controlDownload({
+          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+          action: 'cancel',
+        });
+      }
       state.queue = state.queue.filter((item) => (item.id || item.downloadId) !== button.dataset.remove);
       saveState();
       updateDownloadBadge();
@@ -3982,6 +5603,7 @@ function renderAccount() {
       : 0;
     document.getElementById('profile-quota').textContent = `${usedToday} / ${quota === null ? text('unlimited') : quota}`;
   }
+  updateTitlebarAccount();
   renderOrders();
 }
 
@@ -4206,6 +5828,8 @@ function toast(message, requestedKind = '') {
 }
 
 function bindEvents() {
+  bindPlatformManagerEvents();
+  els.titlebarAccount?.addEventListener('click', () => setSection('account'));
   els.sidebar.forEach((button) => button.addEventListener('click', () => setSection(button.dataset.section)));
   els.browserStatusDownloads.addEventListener('click', () => setSection('downloads'));
   els.settingsNav.forEach((button) => button.addEventListener('click', () => setSettingsSection(button.dataset.settingsSection)));
@@ -4215,7 +5839,6 @@ function bindEvents() {
     event.preventDefault();
     els.tabStrip.scrollLeft += event.deltaY;
   }, { passive: false });
-  els.homeSearch.addEventListener('keydown', (event) => { if (event.key === 'Enter') openUrl(els.homeSearch.value); });
   els.back.addEventListener('click', () => activeTab()?.webview.goBack());
   els.forward.addEventListener('click', () => activeTab()?.webview.goForward());
   els.reload.addEventListener('click', () => {
@@ -4227,8 +5850,6 @@ function bindEvents() {
       tab.webview.reload();
     }
   });
-  els.addressGo.addEventListener('click', () => navigateActive(els.address.value));
-  els.address.addEventListener('keydown', (event) => { if (event.key === 'Enter') navigateActive(els.address.value); });
   els.browserQuality.addEventListener('change', () => {
     state.selectedMinimumResolutionByTabId[state.activeTabId] = Number.parseInt(els.browserQuality.value, 10) || 0;
     renderCandidates();
@@ -4276,11 +5897,6 @@ function bindEvents() {
   els.settingsConcurrencyDecrease.addEventListener('click', () => updateConcurrentDownloads(state.settings.maxConcurrentDownloads - 1));
   els.settingsConcurrencyIncrease.addEventListener('click', () => updateConcurrentDownloads(state.settings.maxConcurrentDownloads + 1));
   els.settingsConcurrencyPlans.addEventListener('click', () => setSection('plans'));
-  els.settingsSearchEngine.addEventListener('change', () => {
-    state.settings.searchEngine = els.settingsSearchEngine.value;
-    saveState();
-    toast(text('saved'));
-  });
   els.settingsRecording.addEventListener('change', async () => {
     state.settings.recordingEnabled = els.settingsRecording.checked;
     saveState();
@@ -4323,6 +5939,39 @@ function bindEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.favoritesPopoverOpen) setFavoritesPopoverOpen(false);
+    if (event.key === 'Escape' && !els.platformManagerOverlay.hidden) {
+      els.platformManagerOverlay.hidden = true;
+      closePlatformEditors();
+    }
+  });
+  els.mediaModeButtons.forEach((button) => button.addEventListener('click', () => {
+    if (!state.activeTabId) return;
+    state.mediaModeByTabId[state.activeTabId] = button.dataset.mediaMode === 'batch' ? 'batch' : 'current';
+    renderCandidates();
+  }));
+  els.batchSelectAll.addEventListener('change', () => {
+    if (!state.activeTabId) return;
+    state.selectedBatchCandidateIdsByTabId[state.activeTabId] = els.batchSelectAll.checked
+      ? (state.mediaCollectionsByTabId[state.activeTabId] || []).map((candidate) => candidate.id)
+      : [];
+    renderCandidates();
+  });
+  els.batchDownloadSelected.addEventListener('click', () => void startSelectedBatchDownloads());
+  // Batch rows are replaced whenever media detection or selection changes.
+  // Delegate from the stable list container so newly discovered TikTok/profile
+  // items keep their individual checkbox behaviour after every re-render.
+  els.candidateList.addEventListener('change', (event) => {
+    const checkbox = event.target.closest?.('[data-batch-candidate]');
+    const tabId = state.activeTabId;
+    if (!checkbox || !tabId) return;
+    const candidateId = checkbox.dataset.batchCandidate;
+    const collection = state.mediaCollectionsByTabId[tabId] || [];
+    if (!collection.some((candidate) => candidate.id === candidateId)) return;
+    const selected = new Set(state.selectedBatchCandidateIdsByTabId[tabId] || []);
+    if (checkbox.checked) selected.add(candidateId);
+    else selected.delete(candidateId);
+    state.selectedBatchCandidateIdsByTabId[tabId] = [...selected];
+    renderCandidates();
   });
   els.pageMediaToggle.addEventListener('click', () => {
     state.mediaPanelVisible = !state.mediaPanelVisible;
@@ -4360,6 +6009,7 @@ function bindEvents() {
     saveState();
     renderDownloads();
   });
+  els.retryFailedDownloads.addEventListener('click', () => void retryAllFailedDownloads());
   els.downloadFilters.querySelectorAll('.downloads-tab').forEach((button) => {
     button.addEventListener('click', () => {
       state.activeDownloadStatus = button.dataset.status || 'all';
@@ -4455,11 +6105,12 @@ function bindEvents() {
   window.mediaDeck.onOpenNewTab((url) => openUrl(url));
   window.mediaDeck.onBrowserNavigate((url) => openUrl(url));
   window.mediaDeck.onMediaCandidate((candidate) => addCandidate(candidate));
+  window.mediaDeck.onNativeDownloadRequest((payload) => handleNativeDownloadRequest(payload));
   window.mediaDeck.onDownloadState((payload) => {
     state.running = Boolean(payload?.running);
     updateDownloadBadge();
   });
-  window.mediaDeck.onDownloadEvent((payload) => {
+  window.mediaDeck.onDownloadEvent(async (payload) => {
     if (!payload) return;
     if (window.mediaDeckSmokeDownload?.real) {
       state.downloadDiagnostics.push({
@@ -4478,8 +6129,11 @@ function bindEvents() {
       // yt-dlp status output belongs in the row progress fields, not in a stack
       // of transient notifications covering the media panel.
       const message = String(payload.message || '').trim();
-      if (/\b(?:warning|error)\b/i.test(message) && !/^\[download\]/i.test(message)) {
-        toast(message);
+      const row = downloadRowForEvent(payload);
+      if (row && /\b(?:warning|error)\b/i.test(message) && !/^\[download\]/i.test(message)) {
+        row.errorMessage = userFacingDownloadError(message);
+        saveState();
+        renderDownloads();
       }
       return;
     }
@@ -4487,50 +6141,50 @@ function bindEvents() {
       const data = payload.data || {};
       const row = downloadRowForEvent(payload, data);
       if (row) {
+        if (normalizeDownloadState(row.status || row.state) === 'paused') return;
         row.jobId = payload.jobId || row.jobId;
         row.percent = Number(data.percent || 0);
         row.fileName = row.fileName || getFileName(data.filename || row.title || row.url);
         row.downloaded = formatBytes(data.downloaded_bytes) || row.downloaded || '0 B';
         row.size = formatBytes(data.total_bytes) || row.size || '-';
-        row.speed = data.speed ? `${formatBytes(data.speed)}/s` : '-';
-        row.status = data.status === 'completed' ? 'completed' : 'downloading';
+        row.speedBytesPerSecond = Number(data.speed) > 0 ? Number(data.speed) : 0;
+        row.speed = row.speedBytesPerSecond ? `${formatBytes(row.speedBytesPerSecond)}/s` : '-';
+        const progressState = normalizeDownloadState(data.status || 'downloading');
+        row.status = progressState === 'completed'
+          ? 'finalizing'
+          : (['resolving', 'connecting'].includes(progressState) ? progressState : 'downloading');
         row.state = row.status;
+        if (data.source_client) row.sourceClient = data.source_client;
         row.savePath = data.task_dir || row.savePath;
         if (data.status === 'completed') {
           row.path = data.filename || row.path;
           row.savePath = data.task_dir || row.savePath || row.path;
           row.thumbnailPath = data.thumbnail_filename || row.thumbnailPath || null;
+          row.completedBytes = Number(data.downloaded_bytes || data.total_bytes || 0);
+          row.completionCandidate = Boolean(data.filename && row.completedBytes > 0);
         }
         saveState();
         renderDownloads();
       }
     }
-    if (payload.type === 'done') {
-      const row = downloadRowForEvent(payload);
-      if (row) {
-        row.jobId = payload.jobId || row.jobId;
-        row.percent = payload.failed ? row.percent || 0 : 100;
-        row.status = payload.failed ? 'error' : 'completed';
-        row.state = row.status;
-      }
-      saveState();
-      updateDownloadBadge();
-      renderDownloads();
-      toast(text('downloadDone', { success: payload.downloaded || 0, failed: payload.failed || 0 }));
-    }
+    if (payload.type === 'done') await queueDownloadCompletion(payload);
     if (payload.type === 'error') {
       const row = downloadRowForEvent(payload);
       if (row) {
         row.jobId = payload.jobId || row.jobId;
         row.status = 'error';
         row.state = 'error';
-        row.errorMessage = payload.message || 'download failed';
+        row.errorMessage = userFacingDownloadError(payload.message || 'download failed');
         saveState();
         renderDownloads();
       } else {
         markActiveDownloads('error');
       }
-      toast(text('downloadError', { message: payload.message || 'download failed' }));
+      if (!row?.suppressCompletionToast) toast(userFacingDownloadError(payload.message || 'download failed'), 'error');
+      if (row) {
+        delete row.suppressCompletionToast;
+        saveState();
+      }
     }
     if (payload.type === 'cancelled') {
       const row = downloadRowForEvent(payload);
@@ -4538,6 +6192,17 @@ function bindEvents() {
         row.jobId = payload.jobId || row.jobId;
         row.status = 'cancelled';
         row.state = 'cancelled';
+        saveState();
+        renderDownloads();
+      }
+    }
+    if (payload.type === 'paused') {
+      const row = downloadRowForEvent(payload);
+      if (row) {
+        row.jobId = payload.jobId || row.jobId;
+        row.status = 'paused';
+        row.state = 'paused';
+        row.speed = '-';
         saveState();
         renderDownloads();
       }
@@ -4554,17 +6219,20 @@ async function bootstrap() {
   if (String(state.selectedPlan).startsWith('flagship_')) state.selectedPlan = String(state.selectedPlan).replace(/^flagship_/, 'ultimate_');
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
-  const [systemLocale, defaultDir, candidates, runtimeInfo] = await Promise.all([
+  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
     window.mediaDeck.getDefaultDownloadDir(),
     window.mediaDeck.getMediaCandidates(),
     window.mediaDeck.getRuntimeInfo(),
+    window.mediaDeck.getPlatforms(),
   ]);
   if (!localStorage.getItem(STORAGE_KEYS.locale)) {
     state.locale = I18N.resolveSupportedLocale(systemLocale) || 'zh-CN';
   }
   state.settings.outputDir = state.settings.outputDir || defaultDir;
   state.runtimeInfo = runtimeInfo || null;
+  state.platformConfig = platformConfig || state.platformConfig;
+  state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
   try {
     await refreshRemoteAccount();
   } catch {
@@ -4578,6 +6246,7 @@ async function bootstrap() {
   bindEvents();
   applyLocale();
   syncSettingsControls();
+  updateTitlebarAccount();
   const initialCandidates = Array.isArray(candidates) ? candidates.reverse() : [];
   if (initialCandidates.length) {
     const initialTab = createTab(HOME_URL, text('newTab'));
@@ -4596,10 +6265,12 @@ async function bootstrap() {
   window.__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST = runAccountUiFlowTest;
   window.__VIDOGO_RUN_MANIFEST_FLOW_TEST = runManifestFlowTest;
   window.__VIDOGO_RUN_DASH_FLOW_TEST = runDashManifestFlowTest;
+  window.__VIDOGO_RUN_RESOLVER_FLOW_TEST = runResolverFlowTest;
   if (window.mediaDeckSmokeVisualAudit) {
     window.__VIDOGO_PREPARE_VISUAL_AUDIT = prepareSmokeVisualAudit;
   }
   window.__VIDOGO_BOOTSTRAPPED = true;
+  void window.mediaDeck.rendererReady();
 }
 
 async function runRendererSelfTest() {
@@ -4613,10 +6284,10 @@ async function runRendererSelfTest() {
   const waitFor = async (condition, timeoutMs = 5000) => {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
-      if (condition()) return true;
+      if (await condition()) return true;
       await wait(40);
     }
-    return Boolean(condition());
+    return Boolean(await condition());
   };
   const previousSettings = { ...state.settings };
   const previousTheme = state.theme;
@@ -4672,6 +6343,7 @@ async function runRendererSelfTest() {
     'minimizeWindow',
     'toggleMaximizeWindow',
     'closeWindow',
+    'rendererReady',
     'resetBrowserSession',
     'repairDailymotionPlayback',
     'inspectBrowserFrames',
@@ -4680,18 +6352,26 @@ async function runRendererSelfTest() {
     'setPreferredLanguage',
     'setTitleBarTheme',
     'setAdBlockerEnabled',
+    'getPlatforms',
+    'savePlatforms',
+    'resetPlatforms',
+    'choosePlatformIcon',
     'getEntitlements',
     'configureEntitlements',
     'configureRecording',
     'checkForUpdates',
     'getMediaCandidates',
     'extractPageMedia',
+    'resolvePageMedia',
     'clearMediaCandidates',
     'startDownload',
     'cancelDownload',
+    'controlDownload',
+    'verifyDownloadedFile',
     'onOpenNewTab',
     'onBrowserNavigate',
     'onMediaCandidate',
+    'onNativeDownloadRequest',
     'onDownloadState',
     'onDownloadEvent',
     'onEntitlementsChanged',
@@ -4699,6 +6379,23 @@ async function runRendererSelfTest() {
   ];
   const missingApiMethods = requiredApiMethods.filter((name) => typeof window.mediaDeck?.[name] !== 'function');
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
+  assert(getComputedStyle(document.querySelector('.address-input-shell')).cursor === 'not-allowed', 'Read-only address bar must use the prohibited cursor');
+  const applicationSelects = Array.from(document.querySelectorAll('select:not([multiple])'));
+  const selectStyleDiagnostics = applicationSelects.map((select) => {
+    const style = getComputedStyle(select);
+    return { id: select.id, appearance: style.appearance, backgroundImage: style.backgroundImage, paddingRight: style.paddingRight };
+  });
+  assert(applicationSelects.length > 0 && selectStyleDiagnostics.every((style) => (
+    style.appearance === 'none' && style.backgroundImage !== 'none' && parseFloat(style.paddingRight) >= 30
+  )), `All application dropdowns must use the spaced custom arrow: ${JSON.stringify(selectStyleDiagnostics)}`);
+  const hasOpenSelectRule = Array.from(document.styleSheets).some((sheet) => {
+    try {
+      return Array.from(sheet.cssRules || []).some((rule) => String(rule.selectorText || '').includes('select:not([multiple]):open'));
+    } catch {
+      return false;
+    }
+  });
+  assert(hasOpenSelectRule, 'Dropdown arrow does not define an open-state flip');
   assert(els.passwordVisibilityToggles.length === 4, 'Password visibility controls are incomplete');
   const originalPasswordType = els.loginPassword.type;
   els.passwordVisibilityToggles.find((button) => button.dataset.passwordTarget === 'login-password')?.click();
@@ -4784,18 +6481,46 @@ async function runRendererSelfTest() {
   assert(concurrentQueue?.queuedCount === concurrentUrls.length - expectedConcurrentActive, 'Concurrent download queue did not retain plan-clamped overflow work');
   if (smokeDownload.real) {
     const deadline = Date.now() + 45000;
-    while (Date.now() < deadline && state.queue.some((item) => ['queued', 'downloading'].includes(normalizeDownloadState(item.state)))) {
+    while (Date.now() < deadline && state.queue.some((item) => !isTerminalDownloadState(item.state))) {
       await wait(250);
     }
     while (Date.now() < deadline && state.running) await wait(100);
   } else {
-    await wait(100);
+    await waitFor(() => state.queue.every((item) => isTerminalDownloadState(item.state)), 2000);
   }
   const concurrentSnapshot = state.queue.map((item) => ({ url: item.url, state: item.state, jobId: item.jobId }));
   const concurrentDiagnostic = JSON.stringify({ rows: concurrentSnapshot, events: state.downloadDiagnostics.slice(-20) });
   assert(state.queue.every((item) => normalizeDownloadState(item.state) === 'completed'), `Concurrent job events did not complete their matching rows: ${concurrentDiagnostic}`);
   assert(new Set(state.queue.map((item) => item.jobId)).size === 3, 'Concurrent job events did not retain unique job identities');
   assert(state.running === false, 'Concurrent queue did not report an idle final state');
+  if (smokeDownload.real && concurrentUrls[0]) {
+    const concurrentRows = state.queue;
+    if (smokeDownload.slowUrl) {
+      state.queue = [];
+      await startDownload({
+        url: smokeDownload.slowUrl,
+        pageUrl: `${smokeDownload.slowUrl}?source=smoke-page`,
+        title: 'Pause media smoke',
+        fileName: 'Pause media smoke',
+        kind: 'video',
+        mimeType: 'video/mp4',
+        sourceClient: 'smoke-direct',
+        downloadStrategy: 'direct',
+        suppressToast: true,
+      });
+      await waitFor(() => state.queue[0]?.state === 'downloading', 4_000);
+      const pausedRow = state.queue[0];
+      const paused = await controlDownloadRow(pausedRow, 'pause');
+      assert(paused === true && pausedRow?.state === 'paused', 'Direct media pause did not stop the active task in place');
+      const resumed = await controlDownloadRow(pausedRow, 'resume');
+      assert(resumed === true && state.queue.length === 1, 'Direct media resume did not reuse the paused row');
+      const resumeDeadline = Date.now() + 20_000;
+      while (Date.now() < resumeDeadline && state.queue.some((item) => !isTerminalDownloadState(item.state))) await wait(100);
+      assert(state.queue[0]?.state === 'completed' && state.queue[0]?.completionVerified === true,
+        `Resumed direct media did not complete: ${JSON.stringify(state.queue[0] || null)}`);
+    }
+    state.queue = concurrentRows;
+  }
   state.queue = queueBeforeConcurrencyTest;
   saveState();
   renderDownloads();
@@ -4823,31 +6548,101 @@ async function runRendererSelfTest() {
   setSection('home');
   await wait(250);
   const siteImages = Array.from(document.querySelectorAll('.popular-site-button img, .site-card img'));
-  await Promise.allSettled(siteImages.map((image) => {
+  await Promise.race([Promise.allSettled(siteImages.map((image) => {
     if (image.complete && image.naturalWidth > 0) return Promise.resolve();
     return image.decode ? image.decode() : new Promise((resolve) => {
       image.addEventListener('load', resolve, { once: true });
       image.addEventListener('error', resolve, { once: true });
     });
-  }));
-  const unloadedImages = siteImages.filter((image) => !image.complete || image.naturalWidth <= 0);
-  assert(siteImages.length === 15, `Expected 15 platform icon images, got ${siteImages.length}`);
-  assert(document.querySelectorAll('.browser-home .popular-site-button').length === 15, 'VidBrowser-style popular site buttons did not render');
-  assert(unloadedImages.length === 0, `Platform icons failed to load: ${unloadedImages.map((image) => image.getAttribute('src')).join(', ')}`);
+  })), wait(1200)]);
+  const platformButtons = document.querySelectorAll('.browser-home .popular-site-button');
+  assert(platformButtons.length >= 25, `Expected the built-in platform catalog, got ${platformButtons.length}`);
+  assert(!document.querySelector('#home-search-input'), 'Home should be a platform launcher, not another address/search field');
+  const originalPlatformConfig = await window.mediaDeck.getPlatforms();
+  try {
+    const builtInPlatform = originalPlatformConfig.platforms.find((platform) => platform.builtIn === true);
+    assert(Boolean(builtInPlatform), 'Built-in platform catalog has no removable test entry');
+    await clickControl('home:platform-manager-open', els.platformManageButton);
+    assert(!els.platformManagerOverlay.hidden, 'Platform manager did not open');
+    const managerRect = els.platformManagerOverlay.querySelector('.platform-manager-dialog')?.getBoundingClientRect();
+    assert(managerRect?.width >= 900 && managerRect?.height >= 600,
+      `Platform manager layout is unexpectedly cramped: ${Math.round(managerRect?.width || 0)}x${Math.round(managerRect?.height || 0)}`);
+    if (builtInPlatform) {
+      state.activePlatformCategoryId = builtInPlatform.categoryId;
+      renderPlatformManager();
+      const toggle = els.platformSiteList.querySelector(`[data-platform-toggle="${CSS.escape(builtInPlatform.id)}"]`);
+      const toggleRect = toggle?.getBoundingClientRect();
+      assert(Math.round(toggleRect?.width || 0) === 36 && Math.round(toggleRect?.height || 0) === 20,
+        `Platform switch must render as 36x20, got ${Math.round(toggleRect?.width || 0)}x${Math.round(toggleRect?.height || 0)}`);
+      await clickControl('platform-manager:hide-built-in', toggle);
+      const hiddenPersisted = await waitFor(async () => {
+        const configuration = await window.mediaDeck.getPlatforms();
+        return configuration.platforms.find((platform) => platform.id === builtInPlatform.id)?.enabled === false;
+      });
+      assert(hiddenPersisted, 'Built-in platform visibility change was not persisted');
+      assert(!els.platformGroups.querySelector(`[data-platform-open="${CSS.escape(builtInPlatform.id)}"]`),
+        'Hidden built-in platform remained visible on the home page');
+
+      state.activePlatformCategoryId = builtInPlatform.categoryId;
+      renderPlatformManager();
+      await clickControl('platform-manager:delete-built-in',
+        els.platformSiteList.querySelector(`[data-platform-delete="${CSS.escape(builtInPlatform.id)}"]`));
+      const deletionPersisted = await waitFor(async () => {
+        const configuration = await window.mediaDeck.getPlatforms();
+        return !configuration.platforms.some((platform) => platform.id === builtInPlatform.id);
+      });
+      assert(deletionPersisted, 'Built-in platform could not be deleted from persisted configuration');
+      assert(!els.platformGroups.querySelector(`[data-platform-open="${CSS.escape(builtInPlatform.id)}"]`),
+        'Deleted built-in platform remained visible on the home page');
+    }
+
+    await clickControl('platform-manager:add-category', els.platformCategoryAdd);
+    els.categoryEditName.value = 'Smoke Category';
+    els.categoryEditor.requestSubmit();
+    const customCategorySaved = await waitFor(async () => {
+      const configuration = await window.mediaDeck.getPlatforms();
+      return configuration.categories.some((category) => category.labels?.['zh-CN'] === 'Smoke Category');
+    });
+    assert(customCategorySaved, 'Custom platform category was not persisted');
+    const customCategory = state.platformConfig.categories.find((category) => category.labels?.['zh-CN'] === 'Smoke Category');
+    assert(Boolean(customCategory), 'Custom platform category was not reflected in renderer state');
+
+    await clickControl('platform-manager:add-platform', els.platformSiteAdd);
+    els.platformEditName.value = 'Smoke Platform';
+    els.platformEditUrl.value = 'https://example.com/smoke-platform';
+    els.platformEditUrl.dispatchEvent(new Event('input', { bubbles: true }));
+    els.platformEditCategory.value = customCategory?.id || '';
+    const editorActionsRect = els.platformEditor.querySelector('.platform-editor-actions')?.getBoundingClientRect();
+    const editorIconRect = els.platformEditor.querySelector('.platform-icon-field')?.getBoundingClientRect();
+    assert(editorActionsRect?.left > editorIconRect?.right,
+      'Platform editor actions are still stuck to the icon/input region');
+    els.platformEditor.requestSubmit();
+    const customPlatformSaved = await waitFor(async () => {
+      const configuration = await window.mediaDeck.getPlatforms();
+      return configuration.platforms.some((platform) => platform.name === 'Smoke Platform');
+    });
+    assert(customPlatformSaved, 'Custom platform was not persisted');
+    const customPlatform = state.platformConfig.platforms.find((platform) => platform.name === 'Smoke Platform');
+    assert(customPlatform?.icon === 'https://example.com/favicon.ico', 'Custom platform did not auto-derive its favicon');
+    assert(Boolean(els.platformGroups.querySelector(`[data-platform-open="${CSS.escape(customPlatform?.id || '')}"]`)),
+      'Custom platform did not appear on the home page');
+  } catch (error) {
+    failures.push(`Platform manager CRUD flow failed: ${error?.message || String(error)}`);
+  } finally {
+    state.platformConfig = await window.mediaDeck.savePlatforms(originalPlatformConfig);
+    state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
+    closePlatformEditors();
+    els.platformManagerOverlay.hidden = true;
+    renderQuickSites();
+    renderPlatformManager();
+  }
   const homeTabButton = document.querySelector('.tab:first-child');
   assert(homeTabButton?.textContent.includes(text('home')), 'Home tab should be the first tab before opening a site');
-  els.homeSearch.value = 'example.com';
-  window.__VIDOGO_SELF_TEST_PROGRESS = 'home:search-enter';
-  els.homeSearch.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-  clicked.push('home:search-enter');
-  await wait(20);
-  assert(state.section === 'browser', 'Home search did not open the browser page');
-  assert(state.tabs.at(-1)?.url === 'https://example.com', 'Home search did not create a browser tab for example.com');
-  const tabsAfterSearch = state.tabs.length;
+  const tabsBeforeQuickSite = state.tabs.length;
   const quickYouTube = Array.from(document.querySelectorAll('.popular-site-button, .site-card')).find((button) => button.textContent.includes('YouTube'));
   setSection('home');
   await clickControl('home:quick-site:youtube', quickYouTube);
-  assert(state.tabs.length === tabsAfterSearch + 1, 'YouTube quick site did not create a new browser tab');
+  assert(state.tabs.length === tabsBeforeQuickSite + 1, 'YouTube quick site did not create a new browser tab');
   assert(activeTab()?.title === 'YouTube', 'YouTube quick site did not label the opened tab');
   assert(activeTab()?.url === 'https://www.youtube.com/', 'YouTube quick site did not open the expected URL');
   assert(document.querySelector('.tab:first-child')?.textContent.includes(text('home')), 'Home tab should remain before browser tabs after opening YouTube');
@@ -4881,7 +6676,7 @@ async function runRendererSelfTest() {
     applyLocale();
     assert(document.documentElement.lang === locale, `Locale not applied: ${locale}`);
     assert(document.documentElement.dir === (locale === 'ar' ? 'rtl' : 'ltr'), `Locale direction mismatch: ${locale}`);
-    assert(els.homeSearch.placeholder === TEXT_TABLES[locale].search, `Localized copy not applied: ${locale}`);
+    assert(els.platformManageLabel.textContent === TEXT_TABLES[locale].platformManager, `Localized platform manager copy not applied: ${locale}`);
     assert(els.settingsLanguage.options.length === 8, `Language options are incomplete: ${locale}`);
   }
 
@@ -4965,7 +6760,20 @@ async function runRendererSelfTest() {
   const previousRange = state.downloadRange;
   const previousPage = state.downloadPage;
   const previousOutputDir = state.settings.outputDir;
+  state.queue = [
+    { id: 'self-test-speed-a', state: 'downloading', speedBytesPerSecond: 1024 * 1024 },
+    { id: 'self-test-speed-b', state: 'downloading', speed: '512 KB/s' },
+    { id: 'self-test-speed-paused', state: 'paused', speed: '9 MB/s' },
+  ];
+  updateBrowserStatusBar();
+  assert(activeDownloadSpeed() === 1.5 * 1024 * 1024, 'Bottom status bar did not total active download speeds');
+  assert(els.browserStatusNetworkSpeed.textContent.trim() === '1.5 MB/s',
+    `Bottom status bar speed is incorrect: ${els.browserStatusNetworkSpeed.textContent.trim()}`);
+  assert(els.browserStatusNetwork.classList.contains('is-active'), 'Bottom status bar speed did not enter its active state');
   state.queue = [];
+  updateBrowserStatusBar();
+  assert(els.browserStatusNetworkSpeed.textContent.trim() === '0 B/s'
+    && !els.browserStatusNetwork.classList.contains('is-active'), 'Bottom status bar speed did not reset when downloads stopped');
   state.downloadPage = 1;
   if (smokeDownload.real && smokeDownload.outputDir) {
     state.settings.outputDir = smokeDownload.outputDir;
@@ -4973,6 +6781,32 @@ async function runRendererSelfTest() {
   }
   setSection('downloads');
   renderDownloads();
+  const emptyHistory = [...state.history];
+  const emptyFavorites = [...state.favorites];
+  const emptyStateRects = [];
+  const recordEmptyState = (section) => {
+    const rect = document.querySelector(`#page-${section} .menu-empty-state .app-empty-image`)?.getBoundingClientRect();
+    if (rect) emptyStateRects.push({ section, top: Math.round(rect.top), left: Math.round(rect.left), width: Math.round(rect.width) });
+  };
+  recordEmptyState('downloads');
+  state.history = [];
+  renderHistory();
+  setSection('history');
+  recordEmptyState('history');
+  state.favorites = [];
+  renderFavorites();
+  setSection('favorites');
+  recordEmptyState('favorites');
+  assert(emptyStateRects.length === 3, `Menu empty-state artwork is missing: ${JSON.stringify(emptyStateRects)}`);
+  assert(new Set(emptyStateRects.map((rect) => rect.top)).size === 1
+    && new Set(emptyStateRects.map((rect) => rect.left)).size === 1
+    && new Set(emptyStateRects.map((rect) => rect.width)).size === 1,
+  `Download, history, and favorites empty states are not aligned: ${JSON.stringify(emptyStateRects)}`);
+  state.history = emptyHistory;
+  state.favorites = emptyFavorites;
+  renderHistory();
+  renderFavorites();
+  setSection('downloads');
   const downloadsToolbarRect = document.querySelector('.downloads-toolbar').getBoundingClientRect();
   const downloadsViewRect = document.querySelector('.downloads-view').getBoundingClientRect();
   assert(Math.abs(downloadsToolbarRect.width - downloadsViewRect.width) <= 1, 'Downloads toolbar must span the full page width without a right-edge step');
@@ -4986,7 +6820,7 @@ async function runRendererSelfTest() {
   await clickControl('downloads:start', els.startDownload);
   if (smokeDownload.real) {
     const deadline = Date.now() + 30000;
-    while (Date.now() < deadline && state.queue.some((item) => ['queued', 'downloading'].includes(normalizeDownloadState(item.state)))) {
+    while (Date.now() < deadline && state.queue.some((item) => !isTerminalDownloadState(item.state))) {
       await wait(250);
     }
     while (Date.now() < deadline && state.running) await wait(100);
@@ -4996,7 +6830,8 @@ async function runRendererSelfTest() {
   assert(state.queue.length === 1, 'Download queue did not add URL');
   assert(els.downloadBody.querySelectorAll('.download-item-row').length >= 1, 'Download item row did not render');
   assert(!els.downloadHeader.hidden, 'Download table header should render when rows exist');
-  assert(els.downloadBody.querySelector('.download-status-cell.is-completed'), 'Completed download status did not render');
+  assert(els.downloadBody.querySelector('.download-status-cell.is-completed'),
+    `Completed download status did not render: ${JSON.stringify(state.queue[0] || null)}`);
   if (smokeDownload.real) {
     const completedItem = state.queue[0];
     assert(Boolean(completedItem?.path && completedItem.path !== state.settings.outputDir), 'Real download did not retain its final media path');
@@ -5068,8 +6903,12 @@ async function runRendererSelfTest() {
     savePath: state.settings.outputDir,
   }];
   renderDownloads();
+  assert(!els.retryFailedDownloads.hidden, 'Failed downloads did not expose the batch retry action');
+  const retryRowIdBefore = state.queue[0].id;
   await clickControl('downloads:retry', els.downloadBody.querySelector('[data-retry]'));
   await wait(120);
+  assert(state.queue.length === 1, `Retry must reuse the failed row instead of creating a duplicate: ${state.queue.length}`);
+  assert(state.queue[0]?.id === retryRowIdBefore, 'Retry changed the original download task identity');
   state.queue = Array.from({ length: DOWNLOAD_PAGE_SIZE + 1 }, (_, index) => ({
     id: `self-test-page-download-${index}`,
     downloadId: `self-test-page-download-${index}`,
@@ -5138,9 +6977,81 @@ async function runRendererSelfTest() {
   assert(els.candidateList.querySelectorAll('.sniffer-resource-row').length >= 1, 'VidBrowser media candidate row did not render');
   assert(Boolean(els.candidateList.querySelector('[data-download-candidate="self-test-candidate"]')), 'VidBrowser media candidate download action did not render');
   assert(!els.candidateList.querySelector('[data-copy-candidate], [data-copy-variant], .sniffer-resource-copy'), 'Media panel must not render the removed copy-link controls');
+  const savedBatchCollection = state.mediaCollectionsByTabId[mediaTestTabId];
+  const savedBatchMode = state.mediaModeByTabId[mediaTestTabId];
+  const savedBatchSelection = state.selectedBatchCandidateIdsByTabId[mediaTestTabId];
+  state.mediaCollectionsByTabId[mediaTestTabId] = [
+    { id: 'self-test-batch-1', url: 'https://example.com/1', title: 'Batch item 1' },
+    { id: 'self-test-batch-2', url: 'https://example.com/2', title: 'Batch item 2' },
+    { id: 'self-test-batch-3', url: 'https://example.com/3', title: 'Batch item 3' },
+  ];
+  state.mediaModeByTabId[mediaTestTabId] = 'batch';
+  state.selectedBatchCandidateIdsByTabId[mediaTestTabId] = [];
+  renderCandidates();
+  await clickControl('browser:batch-select-second', els.candidateList.querySelector('[data-batch-candidate="self-test-batch-2"]'));
+  await clickControl('browser:batch-select-third', els.candidateList.querySelector('[data-batch-candidate="self-test-batch-3"]'));
+  assert(JSON.stringify(state.selectedBatchCandidateIdsByTabId[mediaTestTabId]) === JSON.stringify(['self-test-batch-2', 'self-test-batch-3']),
+    `Individual batch selection was not retained: ${JSON.stringify(state.selectedBatchCandidateIdsByTabId[mediaTestTabId])}`);
+  assert(els.candidateList.querySelectorAll('[data-batch-candidate]:checked').length === 2,
+    'Batch candidate re-render did not preserve the selected subset');
+  assert(els.batchSelectAll.indeterminate && !els.batchSelectAll.checked,
+    'Select-all control did not show the partial-selection state');
+  assert(!els.batchDownloadSelected.disabled, 'Batch download action stayed disabled after individual selection');
+  await clickControl('browser:batch-deselect-second', els.candidateList.querySelector('[data-batch-candidate="self-test-batch-2"]'));
+  assert(JSON.stringify(state.selectedBatchCandidateIdsByTabId[mediaTestTabId]) === JSON.stringify(['self-test-batch-3']),
+    'An individually deselected batch item remained selected');
+  state.mediaCollectionsByTabId[mediaTestTabId] = savedBatchCollection;
+  state.mediaModeByTabId[mediaTestTabId] = savedBatchMode;
+  state.selectedBatchCandidateIdsByTabId[mediaTestTabId] = savedBatchSelection;
+  renderCandidates();
   const staleCandidateCount = mediaCandidatesForTab(mediaTestTabId).length;
   assert(candidateMatchesTabPage({ pageUrl: 'https://example.com/old-video' }, { url: 'https://example.com/new-video' }) === false, 'Candidates from a previous page must be rejected');
   assert(mediaCandidatesForTab(mediaTestTabId).length === staleCandidateCount, 'Stale-candidate validation changed the active media list');
+  const mediaTestTab = activeTab();
+  const savedMediaTestTabState = {
+    url: mediaTestTab.url,
+    activeMediaContext: mediaTestTab.activeMediaContext,
+    activeMediaExtractionKey: mediaTestTab.activeMediaExtractionKey,
+    activeMediaNetworkCandidates: mediaTestTab.activeMediaNetworkCandidates,
+    candidates: [...mediaCandidatesForTab(mediaTestTabId)],
+  };
+  mediaTestTab.url = 'https://www.douyin.com/jingxuan?modal_id=7662233163963387177';
+  mediaTestTab.activeMediaContext = {
+    provider: 'douyin',
+    mediaId: '7662233163963387177',
+    canonicalUrl: 'https://www.douyin.com/video/7662233163963387177',
+    title: 'Douyin active media',
+    thumbnailUrl: null,
+    directUrl: null,
+    width: null,
+    height: null,
+    resolution: null,
+    qualityLabel: '',
+    sizeBytes: null,
+    variants: [],
+  };
+  mediaTestTab.activeMediaExtractionKey = 'douyin:7662233163963387177';
+  mediaTestTab.activeMediaNetworkCandidates = [];
+  setMediaCandidatesForTab(mediaTestTabId, [activeMediaPlaceholder(mediaTestTab, mediaTestTab.activeMediaContext)]);
+  addCandidate({
+    id: 'douyin-hidden-network-candidate',
+    url: 'https://v3-dy.example.com/video/tos/sample.mp4',
+    pageUrl: 'https://www.douyin.com/jingxuan?modal_id=7662233163963387177',
+    provider: 'douyin',
+    kind: 'video',
+    mime: 'video/mp4',
+    size: 8_000_000,
+    webContentsId: mediaTestTab.webContentsId,
+    hiddenForActiveMedia: true,
+  });
+  assert(mediaCandidatesForTab(mediaTestTabId).length === 1, 'Hidden Douyin network media leaked into multiple visible rows');
+  assert(mediaCandidatesForTab(mediaTestTabId)[0]?.url === 'https://v3-dy.example.com/video/tos/sample.mp4', 'Douyin active row was not enriched with its real network media URL');
+  mediaTestTab.url = savedMediaTestTabState.url;
+  mediaTestTab.activeMediaContext = savedMediaTestTabState.activeMediaContext;
+  mediaTestTab.activeMediaExtractionKey = savedMediaTestTabState.activeMediaExtractionKey;
+  mediaTestTab.activeMediaNetworkCandidates = savedMediaTestTabState.activeMediaNetworkCandidates;
+  setMediaCandidatesForTab(mediaTestTabId, savedMediaTestTabState.candidates);
+  renderCandidates();
   const selfTestDownloadRect = els.candidateList.querySelector('.sniffer-resource-download.has-variants')?.getBoundingClientRect();
   const selfTestSplitRect = els.candidateList.querySelector('.sniffer-resource-split-toggle')?.getBoundingClientRect();
   const selfTestDownloadButton = els.candidateList.querySelector('.sniffer-resource-download.has-variants');
@@ -5322,10 +7233,7 @@ async function runRendererSelfTest() {
   els.settingsConcurrency.dispatchEvent(new Event('change'));
   clicked.push('settings:concurrency');
   await clickControl('settings:section-preferences', document.querySelector('[data-settings-section="preferences"]'));
-  els.settingsSearchEngine.value = 'bing';
-  els.settingsSearchEngine.dispatchEvent(new Event('change'));
-  clicked.push('settings:search-engine');
-  assert(normalizeUrl('vidogo test').startsWith(SEARCH_ENGINES.bing), 'Search engine setting was not applied');
+  assert(els.address.readOnly, 'Browser address display must remain read-only');
   await clickControl('settings:section-interface', document.querySelector('[data-settings-section="interface"]'));
   await changeControl('settings:theme-light', els.settingsTheme, 'light');
   await changeControl('settings:language-en', els.settingsLanguage, 'en');
@@ -5367,8 +7275,22 @@ async function runRendererSelfTest() {
   await syncRecordingConfiguration();
   await wait(220);
   document.querySelector('.downloads-url-panel')?.removeAttribute('open');
-  setSection('browser');
+  // Exercise the original last-tab regression explicitly. Closing every
+  // browser tab must return to the launcher without leaving the browser page,
+  // an orphaned webview, or the media panel in a split/stacked layout.
+  for (const tab of [...state.tabs].filter((item) => !item.internal)) closeTab(tab.id);
   await wait(120);
+  assert(state.tabs.every((tab) => tab.internal), 'Closing all browser tabs left a visible browser tab behind');
+  assert(state.activeTabId === null, 'Closing the final browser tab did not clear the active tab');
+  assert(state.section === 'home' && els.pages.home?.classList.contains('active'),
+    'Closing the final browser tab did not return to the platform launcher');
+  assert(getVisibleWebviews().length === 0, 'Closing the final browser tab left an orphaned webview visible');
+  assert(!els.pages.browser?.classList.contains('active'), 'Closing the final browser tab left the browser page active');
+  openUrl('https://example.com/final-tab', 'Final tab');
+  await wait(120);
+  assert(state.section === 'browser' && state.tabs.filter((tab) => !tab.internal).length === 1,
+    'Opening a site after closing the final tab did not recreate the browser workspace');
+  assert(getVisibleWebviews().length === 1, 'Reopened browser workspace did not show exactly one webview');
   els.toastRegion.innerHTML = '';
   const finalLayout = getBrowserLayoutSnapshot();
   assert(finalLayout.activePageIds.length === 1 && finalLayout.activePageIds[0] === 'page-browser', `Final layout left invalid active pages: ${finalLayout.activePageIds.join(', ')}`);
@@ -5489,6 +7411,92 @@ async function runRecorderFlowTest() {
     stopResult,
     row: row ? { source: row.source, state: row.state, path: row.path, size: row.size } : null,
     browserLayout: getBrowserLayoutSnapshot(),
+  };
+}
+
+async function runResolverFlowTest(pageUrl) {
+  const failures = [];
+  const targetUrl = String(pageUrl || '').trim();
+  let directDownloadResult = null;
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'resolver-flow:resolving';
+  if (!/^https?:\/\//i.test(targetUrl)) failures.push('Resolver smoke URL is missing or invalid');
+  const candidate = targetUrl ? await resolveCollectionDownloadCandidate({
+    url: targetUrl,
+    pageUrl: targetUrl,
+    provider: 'agedm',
+    sourceClient: 'collection-page',
+    title: 'Resolver smoke episode',
+    fileName: 'Resolver smoke episode',
+  }).catch(() => null) : null;
+  if (!candidate?.url) failures.push('Resolver did not return a media candidate after retry');
+  if (candidate?.url === targetUrl) failures.push('Resolver returned the page URL instead of a media URL');
+  if (candidate && candidate.downloadStrategy !== 'direct' && candidate.kind !== 'playlist') {
+    failures.push('Resolver did not return a downloadable strategy');
+  }
+  if (candidate?.url && window.mediaDeckSmokeDownload?.real && window.mediaDeckSmokeDownload?.outputDir) {
+    state.settings.outputDir = window.mediaDeckSmokeDownload.outputDir;
+    const placeholder = {
+      url: targetUrl,
+      pageUrl: targetUrl,
+      provider: 'agedm',
+      title: 'Resolver smoke episode',
+      fileName: 'Resolver smoke episode',
+      sourceClient: 'collection-page',
+    };
+    const [mountedRow] = queueUrls([targetUrl], placeholder);
+    const mountedRowId = String(mountedRow?.id || mountedRow?.downloadId || '');
+    if (!mountedRow || normalizeDownloadState(mountedRow.state || mountedRow.status) !== 'queued' || mountedRow.jobId) {
+      failures.push('Episode task was not mounted immediately as an idle queued row');
+    }
+    const result = await startDownload({
+      ...candidate,
+      title: placeholder.title,
+      fileName: placeholder.fileName,
+      pageUrl: targetUrl,
+      retryRowId: mountedRowId,
+      backgroundResolvePage: false,
+      suppressToast: true,
+    });
+    let row = state.queue.find((item) => String(item.id || item.downloadId) === mountedRowId);
+    const deadline = Date.now() + 35_000;
+    while (Date.now() < deadline && row && !isTerminalDownloadState(row.status || row.state)) {
+      if (normalizeDownloadState(row.status || row.state) === 'downloading' && row.downloaded !== '-') break;
+      await waitForDelay(100);
+      row = state.queue.find((item) => String(item.id || item.downloadId) === mountedRowId);
+    }
+    if (normalizeDownloadState(row?.status || row?.state) === 'downloading') {
+      await controlDownloadRow(row, 'pause');
+    }
+    directDownloadResult = row ? {
+      state: normalizeDownloadState(row.status || row.state),
+      downloaded: row.downloaded,
+      sourceClient: row.sourceClient,
+      errorMessage: row.errorMessage || null,
+    } : null;
+    if (!result?.started) failures.push('Resolved AGE media did not create a download job');
+    if (state.queue.filter((item) => String(item.id || item.downloadId) === mountedRowId).length !== 1) {
+      failures.push('Resolved AGE media did not reuse the mounted task row');
+    }
+    if (directDownloadResult?.state !== 'paused') {
+      failures.push('Resolved AGE media did not receive bytes and pause: '
+        + (directDownloadResult?.errorMessage || directDownloadResult?.state || 'missing row'));
+    }
+  }
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'resolver-flow:done';
+  return {
+    ok: failures.length === 0,
+    failures,
+    candidate: candidate ? {
+      url: candidate.url,
+      pageUrl: candidate.pageUrl,
+      referrer: candidate.referrer,
+      kind: candidate.kind,
+      mimeType: candidate.mimeType || candidate.mime,
+      sizeBytes: candidate.sizeBytes || candidate.size || null,
+      sourceClient: candidate.sourceClient,
+      downloadStrategy: candidate.downloadStrategy,
+    } : null,
+    directDownloadResult,
   };
 }
 
@@ -5746,6 +7754,9 @@ async function runBrowserPlatformFlowTest() {
   const targetUrl = String(window.mediaDeckSmokeBrowserUrl || '').trim();
   const provider = MEDIA_RULES?.providerSiteForUrl?.(targetUrl);
   let directDownloadResult = null;
+  let directFetchProbe = null;
+  let stockDownloadControls = [];
+  const tiktokSwitches = [];
   window.__VIDOGO_SELF_TEST_PROGRESS = `browser-platform-flow:${provider || 'unknown'}:started`;
   assert(Boolean(targetUrl && provider), `Unsupported platform smoke URL: ${targetUrl}`);
   state.tabs.forEach((tab) => tab.webview.remove());
@@ -5798,6 +7809,16 @@ async function runBrowserPlatformFlowTest() {
       && Boolean(tab.activeMediaContext?.mediaId)
       && Boolean(tab.activeMediaContext?.directUrl)
       && candidates.length === 1;
+    const douyinReady = provider === 'douyin'
+      && Boolean(tab.activeMediaContext?.mediaId)
+      && Boolean(tab.activeMediaContext?.directUrl)
+      && candidates.length === 1;
+    const agedmReady = provider === 'agedm'
+      && candidates.length > 0
+      && Number(guest?.video?.readyState || 0) >= 2;
+    const stockReady = ['mixkit', 'pixabay'].includes(provider)
+      && candidates.some((candidate) => candidate?.thumbnailUrl && candidateVariants(candidate).length > 0)
+      && Number(guest?.video?.readyState || 0) >= 2;
     if (dailymotionReady) {
       if (!dailymotionStableSince) dailymotionStableSince = Date.now();
       if (Date.now() - dailymotionStableSince >= 8_000) break;
@@ -5812,12 +7833,10 @@ async function runBrowserPlatformFlowTest() {
     } else {
       dailymotionErrorSince = 0;
     }
-    if (tiktokReady) break;
+    if (tiktokReady || douyinReady || agedmReady || stockReady) break;
   }
   const candidates = mediaCandidatesForTab(tab.id);
-  const blockedRequestDiagnostics = provider === 'dailymotion'
-    ? await window.mediaDeck.getBlockedRequestDiagnostics().catch(() => [])
-    : [];
+  const blockedRequestDiagnostics = await window.mediaDeck.getBlockedRequestDiagnostics().catch(() => []);
   const dailymotionRequestDiagnostics = provider === 'dailymotion'
     ? await window.mediaDeck.getDailymotionRequestDiagnostics().catch(() => [])
     : [];
@@ -5832,6 +7851,78 @@ async function runBrowserPlatformFlowTest() {
     assert(frameStatus.some((frame) => frame.video && frame.video.readyState >= 2), 'Dailymotion player frame did not create playable video media');
     assert(candidates.length > 0, 'Dailymotion player did not request any downloadable media streams');
   }
+  if (['mixkit', 'pixabay'].includes(provider)) {
+    assert(pagePolicy?.cosmeticStylePresent === false,
+      `${provider} should not receive page-level ad filtering during playback or verification`);
+    assert(els.browserStatusAdblockState.textContent === 'OFF',
+      `${provider} browser status did not reflect the effective ad-filtering state`);
+    stockDownloadControls = await tab.webview.executeJavaScript(`Array.from(document.querySelectorAll('a[href], button, [role="button"]'))
+      .map((control) => ({
+        tag: control.tagName,
+        text: String(control.textContent || control.getAttribute('aria-label') || control.getAttribute('title') || '').replace(/\\s+/g, ' ').trim().slice(0, 160),
+        href: String(control.href || ''),
+        className: String(control.className || '').slice(0, 200),
+        visible: Boolean(control.getClientRects().length)
+      }))
+      .filter((control) => /download|下载/i.test(control.text + ' ' + control.className))
+      .slice(0, 20)`, true).catch(() => []);
+    assert(candidates.length === 1, `${provider} should expose one current stock-video item, got ${candidates.length}`);
+    assert(Boolean(candidates[0]?.thumbnailUrl), `${provider} current video did not include a thumbnail`);
+    assert(candidateVariants(candidates[0]).length > 0, `${provider} current video did not include quality variants`);
+    assert(/^https:\/\//i.test(candidateDownloadUrl(candidates[0]) || '')
+      && candidateDownloadUrl(candidates[0]) !== candidates[0]?.pageUrl,
+    `${provider} current video did not resolve to a downloadable media URL`);
+    const startedAt = Date.now();
+    const clickedSiteDownload = await tab.webview.executeJavaScript(`(() => {
+      const controls = Array.from(document.querySelectorAll('a[href], button, [role="button"]'));
+      const control = controls.find((item) => item.getClientRects().length
+        && /download|下载/i.test(String(item.textContent || item.getAttribute('aria-label') || item.getAttribute('title') || '') + ' ' + String(item.className || '')));
+      if (!control) return false;
+      control.click();
+      return true;
+    })()`, true).catch(() => false);
+    assert(clickedSiteDownload, `${provider} page did not expose a clickable native download control`);
+    let nativeQueueReady = await (async () => {
+      const deadline = Date.now() + 10_000;
+      while (Date.now() < deadline) {
+        const row = state.queue.find((item) => Number(item.createdAt || 0) >= startedAt
+          && item.provider === provider
+          && ['site-download-intent', 'native-download'].includes(item.sourceClient));
+        if (row) return row;
+        await wait(100);
+      }
+      return null;
+    })();
+    if (nativeQueueReady && window.mediaDeckSmokeDownload?.real) {
+      const rowId = String(nativeQueueReady.id || nativeQueueReady.downloadId);
+      const transferDeadline = Date.now() + 35_000;
+      while (Date.now() < transferDeadline && !isTerminalDownloadState(nativeQueueReady.state || nativeQueueReady.status)) {
+        if (normalizeDownloadState(nativeQueueReady.state || nativeQueueReady.status) === 'downloading'
+          && nativeQueueReady.downloaded !== '-') break;
+        await wait(100);
+        nativeQueueReady = state.queue.find((item) => String(item.id || item.downloadId) === rowId) || nativeQueueReady;
+      }
+      if (normalizeDownloadState(nativeQueueReady.state || nativeQueueReady.status) === 'downloading') {
+        await controlDownloadRow(nativeQueueReady, 'pause');
+      }
+      assert(['paused', 'completed'].includes(normalizeDownloadState(nativeQueueReady.state || nativeQueueReady.status)),
+        `${provider} native download did not receive media bytes: ${nativeQueueReady.errorMessage || nativeQueueReady.state}`);
+      if (normalizeDownloadState(nativeQueueReady.state || nativeQueueReady.status) === 'completed') {
+        assert(nativeQueueReady.completionVerified === true, `${provider} native download completed without a verified file`);
+      }
+    }
+    directDownloadResult = nativeQueueReady ? {
+      state: normalizeDownloadState(nativeQueueReady.state || nativeQueueReady.status),
+      sourceClient: nativeQueueReady.sourceClient,
+      title: nativeQueueReady.title,
+      thumbnailUrl: nativeQueueReady.thumbnailUrl,
+      qualityLabel: nativeQueueReady.qualityLabel,
+      errorMessage: nativeQueueReady.errorMessage || null,
+    } : null;
+    assert(Boolean(nativeQueueReady), `${provider} native download button did not create a VidoGo queue task`);
+    assert(Boolean(nativeQueueReady?.thumbnailUrl), `${provider} native download task lost its cover`);
+    assert(Boolean(nativeQueueReady?.qualityLabel), `${provider} native download task lost its selected quality`);
+  }
   if (provider === 'tiktok') {
     assert(Boolean(tab.activeMediaContext?.mediaId), 'TikTok did not report the current visible video');
     assert(candidates.length === 1, `TikTok media panel should contain one active item, got ${candidates.length}`);
@@ -5841,33 +7932,159 @@ async function runBrowserPlatformFlowTest() {
     assert(/^https:\/\//i.test(candidates[0]?.url || '')
       && candidates[0]?.url !== candidates[0]?.pageUrl, 'TikTok active item did not include a direct video URL');
     assert(candidateVariants(candidates[0]).length > 0, 'TikTok active item did not include downloadable player variants');
-    const firstMediaId = tab.activeMediaContext?.mediaId;
+    // Let the deeper React probe replace the preload's temporary network row
+    // before measuring actual card-to-card changes.
+    for (let baselineAttempt = 0; baselineAttempt < 8; baselineAttempt += 1) {
+      await probeActiveMedia(tab);
+      await wait(250);
+      const baselineTitle = String(mediaCandidatesForTab(tab.id)[0]?.title || '');
+      if (baselineTitle && baselineTitle !== 'TikTok video') break;
+    }
+    let lastVerifiedDirectUrl = mediaCandidatesForTab(tab.id)[0]?.url || '';
     try {
-      await tab.webview.executeJavaScript(`(() => {
-        const cards = Array.from(document.querySelectorAll('[data-e2e="feed-video"]'));
-        const next = cards[1];
-        if (!next) return false;
-        cards[0]?.querySelector('video')?.pause();
-        next.scrollIntoView({ block: 'center' });
-        const video = next.querySelector('video');
-        if (video) { video.muted = true; void video.play().catch(() => undefined); }
-        return true;
-      })()`, true);
-      const switchDeadline = Date.now() + 12000;
-      while (Date.now() < switchDeadline && tab.activeMediaContext?.mediaId === firstMediaId) await wait(300);
-      const switchedCandidates = mediaCandidatesForTab(tab.id);
-      assert(tab.activeMediaContext?.mediaId !== firstMediaId, 'TikTok current-video selection did not follow the next playing item');
-      assert(switchedCandidates.length === 1, `TikTok kept stale items after switching videos: ${switchedCandidates.length}`);
-      assert(switchedCandidates[0]?.pageUrl === tab.activeMediaContext?.canonicalUrl, 'TikTok media row does not match the newly active video');
-      assert(switchedCandidates[0]?.url === tab.activeMediaContext?.directUrl
-        && switchedCandidates[0]?.url !== switchedCandidates[0]?.pageUrl, 'TikTok switched row did not receive the new current-video URL');
+      if (!window.mediaDeckSmokeDownload.pauseResume) {
+        for (let switchIndex = 0; switchIndex < 8 && tiktokSwitches.length < 2; switchIndex += 1) {
+          const previousMediaId = tab.activeMediaContext?.mediaId;
+          const previousCandidateTitle = String(mediaCandidatesForTab(tab.id)[0]?.title || '').toLowerCase();
+          const switched = await tab.webview.executeJavaScript(`(async () => {
+            const selectors = '[data-e2e="recommend-list-item-container"], [data-e2e="feed-video"], [data-e2e="browse-video"]';
+            const visibleArea = (rect) => Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0))
+              * Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+            const videos = Array.from(document.querySelectorAll('video'));
+            const activeVideo = videos.map((video) => {
+              const rect = video.getBoundingClientRect();
+              const area = visibleArea(rect);
+              return area ? { video, score: (!video.paused && !video.ended ? innerWidth * innerHeight * 2 : 0) + area } : null;
+            }).filter(Boolean).sort((left, right) => right.score - left.score)[0]?.video;
+            if (!activeVideo) return null;
+            const activeCard = activeVideo.closest(selectors);
+            const cards = Array.from(document.querySelectorAll(selectors)).filter((card, index, all) => all.indexOf(card) === index);
+            let next = cards[cards.indexOf(activeCard) + 1];
+            if (!next) {
+              const activeTop = activeVideo.getBoundingClientRect().top;
+              next = cards.map((card) => ({ card, top: card.getBoundingClientRect().top }))
+                .filter((entry) => entry.top > activeTop + 80)
+                .sort((left, right) => left.top - right.top)[0]?.card;
+            }
+            let nextVideo = next?.querySelector('video');
+            if (!nextVideo) {
+              const rect = activeVideo.getBoundingClientRect();
+              const eventTarget = document.elementFromPoint(
+                Math.max(0, Math.min(innerWidth - 1, rect.left + rect.width / 2)),
+                Math.max(0, Math.min(innerHeight - 1, rect.top + rect.height / 2)),
+              ) || activeVideo;
+              eventTarget.dispatchEvent(new WheelEvent('wheel', { deltaY: 720, bubbles: true, cancelable: true, view: window }));
+              const scroller = (() => {
+                for (let node = activeVideo.parentElement; node; node = node.parentElement) {
+                  const style = getComputedStyle(node);
+                  if (node.scrollHeight > node.clientHeight + 80 && /auto|scroll/i.test(style.overflowY)) return node;
+                }
+                return document.scrollingElement;
+              })();
+              scroller?.scrollBy?.({ top: Math.max(520, scroller.clientHeight * .82), behavior: 'instant' });
+              await new Promise((resolve) => setTimeout(resolve, 900));
+              nextVideo = Array.from(document.querySelectorAll('video')).map((candidate) => {
+                const candidateRect = candidate.getBoundingClientRect();
+                const area = visibleArea(candidateRect);
+                return candidate !== activeVideo && area ? { candidate, area } : null;
+              }).filter(Boolean).sort((left, right) => right.area - left.area)[0]?.candidate;
+              if (!nextVideo) {
+                window.__vidogoActiveMediaReporter?.report?.();
+                return true;
+              }
+            }
+            videos.forEach((video) => { if (video !== nextVideo) video.pause(); });
+            (next || nextVideo).scrollIntoView({ block: 'center' });
+            await new Promise((resolve) => setTimeout(resolve, 450));
+            nextVideo.muted = true;
+            await nextVideo.play().catch(() => undefined);
+            window.__vidogoActiveMediaReporter?.report?.();
+            return true;
+          })()`, true).catch(() => false);
+          if (!switched) break;
+          const switchDeadline = Date.now() + 12000;
+          while (Date.now() < switchDeadline && tab.activeMediaContext?.mediaId === previousMediaId) await wait(250);
+          const visibleTitle = await tab.webview.executeJavaScript(`(() => {
+            const visibleArea = (rect) => Math.max(0, Math.min(rect.right, innerWidth) - Math.max(rect.left, 0))
+              * Math.max(0, Math.min(rect.bottom, innerHeight) - Math.max(rect.top, 0));
+            const video = Array.from(document.querySelectorAll('video')).map((item) => {
+              const rect = item.getBoundingClientRect();
+              const area = visibleArea(rect);
+              return area ? { item, score: (!item.paused && !item.ended ? innerWidth * innerHeight * 2 : 0) + area } : null;
+            }).filter(Boolean).sort((left, right) => right.score - left.score)[0]?.item;
+            const scope = video?.closest?.('[data-e2e="recommend-list-item-container"], [data-e2e="browse-video"], [data-e2e="feed-video"], article');
+            return ['[data-e2e="browse-video-desc"]', '[data-e2e="video-desc"]', '[data-e2e="search-card-desc"]', 'h1']
+              .map((selector) => scope?.querySelector?.(selector)?.textContent?.replace(/\\s+/g, ' ').trim())
+              .find(Boolean) || '';
+          })()`, true).catch(() => '');
+          let switchedCandidates = mediaCandidatesForTab(tab.id);
+          let currentCandidate = switchedCandidates[0];
+          const freshUrlDeadline = Date.now() + 4000;
+          while (Date.now() < freshUrlDeadline && lastVerifiedDirectUrl && currentCandidate?.url === lastVerifiedDirectUrl) {
+            await probeActiveMedia(tab);
+            await wait(180);
+            switchedCandidates = mediaCandidatesForTab(tab.id);
+            currentCandidate = switchedCandidates[0];
+          }
+          const idChanged = tab.activeMediaContext?.mediaId !== previousMediaId;
+          const normalizedVisibleTitle = String(visibleTitle || '').toLowerCase();
+          const normalizedCandidateTitle = String(currentCandidate?.title || '').toLowerCase();
+          if (!normalizedVisibleTitle || normalizedVisibleTitle === previousCandidateTitle) continue;
+          tiktokSwitches.push({
+            mediaId: tab.activeMediaContext?.mediaId,
+            visibleTitle,
+            candidateTitle: currentCandidate?.title,
+            directUrl: currentCandidate?.url,
+          });
+          const verifiedSwitchNumber = tiktokSwitches.length;
+          assert(idChanged, `TikTok current-video selection stopped updating after real wheel switch ${verifiedSwitchNumber}`);
+          assert(switchedCandidates.length === 1, `TikTok kept stale items after real switch ${verifiedSwitchNumber}: ${switchedCandidates.length}`);
+          assert(!normalizedVisibleTitle || normalizedCandidateTitle.includes(normalizedVisibleTitle)
+            || normalizedVisibleTitle.includes(normalizedCandidateTitle), `TikTok row title did not follow visible video after real switch ${verifiedSwitchNumber}`);
+          assert(currentCandidate?.pageUrl === tab.activeMediaContext?.canonicalUrl, `TikTok row page did not follow real switch ${verifiedSwitchNumber}`);
+          assert(currentCandidate?.url === tab.activeMediaContext?.directUrl
+            && currentCandidate?.url !== currentCandidate?.pageUrl, `TikTok row URL did not follow real switch ${verifiedSwitchNumber}`);
+          assert(!lastVerifiedDirectUrl || currentCandidate?.url !== lastVerifiedDirectUrl,
+            `TikTok row kept the previous video's download URL after real switch ${verifiedSwitchNumber}`);
+          lastVerifiedDirectUrl = currentCandidate?.url || lastVerifiedDirectUrl;
+        }
+        assert(tiktokSwitches.length >= 2, `TikTok smoke could not exercise repeated wheel switches: ${tiktokSwitches.length}`);
+      }
       if (window.mediaDeckSmokeDownload?.real && window.mediaDeckSmokeDownload?.outputDir) {
         const currentCandidate = mediaCandidatesForTab(tab.id)[0];
         const directUrl = candidateDownloadUrl(currentCandidate);
+        directFetchProbe = await tab.webview.executeJavaScript(`fetch(${JSON.stringify(directUrl)}, {
+          credentials: 'include',
+          headers: { Range: 'bytes=0-1023' }
+        }).then(async (response) => ({
+          ok: response.ok,
+          status: response.status,
+          bytes: (await response.arrayBuffer()).byteLength
+        })).catch((error) => ({ ok: false, message: error?.message || String(error) }))`, true).catch((error) => ({
+          ok: false,
+          message: error?.message || String(error),
+        }));
         state.settings.outputDir = window.mediaDeckSmokeDownload.outputDir;
         await startCandidateDownload(currentCandidate);
         const downloadDeadline = Date.now() + 50000;
         let row = state.queue.find((item) => item.url === directUrl);
+        if (window.mediaDeckSmokeDownload.pauseResume) {
+          while (Date.now() < downloadDeadline && row && row.state !== 'downloading' && !isTerminalDownloadState(row.state)) {
+            await wait(50);
+            row = state.queue.find((item) => item.url === directUrl);
+          }
+          if (row?.state === 'downloading') {
+            const rowId = String(row.id || row.downloadId);
+            const paused = await controlDownloadRow(row, 'pause');
+            assert(paused && row.state === 'paused', 'TikTok direct download did not pause in place');
+            const resumed = await controlDownloadRow(row, 'resume');
+            row = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+            assert(resumed && row && state.queue.filter((item) => String(item.id || item.downloadId) === rowId).length === 1,
+              'TikTok direct download did not resume in the same task row');
+          } else {
+            failures.push('TikTok direct download completed before the pause test could run');
+          }
+        }
         while (Date.now() < downloadDeadline && row && !isTerminalDownloadState(row.status || row.state)) {
           await wait(300);
           row = state.queue.find((item) => item.url === directUrl);
@@ -5886,6 +8103,91 @@ async function runBrowserPlatformFlowTest() {
       failures.push(`TikTok active-video switch check failed: ${error?.message || String(error)}`);
     }
   }
+  if (provider === 'douyin') {
+    assert(Boolean(tab.activeMediaContext?.mediaId), 'Douyin did not report the current visible video');
+    assert(candidates.length === 1, `Douyin media panel should contain one active item, got ${candidates.length}`);
+    assert(Boolean(candidates[0]?.thumbnailUrl), 'Douyin active item did not include a thumbnail');
+    assert(candidates[0]?.sourceClient === 'douyin-page', 'Douyin active item did not use the current player media');
+    assert(/^https:\/\//i.test(candidates[0]?.url || '')
+      && candidates[0]?.url !== candidates[0]?.pageUrl, 'Douyin active item did not include a direct video URL');
+    assert(candidateVariants(candidates[0]).length > 0, 'Douyin active item did not include downloadable player variants');
+    if (window.mediaDeckSmokeDownload?.real
+      && window.mediaDeckSmokeDownload?.pauseResume
+      && window.mediaDeckSmokeDownload?.outputDir
+      && candidates[0]) {
+      state.settings.outputDir = window.mediaDeckSmokeDownload.outputDir;
+      const directUrl = candidateDownloadUrl(candidates[0]);
+      await startCandidateDownload(candidates[0]);
+      const downloadDeadline = Date.now() + 45_000;
+      let row = state.queue.find((item) => item.url === directUrl);
+      while (Date.now() < downloadDeadline && row && !isTerminalDownloadState(row.state)) {
+        if (row.state === 'downloading' && row.downloaded !== '-') break;
+        await wait(100);
+        row = state.queue.find((item) => item.url === directUrl);
+      }
+      if (row?.state === 'downloading' && row.downloaded !== '-') {
+        const rowId = String(row.id || row.downloadId);
+        const paused = await controlDownloadRow(row, 'pause');
+        row = state.queue.find((item) => String(item.id || item.downloadId) === rowId);
+        assert(paused && row?.state === 'paused', 'Douyin direct download did not pause in the same task row');
+      }
+      directDownloadResult = row ? {
+        state: normalizeDownloadState(row.status || row.state),
+        downloaded: row.downloaded,
+        size: row.size,
+        sourceClient: row.sourceClient,
+        errorMessage: row.errorMessage || null,
+      } : null;
+      assert(directDownloadResult?.state === 'paused' && directDownloadResult.downloaded !== '-',
+        'Douyin direct media did not deliver pausable bytes: '
+          + (directDownloadResult?.errorMessage || directDownloadResult?.state || 'missing queue row'));
+      setSection('browser');
+    }
+  }
+  if (provider === 'agedm') {
+    assert(candidates.length > 0, 'AGE player did not expose the currently playing video');
+    if (candidates[0]) {
+      if (window.mediaDeckSmokeDownload?.real && window.mediaDeckSmokeDownload?.outputDir) {
+        state.settings.outputDir = window.mediaDeckSmokeDownload.outputDir;
+      }
+      const result = await startCandidateDownload(candidates[0]);
+      const expectedPageUrl = agedmPlaybackUrl(candidates[0], tab);
+      let row = state.queue.find((item) => item.provider === 'agedm'
+        && MEDIA_RULES?.normalizePageUrl?.(item.pageUrl) === MEDIA_RULES?.normalizePageUrl?.(expectedPageUrl));
+      if (window.mediaDeckSmokeDownload?.real) {
+        const directDeadline = Date.now() + 35_000;
+        while (Date.now() < directDeadline && row && !isTerminalDownloadState(row.status || row.state)) {
+          if (normalizeDownloadState(row.status || row.state) === 'downloading' && row.downloaded !== '-') break;
+          await wait(100);
+          row = state.queue.find((item) => String(item.id || item.downloadId) === String(row?.id || row?.downloadId));
+        }
+        if (normalizeDownloadState(row?.status || row?.state) === 'downloading') {
+          const paused = await controlDownloadRow(row, 'pause');
+          assert(paused && row.state === 'paused', 'AGE direct download did not pause after receiving media bytes');
+        }
+      } else {
+        await wait(120);
+      }
+      directDownloadResult = row ? {
+        state: normalizeDownloadState(row.status || row.state),
+        sourceClient: row.sourceClient,
+        urlIsMedia: row.url !== expectedPageUrl,
+        downloaded: row.downloaded,
+        errorMessage: row.errorMessage || null,
+      } : null;
+      assert(Boolean(result?.started), 'AGE current-video action did not create a download job');
+      if (window.mediaDeckSmokeDownload?.real) {
+        assert(row?.sourceClient === 'background-resolver', 'AGE current-video action bypassed the background resolver');
+      } else {
+        assert(row?.backgroundResolvePage === true, 'AGE current-video action was not queued for background resolution');
+      }
+      assert(row?.url && (window.mediaDeckSmokeDownload?.real || row.url === expectedPageUrl), 'AGE current-video action lost its playback page');
+      assert(!/广告拦截|ERR_BLOCKED_BY_CLIENT/i.test(row?.errorMessage || ''), 'AGE current-video action exposed an ad-blocker error');
+      if (window.mediaDeckSmokeDownload?.real) {
+        assert(row?.state === 'paused', 'AGE direct media connection did not become pausable');
+      }
+    }
+  }
   window.__VIDOGO_SELF_TEST_PROGRESS = `browser-platform-flow:${provider || 'unknown'}:done`;
   return {
     ok: failures.length === 0,
@@ -5894,6 +8196,9 @@ async function runBrowserPlatformFlowTest() {
     guest,
     pagePolicy,
     directDownloadResult,
+    directFetchProbe,
+    stockDownloadControls,
+    tiktokSwitches,
     activeMediaContext: tab.activeMediaContext,
     blockedRequestDiagnostics,
     dailymotionRequestDiagnostics: dailymotionRequestDiagnostics.filter((item) => item.phase === 'error' || Number(item.statusCode) >= 400).slice(-30),

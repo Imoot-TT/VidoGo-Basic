@@ -19,6 +19,7 @@ const supportedPages = [
   ['https://vimeo.com/76979871', 'vimeo'],
   ['https://player.vimeo.com/video/76979871', 'vimeo'],
   ['https://www.tiktok.com/@scout2015/video/6718335390845095173', 'tiktok'],
+  ['https://www.douyin.com/jingxuan?modal_id=7662233163963387177', 'douyin'],
   ['https://www.instagram.com/reel/ABC_def-123/', 'instagram'],
   ['https://www.facebook.com/watch/?v=1234567890', 'facebook'],
   ['https://x.com/example/status/1234567890123456789', 'twitter'],

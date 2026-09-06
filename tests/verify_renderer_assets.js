@@ -55,7 +55,7 @@ for (const asset of expectedAssets) {
 assert(fs.statSync(path.join(assetDir, 'vidogo-empty.png')).size > 0, 'Shared empty-state artwork is missing');
 assert(app.includes('./assets/vidogo-empty.png'), 'Shared empty-state artwork is not wired into the renderer');
 assert(!app.includes('downloads-empty-icon') && !app.includes('history-empty-icon') && !app.includes('favorites-empty-icon'), 'Menu empty states must use the shared artwork instead of tiny placeholder icons');
-assert((app.match(/menu-empty-state/g) || []).length === 3, 'Download, history, and favorites pages must share one aligned empty-state layout');
+assert((app.match(/class="[^"]*menu-empty-state[^"]*"/g) || []).length === 3, 'Download, history, and favorites pages must share one aligned empty-state layout');
 assert(!/menu-empty-state[^`]*<p>/.test(app), 'Main menu empty states must not render redundant empty-copy labels');
 
 const requiredCopy = ['浏览器', '主页', '下载', '历史', '收藏', '一键下载 · 畅享精彩', '搜索或输入网址', '套餐购买'];
@@ -265,6 +265,8 @@ const referenceStyleTokens = [
   '.address-input-shell',
   '.favorites-popover',
   '.popular-sites',
+  '.platform-manage-button',
+  '.platform-manage-arrow',
   '.popular-site-groups',
   '.popular-site-group',
   '.popular-site-list',

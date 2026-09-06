@@ -38,7 +38,7 @@ for (const file of [resultPath, screenshotPath]) {
   }
 }
 
-const timeoutMs = ['browser-youtube-flow', 'browser-platform-flow', 'download-queue-real'].includes(scenario)
+const timeoutMs = ['browser-youtube-flow', 'browser-platform-flow', 'download-queue-real', 'resolver-flow'].includes(scenario)
   ? 90000
   : (scenario === 'recorder-flow' ? 50000 : 25000);
 let child = null;
@@ -72,6 +72,27 @@ function launchRealDownloadSmoke() {
     'base64',
   );
   const server = http.createServer((request, response) => {
+    if (request.url === '/slow.mp4') {
+      const chunk = Buffer.alloc(64 * 1024, 7);
+      const totalBytes = chunk.length * 24;
+      response.writeHead(200, {
+        'Accept-Ranges': 'bytes',
+        'Content-Length': totalBytes,
+        'Content-Type': 'video/mp4',
+      });
+      let sent = 0;
+      const timer = setInterval(() => {
+        if (response.destroyed || sent >= totalBytes) {
+          clearInterval(timer);
+          if (!response.destroyed) response.end();
+          return;
+        }
+        response.write(chunk);
+        sent += chunk.length;
+      }, 80);
+      request.once('close', () => clearInterval(timer));
+      return;
+    }
     if (request.url === '/cover.png') {
       response.writeHead(200, {
         'Content-Length': coverBody.length,
@@ -102,12 +123,14 @@ function launchRealDownloadSmoke() {
     const address = server.address();
     const urls = ['a', 'b', 'c', 'd'].map((name) => `http://127.0.0.1:${address.port}/${name}.mp4`);
     const thumbnailUrl = `http://127.0.0.1:${address.port}/cover.png`;
+    const slowUrl = `http://127.0.0.1:${address.port}/slow.mp4`;
     const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vidogo-download-queue-smoke-'));
     launchSmoke({
       ELECTRON_SMOKE_REAL_DOWNLOADS: '1',
       ELECTRON_SMOKE_DOWNLOAD_URLS: JSON.stringify(urls),
       ELECTRON_SMOKE_DOWNLOAD_OUTPUT_DIR: outputDir,
       ELECTRON_SMOKE_DOWNLOAD_THUMBNAIL_URL: thumbnailUrl,
+      ELECTRON_SMOKE_DOWNLOAD_SLOW_URL: slowUrl,
     });
   });
 }
