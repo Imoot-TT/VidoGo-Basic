@@ -4,7 +4,7 @@
   <p>A Windows desktop app for discovering, downloading, and recording online video.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">中文</a></p>
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-0.1.2-1688f0">
+    <img alt="Version" src="https://img.shields.io/badge/version-0.1.3-1688f0">
     <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20x64-0078d4">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-22a06b">
   </p>
@@ -14,7 +14,7 @@
 
 ## Download
 
-[Download VidoGo Basic 0.1.2 for Windows x64](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.2)
+[Download VidoGo Basic 0.1.3 for Windows x64](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.3)
 
 ## Features
 
