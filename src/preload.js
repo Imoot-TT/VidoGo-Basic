@@ -56,6 +56,8 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   cancelDownload: () => ipcRenderer.invoke('download:cancel'),
   controlDownload: (payload) => ipcRenderer.invoke('download:control', payload),
   verifyDownloadedFile: (item) => ipcRenderer.invoke('download:verify-output', item),
+  listMediaLibrary: () => ipcRenderer.invoke('library:list'),
+  refreshMediaLibrary: () => ipcRenderer.invoke('library:refresh'),
   onOpenNewTab: (callback) => bind('browser:open-new-tab', callback),
   onBrowserNavigate: (callback) => bind('browser:navigate', callback),
   onMediaCandidate: (callback) => bind('browser:media-candidate', callback),

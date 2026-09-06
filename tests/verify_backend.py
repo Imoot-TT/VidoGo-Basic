@@ -96,6 +96,7 @@ def verify_metadata_planning() -> None:
     candidate = candidates[0]
     assert_equal(candidate["isRecommended"], True, "metadata candidate should be recommended")
     assert_equal(candidate["provider"], "youtube", "metadata provider should be derived from the page URL")
+    assert_equal(candidate["mediaId"], info["id"], "metadata candidate should preserve the provider media id")
     assert_equal(candidate["metadataSource"], "yt-dlp:youtube", "metadata source should identify the provider")
     assert_equal(candidate["thumbnailUrl"], info["thumbnail"], "metadata thumbnail")
     assert_equal(len(candidate["variants"]), 3, "metadata should retain codec and resolution variants")
@@ -231,9 +232,11 @@ def verify_runtime_progress_hook() -> None:
     assert_equal(captured_options[0].get("noprogress"), True, "yt-dlp textual progress must be suppressed")
     assert_equal(captured_options[0].get("writethumbnail"), True, "source thumbnail must be downloaded")
     assert_equal(captured_options[0].get("impersonate").client, "chrome", "downloads should use browser impersonation for protected media pages")
-    if "/video.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
-        raise AssertionError("each download must store media inside its own task folder")
+    if "/audio-%(format_id)s.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
+        raise AssertionError("audio downloads must use a descriptive format-specific file name")
     assert_equal("download_archive" in captured_options[0], True, "ordinary downloads should retain archive protection")
+    if not captured_options[0]["outtmpl"]["default"][:19].replace("-", "").isdigit():
+        raise AssertionError("download task folders must begin with a sortable millisecond timestamp")
 
     format_events: list[dict] = []
     with tempfile.TemporaryDirectory() as output_dir:
@@ -246,6 +249,8 @@ def verify_runtime_progress_hook() -> None:
                 format_events.append,
             )
     explicit_options = captured_options[-1]
+    if "/video-%(format_id)s.%(ext)s" not in explicit_options["outtmpl"]["default"].replace("\\", "/"):
+        raise AssertionError("video downloads must use a descriptive format-specific file name")
     assert_equal("download_archive" in explicit_options, False, "format-specific downloads must not suppress later resolutions")
     if "[%(format_id)s]" not in explicit_options["outtmpl"]["default"]:
         raise AssertionError("format-specific downloads need unique output filenames")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 import re
 import shutil
@@ -298,11 +299,13 @@ def download_urls(
     if not settings.audio_only and not ffmpeg_available:
         log(_text(translate, "warning_ffmpeg_missing"))
 
-    task_folder = "%(upload_date>%Y%m%d)s - %(title).120B [%(id)s] [%(format_id)s]"
+    download_stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")[:-3]
+    task_folder = f"{download_stamp} - %(title).120B [%(id)s] [%(format_id)s]"
+    media_file = ("audio" if settings.audio_only else "video") + "-%(format_id)s.%(ext)s"
     ydl_opts = {
         "paths": {"home": str(settings.output_dir)},
         "outtmpl": {
-            "default": f"{task_folder}/video.%(ext)s",
+            "default": f"{task_folder}/{media_file}",
             "chapter": f"{task_folder}/chapters/%(section_number)02d - %(section_title).120B.%(ext)s",
         },
         "format": normalize_format_selector(settings.format_selector)
@@ -325,9 +328,8 @@ def download_urls(
     if ImpersonateTarget is not None:
         ydl_opts["impersonate"] = ImpersonateTarget.from_str("chrome")
 
-    # A yt-dlp archive is keyed by extractor/video id, not by format. Applying
-    # it to explicit format downloads would make the first resolution suppress
-    # every later resolution of the same video.
+    # Preserve yt-dlp's existing archive behavior for ordinary downloads. An
+    # explicit format remains exempt so another resolution can still be saved.
     if not settings.format_selector:
         ydl_opts["download_archive"] = str(archive_file)
 

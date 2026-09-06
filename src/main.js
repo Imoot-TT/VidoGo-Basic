@@ -29,6 +29,13 @@ const {
 } = require('./entitlements');
 const { deriveGitHubUpdateState, safeHttpsUrl } = require('./update-check');
 const {
+  classifiedOutputDirectory,
+  createMediaLibraryStore,
+  downloadMediaFileName,
+  downloadTaskFolderName,
+  normalizeProviderId,
+} = require('./media-library');
+const {
   builtinOwnerSessionToken,
   builtinOwnerUser,
   isBuiltinOwnerEmail,
@@ -57,6 +64,7 @@ const PARTITIONS_PATH = path.join(USER_DATA_PATH, 'Partitions');
 const ENTITLEMENT_STATE_PATH = path.join(USER_DATA_PATH, 'entitlements.json');
 const ACCOUNT_SESSION_PATH = path.join(USER_DATA_PATH, 'account-session.json');
 const PLATFORM_CONFIG_PATH = path.join(USER_DATA_PATH, 'platforms.json');
+const MEDIA_LIBRARY_PATH = path.join(USER_DATA_PATH, 'media-library.json');
 const ACCOUNT_API_ORIGIN = (() => {
   try {
     const configPath = app.isPackaged
@@ -165,6 +173,7 @@ let metadataGeneration = 0;
 let currentEntitlementProfile = normalizeEntitlementProfile({});
 let entitlementStore = loadEntitlementStore();
 let accountSession = loadAccountSession();
+const mediaLibraryStore = createMediaLibraryStore(MEDIA_LIBRARY_PATH);
 const smokeAccounts = new Map();
 let smokeOrders = [];
 
@@ -1771,6 +1780,33 @@ function sendDownloadQueueState() {
   mainWindow.webContents.send('download:state', getDownloadQueueState());
 }
 
+function registerCompletedDownload(job, data = {}) {
+  const filePath = String(data.filename || '').trim();
+  if (!filePath) return;
+  const task = job.task || {};
+  void mediaLibraryStore.addCompleted({
+    id: `asset-${crypto.randomUUID()}`,
+    sourceTaskId: job.id,
+    title: task.title || path.basename(filePath),
+    provider: task.provider,
+    mediaId: task.mediaId,
+    sourceUrl: task.pageUrl || task.referrer || job.requestUrl || '',
+    mediaUrl: job.url,
+    filePath,
+    folderPath: data.task_dir || path.dirname(filePath),
+    coverPath: data.thumbnail_filename || null,
+    fileSize: data.total_bytes || data.downloaded_bytes || 0,
+    resolution: task.resolution,
+    qualityLabel: task.qualityLabel,
+    formatId: task.formatId,
+    kind: task.kind,
+    mimeType: task.mimeType,
+    videoCodec: task.videoCodec,
+    audioCodec: task.audioCodec,
+    downloadedAt: new Date().toISOString(),
+  }).catch(() => {});
+}
+
 function releaseDownloadJobCookie(job) {
   if (job.cookieReleased) return;
   job.cookieReleased = true;
@@ -1779,6 +1815,9 @@ function releaseDownloadJobCookie(job) {
 }
 
 function sendDownloadJobEvent(job, payload) {
+  if (payload?.type === 'progress' && payload.data?.status === 'completed') {
+    registerCompletedDownload(job, payload.data);
+  }
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send('download:event', {
     ...payload,
@@ -1864,22 +1903,11 @@ function isTrustedDirectMediaUrl(value) {
   }
 }
 
-function safeDirectDownloadStem(value) {
-  const cleaned = String(value || 'TikTok video')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/[. ]+$/g, '')
-    .trim()
-    .slice(0, 120);
-  const fallback = cleaned || 'TikTok video';
-  return /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(fallback) ? '_' + fallback : fallback;
-}
-
-async function reserveDirectDownloadPaths(outputDir, title) {
+async function reserveDirectDownloadPaths(outputDir, title, task = {}) {
   const root = path.resolve(String(outputDir || '').trim() || path.join(app.getPath('downloads'), APP_NAME));
   await fs.mkdir(root, { recursive: true });
-  const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
-  const stem = date + ' - ' + safeDirectDownloadStem(title);
+  const stem = downloadTaskFolderName({ ...task, title });
+  const mediaFileName = downloadMediaFileName(task);
   for (let index = 0; index < 1000; index += 1) {
     const suffix = index ? ' (' + (index + 1) + ')' : '';
     const taskDir = path.join(root, stem + suffix);
@@ -1887,8 +1915,8 @@ async function reserveDirectDownloadPaths(outputDir, title) {
       await fs.mkdir(taskDir);
       return {
         taskDir,
-        finalPath: path.join(taskDir, 'video.mp4'),
-        temporaryPath: path.join(taskDir, '.video.download'),
+        finalPath: path.join(taskDir, mediaFileName),
+        temporaryPath: path.join(taskDir, `.${mediaFileName}.download`),
       };
     } catch (error) {
       if (error?.code !== 'EEXIST') throw error;
@@ -2018,7 +2046,7 @@ function spawnDirectDownloadJob(job) {
   activeDownloadJobs.set(job.id, job);
   sendDownloadQueueState();
   void (async () => {
-    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title, job.task);
     job.temporaryPath = reserved.temporaryPath;
     job.taskDir = reserved.taskDir;
     const startedAt = Date.now();
@@ -2195,7 +2223,7 @@ function spawnWebviewDirectDownloadJob(job) {
   activeDownloadJobs.set(job.id, job);
   sendDownloadQueueState();
   void (async () => {
-    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title, job.task);
     job.temporaryPath = reserved.temporaryPath;
     job.taskDir = reserved.taskDir;
     if (job.cancelled || job.finalized) {
@@ -2308,7 +2336,7 @@ function spawnBrowserDownloadJob(job) {
   activeDownloadJobs.set(job.id, job);
   sendDownloadQueueState();
   void (async () => {
-    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title);
+    const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title, job.task);
     const guestId = Number(job.task.webContentsId);
     let guest = null;
     try {
@@ -3323,6 +3351,20 @@ ipcMain.handle('download:verify-output', async (_event, item) => {
   return { ok: true, path: resolvedPath, taskDir: path.dirname(resolvedPath), size: fileStat.size };
 });
 
+ipcMain.handle('library:list', async (event) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('The media library is only available to the app renderer.');
+  }
+  return mediaLibraryStore.list({ refresh: false });
+});
+
+ipcMain.handle('library:refresh', async (event) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('The media library is only available to the app renderer.');
+  }
+  return mediaLibraryStore.list({ refresh: true });
+});
+
 ipcMain.handle('window:renderer-ready', (event) => {
   if (IS_SMOKE_TEST || !mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return false;
   mainWindow.show();
@@ -3407,9 +3449,18 @@ ipcMain.handle('download:start', async (_event, task) => {
   const urls = Array.from(new Set(task.urls.map((url) => String(url || '').trim()).filter(Boolean)));
   if (!urls.length) throw new Error('No URLs provided.');
   downloadConcurrencyLimit = effectiveDownloadConcurrency(task.maxConcurrentDownloads);
+  const sourcePageUrl = String(task.pageUrl || task.referrer || urls[0] || '').trim();
+  const sourceContext = classifyMediaPage(sourcePageUrl);
+  const provider = normalizeProviderId(task.provider || sourceContext?.provider, sourcePageUrl, urls[0]);
+  const outputRoot = String(task.outputDir || '').trim() || path.join(app.getPath('downloads'), APP_NAME);
   const baseTask = {
-    outputDir: task.outputDir,
+    outputRoot,
+    outputDir: classifiedOutputDirectory(outputRoot, provider),
+    provider,
+    mediaId: String(task.mediaId || sourceContext?.mediaId || '').trim().slice(0, 300),
+    pageUrl: sourcePageUrl,
     resolution: task.resolution,
+    qualityLabel: String(task.qualityLabel || '').trim().slice(0, 80),
     playlist: task.playlist,
     audioOnly: task.audioOnly,
     jsRuntime: task.jsRuntime || 'auto',
@@ -3426,6 +3477,9 @@ ipcMain.handle('download:start', async (_event, task) => {
     sourceClient: String(task.sourceClient || '').trim().slice(0, 80),
     kind: String(task.kind || '').trim().slice(0, 40),
     mimeType: String(task.mimeType || '').trim().slice(0, 120),
+    extension: String(task.extension || '').trim().slice(0, 12),
+    videoCodec: String(task.videoCodec || '').trim().slice(0, 80),
+    audioCodec: String(task.audioCodec || '').trim().slice(0, 80),
     sizeBytes: Math.max(0, Number(task.sizeBytes || 0)),
     webContentsId: Number.isInteger(Number(task.webContentsId)) && Number(task.webContentsId) > 0
       ? Number(task.webContentsId)
@@ -3555,6 +3609,7 @@ ipcMain.handle('download:start', async (_event, task) => {
   const jobs = newEntries.map(({ url, requestKey, nativeBrowserDownload }) => ({
     id: `download-job-${process.pid}-${++downloadJobCounter}`,
     requestKey,
+    requestUrl: url,
     url,
     task: { ...baseTask, urls: [url], nativeBrowserDownload },
     cookieGroup,

@@ -249,6 +249,7 @@ def create_media_candidates(
             candidates.append(
                 {
                     "id": f"media-{web_contents_id}-{candidate_id}",
+                    "mediaId": video_id,
                     "webContentsId": web_contents_id,
                     "url": item_url,
                     "pageUrl": item_url,
@@ -287,6 +288,7 @@ def create_media_candidates(
             candidates.append(
                 {
                     "id": f"media-{web_contents_id}-{candidate_id}",
+                    "mediaId": video_id,
                     "webContentsId": web_contents_id,
                     "url": item_url,
                     "pageUrl": item_url,
@@ -342,6 +344,7 @@ def create_media_candidates(
         candidates.append(
             {
                 "id": f"media-{web_contents_id}-{candidate_id}",
+                "mediaId": video_id,
                 "webContentsId": web_contents_id,
                 "url": item_url,
                 "pageUrl": item_url,

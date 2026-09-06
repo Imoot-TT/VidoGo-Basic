@@ -256,6 +256,10 @@ assert(app.includes("!/^\\[download\\]/i.test(message)") && downloaderCore.inclu
 assert(main.includes("ipcMain.handle('download:open-file'") && main.includes('resolveDownloadedFile') && preload.includes('openDownloadedFile'), 'Completed downloads must resolve and open the final media file');
 assert(main.includes("ipcMain.handle('download:open-folder'") && preload.includes('openDownloadedFolder'), 'Download folder action must open the task folder');
 assert(downloaderCore.includes('"writethumbnail": True') && downloaderCore.includes('thumbnail_filename') && downloaderCore.includes('task_dir'), 'Each download task must retain its source cover beside the final media file');
+assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.includes('downloadTaskFolderName') && main.includes('downloadMediaFileName'), 'New downloads must use platform classification and descriptive names');
+assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be prepared for the future media library');
+assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The future media-library read bridge is incomplete');
+assert(app.includes('provider: downloadTarget?.provider') && app.includes('mediaId: downloadTarget?.mediaId'), 'Download jobs must retain provider and media identity metadata');
 assert(app.includes("downloadStrategy: 'record'") && app.includes('data-record-candidate') && app.includes("text('recordingRequired')"), 'Live media must render the recording-required action instead of a download button');
 assert(css.includes('.sniffer-resource-recording'), 'Live recording-required action is missing its reference styling');
 assert(app.includes('__VIDOGO_RUN_MANIFEST_FLOW_TEST'), 'HLS Electron flow regression test is not exposed');

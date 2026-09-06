@@ -4682,6 +4682,7 @@ async function startDownload(downloadTarget = null) {
   try {
     const normalizedTargetUrl = MEDIA_RULES?.normalizePageUrl?.(downloadTarget?.url) || String(downloadTarget?.url || '');
     const normalizedPageUrl = MEDIA_RULES?.normalizePageUrl?.(downloadTarget?.pageUrl) || String(downloadTarget?.pageUrl || '');
+    const sourceMediaContext = MEDIA_RULES?.classifyMediaPage?.(downloadTarget?.pageUrl || downloadTarget?.url) || null;
     const detectedDirectMedia = downloadTarget?.kind === 'video'
       && Boolean(normalizedTargetUrl)
       && normalizedTargetUrl !== normalizedPageUrl
@@ -4699,6 +4700,13 @@ async function startDownload(downloadTarget = null) {
       referrer: downloadTarget?.referrer || downloadTarget?.pageUrl || null,
       thumbnailUrl: downloadTarget?.thumbnailUrl || window.mediaDeckSmokeDownload?.thumbnailUrl || null,
       title: downloadTarget?.title || downloadTarget?.fileName || null,
+      provider: downloadTarget?.provider || sourceMediaContext?.provider || null,
+      mediaId: downloadTarget?.mediaId || sourceMediaContext?.mediaId || null,
+      pageUrl: downloadTarget?.pageUrl || sourceMediaContext?.normalizedUrl || null,
+      qualityLabel: candidateResolution(downloadTarget),
+      extension: downloadTarget?.extension || null,
+      videoCodec: downloadTarget?.videoCodec || null,
+      audioCodec: downloadTarget?.audioCodec || null,
       directDownload: detectedDirectMedia || downloadTarget?.downloadStrategy === 'direct'
         || /^(?:(?:tiktok|douyin)-page|native-download|site-download-intent|background-resolver)$/.test(downloadTarget?.sourceClient || ''),
       backgroundResolvedMedia: downloadTarget?.sourceClient === 'background-resolver',
