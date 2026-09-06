@@ -1402,6 +1402,30 @@ function updateTitlebarAccount() {
   els.titlebarAccount.setAttribute('aria-label', `${copy.open}：${els.titlebarAccount.title}`);
 }
 
+async function ensureDownloadEntitlementAvailable(count = 1, options = {}) {
+  const requested = Math.max(0, Math.floor(Number(count) || 0));
+  if (requested === 0) return true;
+  try {
+    const result = await window.mediaDeck.checkDownloadEntitlement({
+      count: requested,
+      retryExisting: options.retryExisting === true,
+    });
+    if (result?.entitlements) applyEntitlementState(result.entitlements);
+    if (result?.ok) return true;
+    const remaining = Math.max(0, Number(result?.entitlements?.remainingToday || 0));
+    const message = remaining === 0
+      ? text('dailyLimitReached')
+      : (state.locale.startsWith('zh')
+        ? `今日剩余 ${remaining} 次，本次选择了 ${requested} 个任务，未开始解析。`
+        : `${remaining} downloads remain today, but ${requested} tasks were selected. Resolution was not started.`);
+    if (!options.suppressToast) toast(message, 'error');
+    return false;
+  } catch (error) {
+    if (!options.suppressToast) toast(userFacingDownloadError(error), 'error');
+    return false;
+  }
+}
+
 function updateConcurrentDownloads(value, announce = true) {
   const concurrencyLimit = currentConcurrencyLimit();
   if (concurrencyLimit === null) return;
@@ -1430,17 +1454,57 @@ async function syncRecordingConfiguration() {
 }
 
 function userFacingDownloadError(error) {
-  const message = String(error?.message || error || '');
+  const message = String(error?.message || error || '').replace(/\s+/g, ' ').trim().slice(0, 800);
   if (message.includes('daily-entitlement-limit-reached')) return text('dailyLimitReached');
+  if (message === '下载失败，请刷新播放页并重新识别视频后再试。'
+    || message === 'The download failed. Refresh the playback page and retry.') {
+    return state.locale.startsWith('zh')
+      ? '该历史任务由旧版保存，原始错误原因已丢失；请重新下载以获取准确诊断。'
+      : 'This task was saved by an older version without its original error; retry it to capture an accurate diagnosis.';
+  }
+  const browserDiagnosticText = message.match(/browser-download-interrupted:(\{.*\})/)?.[1];
+  if (browserDiagnosticText) {
+    try {
+      const diagnostic = JSON.parse(browserDiagnosticText);
+      const received = Math.max(0, Number(diagnostic.receivedBytes || 0));
+      const total = Math.max(0, Number(diagnostic.totalBytes || 0));
+      const transfer = total > 0
+        ? `${formatBytes(received)} / ${formatBytes(total)}`
+        : formatBytes(received);
+      const httpStatus = Math.max(0, Number(diagnostic.httpStatus || 0));
+      const networkError = String(diagnostic.networkError || '').replace(/^net::/, '');
+      if (httpStatus >= 400) return state.locale.startsWith('zh')
+        ? `媒体服务器返回 HTTP ${httpStatus}，传输中断（${transfer}）。`
+        : `The media server returned HTTP ${httpStatus}; transfer stopped at ${transfer}.`;
+      const networkReasons = {
+        ERR_CONNECTION_RESET: '连接被远端重置',
+        ERR_CONNECTION_CLOSED: '连接被远端关闭',
+        ERR_TIMED_OUT: '网络连接超时',
+        ERR_INTERNET_DISCONNECTED: '设备当前没有网络连接',
+        ERR_NETWORK_CHANGED: '下载过程中网络发生变化',
+        ERR_NAME_NOT_RESOLVED: '无法解析媒体服务器地址',
+        ERR_CONNECTION_REFUSED: '媒体服务器拒绝连接',
+        ERR_ADDRESS_UNREACHABLE: '无法连接媒体服务器',
+        ERR_BLOCKED_BY_CLIENT: '请求被浏览器客户端拦截',
+        ERR_ABORTED: '媒体请求被浏览器中止',
+      };
+      if (networkError) return state.locale.startsWith('zh')
+        ? `${networkReasons[networkError] || 'Chromium 网络请求失败'}（${networkError}，${transfer}）。`
+        : `Chromium reported ${networkError}; transfer stopped at ${transfer}.`;
+      return state.locale.startsWith('zh')
+        ? `Chromium 将媒体下载标记为“${diagnostic.state || 'interrupted'}”（${transfer}），但没有提供更具体的网络错误码。`
+        : `Chromium marked the media download as ${diagnostic.state || 'interrupted'} at ${transfer}, without a more specific network error code.`;
+    } catch { /* preserve the raw diagnostic below */ }
+  }
   if (/ERR_BLOCKED_BY_CLIENT/i.test(message)) return state.locale.startsWith('zh')
     ? '媒体连接被浏览器中断，请重新识别视频后再试。'
     : 'The browser interrupted the media connection. Detect the video again and retry.';
   if (/Fresh cookies|confirm you are on the latest version|yt-dlp.*issue/i.test(message)) return state.locale.startsWith('zh')
     ? '当前站点会话无法用于下载，请刷新播放页并重新识别视频。'
     : 'The current site session cannot be used for downloading. Refresh the playback page and detect the video again.';
-  if (/Browser media download failed/i.test(message)) return state.locale.startsWith('zh')
-    ? '媒体下载连接已中断，请重新下载。'
-    : 'The media download connection was interrupted. Please retry.';
+  if (/Browser media download (?:was interrupted|failed)/i.test(message)) return state.locale.startsWith('zh')
+    ? 'Chromium 将媒体下载标记为中断，但没有提供更具体的网络错误码。'
+    : 'Chromium marked the media download as interrupted without a more specific network error code.';
   if (/Media server connection timed out/i.test(message)) return state.locale.startsWith('zh')
     ? '媒体服务器连接超时，请重新下载。'
     : 'The media server connection timed out. Please retry.';
@@ -1457,11 +1521,11 @@ function userFacingDownloadError(error) {
     ? '该视频地址暂不支持直接下载，请在播放页重新识别后再试。'
     : 'This video URL cannot be downloaded directly yet. Open its playback page and detect it again.';
   if (/Failed to fetch|NetworkError|Load failed|ECONNRESET|socket hang up/i.test(message)) return state.locale.startsWith('zh')
-    ? '媒体连接已中断，请刷新播放页后重新下载。'
-    : 'The media connection was interrupted. Refresh the playback page and retry.';
-  return state.locale.startsWith('zh')
-    ? '下载失败，请刷新播放页并重新识别视频后再试。'
-    : (message || 'The download failed. Refresh the playback page and retry.');
+    ? `媒体网络请求失败：${message}`
+    : `The media network request failed: ${message}`;
+  if (!message) return state.locale.startsWith('zh') ? '下载失败，但下载引擎没有返回错误原因。' : 'The download failed without an error reason.';
+  if (/[\u3400-\u9fff]/.test(message)) return message;
+  return state.locale.startsWith('zh') ? `下载引擎返回：${message}` : message;
 }
 
 function updateDownloadBadge() {
@@ -4177,6 +4241,7 @@ function agedmPlaybackUrl(candidate, tab = activeTab()) {
 async function startResolvedAgedmDownload(candidate) {
   const pageUrl = agedmPlaybackUrl(candidate);
   if (!pageUrl) return null;
+  if (!await ensureDownloadEntitlementAvailable(1)) return null;
   const pending = {
     ...candidate,
     url: pageUrl,
@@ -4202,6 +4267,7 @@ async function startResolvedAgedmDownload(candidate) {
     pageUrl,
     provider: 'agedm',
     backgroundResolvePage: true,
+    entitlementPreflightPassed: true,
     retryRowId: String(row.id || row.downloadId),
     suppressToast: true,
   });
@@ -4277,6 +4343,7 @@ async function startSelectedBatchDownloads() {
     toast(text('selectMediaFirst'));
     return;
   }
+  if (!await ensureDownloadEntitlementAvailable(candidates.length)) return;
   const originalLabel = els.batchDownloadLabel.textContent;
   const sourceTab = activeTab();
   const currentDetectedMedia = mediaCandidatesForTab(tabId)
@@ -4333,6 +4400,7 @@ async function startSelectedBatchDownloads() {
         // `resolveCollectionDownloadCandidate` already returned a real media
         // candidate. Do not send the page through a second independent resolver.
         backgroundResolvePage: false,
+        entitlementPreflightPassed: true,
         retryRowId: rowId,
         suppressToast: true,
       });
@@ -4561,8 +4629,13 @@ async function startDownload(downloadTarget = null) {
     if (!downloadTarget?.suppressToast) toast(text('noUrls'));
     return null;
   }
-  const queuedRows = queueUrls(urls, downloadTarget);
   const activeUrls = [...new Set(urls)];
+  if (downloadTarget?.entitlementPreflightPassed !== true
+    && !await ensureDownloadEntitlementAvailable(activeUrls.length, {
+      retryExisting: downloadTarget?.isRetry === true,
+      suppressToast: downloadTarget?.suppressToast === true,
+    })) return null;
+  const queuedRows = queueUrls(urls, downloadTarget);
   const requestKeys = new Set(activeUrls.map((url) => downloadRequestKey(url, downloadTarget?.formatId || null)));
   const retryRowId = String(downloadTarget?.retryRowId || '').trim();
   const requestRows = retryRowId
@@ -4659,13 +4732,14 @@ async function startDownload(downloadTarget = null) {
     updateDownloadBadge();
     return result;
   } catch (error) {
-    const message = userFacingDownloadError(error);
+    const rawMessage = String(error?.message || error || 'download failed');
+    const message = userFacingDownloadError(rawMessage);
     state.queue.forEach((item) => {
       if (requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId))
         && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state))) {
         item.status = 'error';
         item.state = 'error';
-        item.errorMessage = message;
+        item.errorMessage = rawMessage;
       }
     });
     state.running = false;
@@ -5160,9 +5234,7 @@ function renderDownloads() {
       state: normalizedState,
       status: normalizedState,
       percent: normalizedState === 'error' && Number(item.percent) >= 100 ? 0 : item.percent,
-      errorMessage: normalizedState === 'error'
-        ? userFacingDownloadError(item.errorMessage || text('invalidDownloadOutput'))
-        : item.errorMessage,
+      errorMessage: item.errorMessage,
       createdAt: item.createdAt || new Date(item.time || Date.now()).getTime(),
       time: item.time || new Date(item.createdAt || Date.now()).toISOString(),
       fileName: item.fileName || getFileName(item.title || item.path || item.url) || item.url,
@@ -5257,7 +5329,7 @@ function renderDownloads() {
         <div class="download-text-cell download-size-cell"><bdi>${isResolving || isConnecting ? '' : escapeHtml(item.downloaded || '0 B')}</bdi></div>
         <div class="download-text-cell download-size-cell"><bdi>${isResolving ? '' : escapeHtml(item.size || '-')}</bdi></div>
         <div class="download-text-cell download-time-cell" title="${escapeHtml(formatTime(item.time))}">${escapeHtml(formatTime(item.time))}</div>
-        <div class="download-status-cell is-${escapeHtml(item.state)}" title="${escapeHtml(item.errorMessage || text(item.state))}">${escapeHtml(text(item.state))}</div>
+        <div class="download-status-cell is-${escapeHtml(item.state)}" title="${escapeHtml(item.state === 'error' ? resultDetails : text(item.state))}">${escapeHtml(text(item.state))}</div>
         <div class="download-result-cell${item.state === 'error' ? ' has-error' : ''}" title="${escapeHtml(resultDetails)}"><bdi>${escapeHtml(resultDetails)}</bdi></div>
         <div class="download-actions-cell">${actionButtons}</div>
       </article>
@@ -6148,7 +6220,7 @@ function bindEvents() {
       const message = String(payload.message || '').trim();
       const row = downloadRowForEvent(payload);
       if (row && /\b(?:warning|error)\b/i.test(message) && !/^\[download\]/i.test(message)) {
-        row.errorMessage = userFacingDownloadError(message);
+        row.errorMessage = message;
         saveState();
         renderDownloads();
       }
@@ -6191,7 +6263,7 @@ function bindEvents() {
         row.jobId = payload.jobId || row.jobId;
         row.status = 'error';
         row.state = 'error';
-        row.errorMessage = userFacingDownloadError(payload.message || 'download failed');
+        row.errorMessage = String(payload.message || 'download failed');
         saveState();
         renderDownloads();
       } else {

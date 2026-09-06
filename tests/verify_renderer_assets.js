@@ -218,10 +218,18 @@ for (const token of [
   'recordingDurationLimitMs',
   'daily-entitlement-limit-reached',
 ]) assert(main.includes(token), `Main entitlement enforcement token missing: ${token}`);
-assert(preload.includes('getEntitlements') && preload.includes('configureEntitlements') && preload.includes('onEntitlementsChanged'), 'Entitlement renderer bridge is incomplete');
+assert(preload.includes('getEntitlements') && preload.includes('checkDownloadEntitlement') && preload.includes('configureEntitlements') && preload.includes('onEntitlementsChanged'), 'Entitlement renderer bridge is incomplete');
+assert(main.includes("ipcMain.handle('entitlements:check-download'") && app.includes('ensureDownloadEntitlementAvailable(candidates.length)'), 'Batch resolution must be blocked by an authoritative entitlement preflight');
+assert(main.includes('entitlements.remainingToday > 0 && (retryExisting || requested <= entitlements.remainingToday)') && !app.includes('if (options.retryExisting === true || requested === 0) return true'), 'A retry may avoid a second charge but must not bypass the zero-remaining preflight gate');
+assert(app.indexOf('ensureDownloadEntitlementAvailable(candidates.length)') < app.indexOf('const queuedTasks = candidates.map'), 'Batch entitlement preflight must run before queue rows are mounted or resolved');
+assert(app.indexOf('ensureDownloadEntitlementAvailable(activeUrls.length') < app.indexOf('const queuedRows = queueUrls(urls, downloadTarget)'), 'Single-download entitlement preflight must run before a queue row is mounted');
 assert(html.includes('id="head-result"'), 'Downloads table must include the result-details column header');
 assert(app.includes("resultDetails: '结果详情'") && app.includes('download-result-cell'), 'Downloads table must render localized failure details');
-assert(css.includes('minmax(220px, 2fr)') && css.includes('-webkit-line-clamp: 2'), 'Failure details column must remain wide and clamp long messages');
+assert(css.includes('minmax(180px, 1.5fr)') && css.includes('text-overflow: ellipsis') && css.includes('white-space: nowrap'), 'Failure details column must use a compact single-line ellipsis');
+assert(app.includes('browser-download-interrupted:') && app.includes('Chromium 将媒体下载标记为'), 'Browser download failures must expose factual Chromium diagnostics');
+assert(app.includes('item.errorMessage = rawMessage') && app.includes('errorMessage: item.errorMessage'), 'Download errors must retain their raw cause until display formatting');
+assert(app.includes('原始错误原因已丢失') && app.includes('retry it to capture an accurate diagnosis'), 'Legacy generic failures must not be presented as factual diagnoses');
+assert(main.includes('browserDownloadInterruptionError') && main.includes('rememberBrowserDownloadNetworkError'), 'Main process must preserve browser network failure diagnostics');
 assert(app.includes('retryExisting: downloadTarget?.isRetry === true'), 'Only an explicit retry may skip daily entitlement consumption');
 assert(/retryRowId:\s*rowId,\s*isRetry:\s*true,/.test(app), 'Failed-task retry must explicitly preserve its entitlement exemption');
 assert(app.includes('BATCH_RESOLVER_CONCURRENCY') && app.includes('Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length)'), 'Batch episode resolution must use a bounded parallel worker pool');

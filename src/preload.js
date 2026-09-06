@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   setPreferredLanguage: (locale) => ipcRenderer.invoke('browser:set-preferred-language', locale),
   setAdBlockerEnabled: (enabled) => ipcRenderer.invoke('browser:set-ad-blocker-enabled', enabled),
   getEntitlements: () => ipcRenderer.invoke('entitlements:get-state'),
+  checkDownloadEntitlement: (payload) => ipcRenderer.invoke('entitlements:check-download', payload),
   configureEntitlements: (options) => ipcRenderer.invoke('entitlements:configure', options),
   configureRecording: (options) => ipcRenderer.invoke('recording:configure', options),
   checkForUpdates: () => ipcRenderer.invoke('app:check-for-updates'),

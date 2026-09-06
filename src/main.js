@@ -1224,6 +1224,50 @@ function rememberMediaCandidate(details) {
   if (candidate.sourceClient === 'dash') void inspectDashCandidate(candidate);
 }
 
+function requestMatchesBrowserDownloadJob(job, details) {
+  if (!job || job.cancelled || Number(job.task?.webContentsId || 0) !== Number(details.webContentsId || 0)) return false;
+  if (String(job.url || '') === String(details.url || '')) return true;
+  try {
+    return Array.isArray(job.downloadItem?.getURLChain?.()) && job.downloadItem.getURLChain().includes(details.url);
+  } catch {
+    return false;
+  }
+}
+
+function rememberBrowserDownloadResponse(details) {
+  for (const job of activeDownloadJobs.values()) {
+    if (!requestMatchesBrowserDownloadJob(job, details)) continue;
+    const statusCode = Number(details.statusCode || 0);
+    if (statusCode >= 400) job.browserHttpStatus = statusCode;
+  }
+}
+
+function rememberBrowserDownloadNetworkError(details) {
+  for (const job of activeDownloadJobs.values()) {
+    if (!requestMatchesBrowserDownloadJob(job, details)) continue;
+    job.browserNetworkError = String(details.error || '').trim();
+  }
+}
+
+function browserDownloadInterruptionError(job, downloadItem, stateValue) {
+  let receivedBytes = 0;
+  let totalBytes = Math.max(0, Number(job.task?.sizeBytes || 0));
+  let resumable = false;
+  try {
+    receivedBytes = Math.max(0, Number(downloadItem?.getReceivedBytes?.() || 0));
+    totalBytes = Math.max(totalBytes, Number(downloadItem?.getTotalBytes?.() || 0));
+    resumable = downloadItem?.canResume?.() === true;
+  } catch { /* retain the available task metadata */ }
+  return new Error(`browser-download-interrupted:${JSON.stringify({
+    state: String(stateValue || 'interrupted'),
+    networkError: String(job.browserNetworkError || ''),
+    httpStatus: Math.max(0, Number(job.browserHttpStatus || 0)),
+    receivedBytes,
+    totalBytes,
+    resumable,
+  })}`);
+}
+
 function registerBrowserRequestFeatures() {
   if (requestFeaturesRegistered) return;
   requestFeaturesRegistered = true;
@@ -1281,6 +1325,7 @@ function registerBrowserRequestFeatures() {
     callback({ requestHeaders });
   });
   browserSession.webRequest.onHeadersReceived({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+    rememberBrowserDownloadResponse(details);
     if (IS_SMOKE_TEST && /(?:dailymotion|dmxleo|cdndirector)/i.test(details.url)) {
       dailymotionRequestDiagnostics.push({ phase: 'headers', url: details.url, statusCode: details.statusCode, resourceType: details.resourceType });
       if (dailymotionRequestDiagnostics.length > 300) dailymotionRequestDiagnostics.splice(0, dailymotionRequestDiagnostics.length - 300);
@@ -1289,6 +1334,7 @@ function registerBrowserRequestFeatures() {
     callback({ responseHeaders: details.responseHeaders });
   });
   browserSession.webRequest.onErrorOccurred({ urls: ['http://*/*', 'https://*/*'] }, (details) => {
+    rememberBrowserDownloadNetworkError(details);
     if (!IS_SMOKE_TEST || !/(?:dailymotion|dmxleo|cdndirector)/i.test(details.url)) return;
     dailymotionRequestDiagnostics.push({ phase: 'error', url: details.url, error: details.error, resourceType: details.resourceType });
   });
@@ -2323,7 +2369,9 @@ function spawnBrowserDownloadJob(job) {
               }, 400 * interruptionRetries);
               return;
             }
-            finish(new Error(job.cancelled ? 'Download cancelled.' : 'Browser media download was interrupted.'));
+            finish(job.cancelled
+              ? new Error('Download cancelled.')
+              : browserDownloadInterruptionError(job, downloadItem, stateValue));
             return;
           }
           armInactivityTimeout();
@@ -2346,7 +2394,9 @@ function spawnBrowserDownloadJob(job) {
         });
         downloadItem.once('done', (_downloadEvent, stateValue) => {
           if (stateValue === 'completed') finish();
-          else finish(new Error(stateValue === 'cancelled' ? 'Download cancelled.' : 'Browser media download failed.'));
+          else finish(stateValue === 'cancelled'
+            ? new Error('Download cancelled.')
+            : browserDownloadInterruptionError(job, downloadItem, stateValue));
         });
         armInactivityTimeout();
       };
@@ -2883,6 +2933,24 @@ ipcMain.handle('media:clear-candidates', (_event, webContentsId = null) => {
 });
 
 ipcMain.handle('entitlements:get-state', () => getCurrentEntitlementState());
+
+ipcMain.handle('entitlements:check-download', (event, payload = {}) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('Entitlement checks are only available to the app renderer.');
+  }
+  const requested = Math.max(0, Math.floor(Number(payload.count) || 0));
+  const retryExisting = payload.retryExisting === true;
+  const charge = downloadEntitlementCharge(requested, retryExisting);
+  const entitlements = getCurrentEntitlementState();
+  return {
+    ok: requested === 0
+      || entitlements.remainingToday === null
+      || (entitlements.remainingToday > 0 && (retryExisting || requested <= entitlements.remainingToday)),
+    requested,
+    charge,
+    entitlements,
+  };
+});
 
 ipcMain.handle('entitlements:configure', (event, options = {}) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {

@@ -1627,7 +1627,7 @@ body[data-resolved-theme="dark"] .media-kind-badge.is-playlist,
     minmax(72px, 0.7fr)
     minmax(112px, 0.9fr)
     minmax(68px, 0.7fr)
-    minmax(220px, 2fr)
+    minmax(180px, 1.5fr)
     104px;
   gap: 10px;
   align-items: center;
@@ -1705,15 +1705,13 @@ body[data-resolved-theme="dark"] .media-kind-badge.is-playlist,
 .download-status-cell.is-error,
 .download-status-cell.is-cancelled { color: var(--app-danger); }
 .download-result-cell {
-  display: -webkit-box;
   min-width: 0;
   overflow: hidden;
   color: var(--app-muted);
   font-size: 12px;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .download-result-cell.has-error { color: var(--app-danger); }
 .download-actions-cell { display: flex; width: 104px; align-items: center; justify-content: flex-end; gap: 6px; }
