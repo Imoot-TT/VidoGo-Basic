@@ -2,6 +2,7 @@ const assert = require('assert');
 const {
   clampConcurrency,
   consumeDailyEntitlement,
+  downloadEntitlementCharge,
   entitlementState,
   normalizeIdentity,
   normalizePlanLevel,
@@ -24,6 +25,9 @@ assert.strictEqual(clampConcurrency(10, free), 1);
 assert.strictEqual(clampConcurrency(10, { accountId: 'pro@example.com', planLevel: 'pro' }), 5);
 assert.strictEqual(clampConcurrency(10, { accountId: 'vip@example.com', planLevel: 'ultimate' }), 10);
 assert.strictEqual(clampConcurrency(10, { accountId: 'owner@example.com', planLevel: 'owner' }), 10);
+assert.strictEqual(downloadEntitlementCharge(3, false), 3);
+assert.strictEqual(downloadEntitlementCharge(3, true), 0);
+assert.strictEqual(downloadEntitlementCharge(-1, false), 0);
 
 for (let index = 0; index < 5; index += 1) {
   const result = consumeDailyEntitlement(store, free, 1, now);

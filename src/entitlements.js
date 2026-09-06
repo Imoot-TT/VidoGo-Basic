@@ -86,6 +86,11 @@ function consumeDailyEntitlement(storeValue, profileValue = {}, count = 1, now =
   return { ok: true, store, state: entitlementState(store, profileValue, now) };
 }
 
+function downloadEntitlementCharge(newEntryCount, retryExisting = false) {
+  const count = Math.max(0, Math.floor(Number(newEntryCount) || 0));
+  return retryExisting === true ? 0 : count;
+}
+
 function clampConcurrency(value, profileValue = {}) {
   const profile = normalizeProfile(profileValue);
   const requested = Math.max(1, Math.min(10, Math.floor(Number(value) || 1)));
@@ -97,6 +102,7 @@ module.exports = {
   PLAN_ENTITLEMENTS,
   clampConcurrency,
   consumeDailyEntitlement,
+  downloadEntitlementCharge,
   dayKey,
   entitlementState,
   normalizeIdentity,

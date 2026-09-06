@@ -22,6 +22,7 @@ const {
 const {
   clampConcurrency: clampPlanConcurrency,
   consumeDailyEntitlement: consumePlanDailyEntitlement,
+  downloadEntitlementCharge,
   entitlementState,
   normalizeProfile: normalizeEntitlementProfile,
   normalizeStore: normalizeEntitlementStore,
@@ -2778,9 +2779,21 @@ async function resolvePageMediaInBackground(request = {}) {
   const resolverId = resolver.webContents.id;
   const startedAt = Date.now();
   let playbackTimer = null;
+  let loadTimeout = null;
   let retainedForDownload = false;
   try {
-    await resolver.loadURL(pageUrl, { extraHeaders: `Accept-Language: ${browserAcceptLanguage}\r\n` });
+    const loadDeadline = new Promise((_, reject) => {
+      loadTimeout = setTimeout(() => {
+        if (!resolver.isDestroyed()) resolver.webContents.stop();
+        reject(new Error('分集页面加载超时。'));
+      }, timeoutMs);
+    });
+    await Promise.race([
+      resolver.loadURL(pageUrl, { extraHeaders: `Accept-Language: ${browserAcceptLanguage}\r\n` }),
+      loadDeadline,
+    ]);
+    clearTimeout(loadTimeout);
+    loadTimeout = null;
     await requestResolverPlayback(resolver.webContents);
     playbackTimer = setInterval(() => {
       void requestResolverPlayback(resolver.webContents);
@@ -2832,6 +2845,7 @@ async function resolvePageMediaInBackground(request = {}) {
       diagnostics: await resolverFailureDiagnostics(resolver.webContents, resolverId),
     };
   } finally {
+    if (loadTimeout) clearTimeout(loadTimeout);
     if (playbackTimer) clearInterval(playbackTimer);
     for (const [candidateId, candidate] of mediaCandidates.entries()) {
       if (Number(candidate.webContentsId) === resolverId) mediaCandidates.delete(candidateId);
@@ -3363,7 +3377,7 @@ ipcMain.handle('download:start', async (_event, task) => {
   ].map((job) => [job.requestKey || downloadRequestKey(job.url, job.task?.formatId), job]));
   const newEntries = requestedEntries.filter((entry) => !existingByRequestKey.has(entry.requestKey));
   if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
-    const consumed = consumeCurrentDailyEntitlement(task.retryExisting === true ? 0 : newEntries.length);
+    const consumed = consumeCurrentDailyEntitlement(downloadEntitlementCharge(newEntries.length, task.retryExisting));
     if (!consumed.ok) {
       releaseRetainedMediaResolver(baseTask.webContentsId);
       const error = new Error('daily-entitlement-limit-reached');
@@ -3455,7 +3469,7 @@ ipcMain.handle('download:start', async (_event, task) => {
       ...getDownloadQueueState(),
     };
   }
-  const consumed = consumeCurrentDailyEntitlement(task.retryExisting === true ? 0 : newEntries.length);
+  const consumed = consumeCurrentDailyEntitlement(downloadEntitlementCharge(newEntries.length, task.retryExisting));
   if (!consumed.ok) {
     releaseRetainedMediaResolver(baseTask.webContentsId);
     const error = new Error('daily-entitlement-limit-reached');

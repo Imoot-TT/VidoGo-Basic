@@ -209,6 +209,7 @@ for (const token of [
   'maxConcurrentDownloads: 10',
   'owner: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: null, recordingDurationLimitMs: null })',
   'consumeDailyEntitlement',
+  'downloadEntitlementCharge',
 ]) assert(entitlements.includes(token), `Entitlement implementation token missing: ${token}`);
 for (const token of [
   "ipcMain.handle('entitlements:get-state'",
@@ -218,6 +219,11 @@ for (const token of [
   'daily-entitlement-limit-reached',
 ]) assert(main.includes(token), `Main entitlement enforcement token missing: ${token}`);
 assert(preload.includes('getEntitlements') && preload.includes('configureEntitlements') && preload.includes('onEntitlementsChanged'), 'Entitlement renderer bridge is incomplete');
+assert(app.includes('retryExisting: downloadTarget?.isRetry === true'), 'Only an explicit retry may skip daily entitlement consumption');
+assert(/retryRowId:\s*rowId,\s*isRetry:\s*true,/.test(app), 'Failed-task retry must explicitly preserve its entitlement exemption');
+assert(app.includes('BATCH_RESOLVER_CONCURRENCY') && app.includes('Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length)'), 'Batch episode resolution must use a bounded parallel worker pool');
+assert(!app.includes('const resolverConcurrency = hasCollectionPages ? 1'), 'Collection-page resolution must not force the worker pool back to serial execution');
+assert(main.includes('分集页面加载超时。') && main.includes('Promise.race(['), 'Background episode resolver must enforce a hard page-load timeout');
 assert(recorder.includes('recording-duration-limit-reached') && recorder.includes('recordingDurationLimitMs'), 'Recorder duration entitlement is not enforced in the webview');
 assert(!/<button[^>]+data-order-pay/.test(app) && !app.includes('continueLocalPayment'), 'Non-reference local payment confirmation control must not be present');
 for (const token of ['parseVersion', 'compareVersions', 'deriveGitHubUpdateState', 'releaseDownloadUrl', 'safeHttpsUrl']) {

@@ -4221,6 +4221,11 @@ function waitForDelay(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+const BATCH_RESOLVER_CONCURRENCY = Math.max(
+  2,
+  Math.min(4, Math.floor(Number(navigator.hardwareConcurrency) || 4)),
+);
+
 async function resolveCollectionDownloadCandidate(candidate) {
   if (candidate?.sourceClient !== 'collection-page') return candidate;
   const targetUrl = candidate.pageUrl || candidate.url;
@@ -4354,11 +4359,11 @@ async function startSelectedBatchDownloads() {
     }
   };
   try {
-    // AGE and similar episode pages are stateful and depend on a shared browser
-    // session. Resolving them serially matches the stable pre-mount behavior and
-    // avoids several invisible players competing for cookies/player resources.
-    const hasCollectionPages = queuedTasks.some(({ candidate }) => candidate?.sourceClient === 'collection-page');
-    const resolverConcurrency = hasCollectionPages ? 1 : Math.min(3, queuedTasks.length);
+    // Resolution is network/renderer bound rather than GPU bound. A bounded
+    // worker pool lets slow episode pages time out independently without
+    // blocking every task behind them or opening an excessive number of
+    // hidden Chromium players at once.
+    const resolverConcurrency = Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length);
     await Promise.all(Array.from({ length: resolverConcurrency }, () => worker()));
   } finally {
     els.batchDownloadLabel.textContent = originalLabel;
@@ -4627,7 +4632,9 @@ async function startDownload(downloadTarget = null) {
       sizeBytes: candidateSize(downloadTarget),
       webContentsId: downloadTarget?.webContentsId || null,
       maxConcurrentDownloads: state.settings.maxConcurrentDownloads,
-      retryExisting: Boolean(downloadTarget?.retryRowId),
+      // A pre-mounted batch row also supplies retryRowId so the resolved job
+      // reuses that row. Only an explicit retry is entitlement-exempt.
+      retryExisting: downloadTarget?.isRetry === true,
     });
     if (result?.entitlements) applyEntitlementState(result.entitlements);
     for (const job of Array.isArray(result?.jobs) ? result.jobs : []) {
@@ -4711,6 +4718,7 @@ async function retryDownloadRow(row, options = {}) {
   return startDownload({
     ...target,
     retryRowId: rowId,
+    isRetry: true,
     suppressToast: Boolean(options.suppressToast),
   });
 }
