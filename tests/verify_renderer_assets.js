@@ -259,6 +259,16 @@ assert(downloaderCore.includes('"writethumbnail": True') && downloaderCore.inclu
 assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.includes('downloadTaskFolderName') && main.includes('downloadMediaFileName'), 'New downloads must use platform classification and descriptive names');
 assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be prepared for the future media library');
 assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The future media-library read bridge is incomplete');
+assert(html.includes('id="browser-login-button"') && html.includes('id="external-login-overlay"'), 'External YouTube login entry and modal are missing');
+assert(preload.includes('startExternalYouTubeLogin') && preload.includes('syncExternalBrowserLogin') && preload.includes('onExternalLoginRequest'), 'External browser login preload bridge is incomplete');
+assert(main.includes("ipcMain.handle('browser:start-external-login'") && main.includes("ipcMain.handle('browser:sync-external-login'"), 'External browser login IPC handlers are missing');
+assert(main.includes('startManagedExternalLogin') && main.includes('isGoogleLoginFromYouTube'), 'Embedded Google login is not redirected to an external Chrome/Edge login window');
+assert(main.includes("'Network.getAllCookies'") && main.includes("'Browser.close'"), 'External login must sync through the local browser debugging channel without copying a locked cookie database');
+assert(packageJson.dependencies?.ws, 'External login WebSocket support must be packaged with the application');
+assert(app.includes('syncExternalLogin') && app.includes("text('externalLoginSuccess'"), 'External login modal does not synchronize and refresh YouTube');
+assert(css.includes('.external-login-overlay') && /\.external-login-overlay\s*\{[^}]*z-index:\s*2147483646/s.test(css), 'External login instructions must stay above browser content and other dialogs');
+assert(/\.toast-region\s*\{[^}]*z-index:\s*2147483647/s.test(css), 'System notices must remain above every dialog');
+assert(!main.includes('cookies.txt') && !main.includes('writeFileSync(COOKIE'), 'Browser login sync must not write a plaintext cookie file');
 assert(app.includes('provider: downloadTarget?.provider') && app.includes('mediaId: downloadTarget?.mediaId'), 'Download jobs must retain provider and media identity metadata');
 assert(app.includes("downloadStrategy: 'record'") && app.includes('data-record-candidate') && app.includes("text('recordingRequired')"), 'Live media must render the recording-required action instead of a download button');
 assert(css.includes('.sniffer-resource-recording'), 'Live recording-required action is missing its reference styling');

@@ -6,6 +6,7 @@ const SEARCH_ENGINES = {
   duckduckgo: 'https://duckduckgo.com/?q=',
 };
 const FALLBACK_PARTITION = 'persist:vidogo-basic-0.1.3';
+const SUPPORTED_EXTERNAL_LOGIN_BROWSERS = new Set(['chrome', 'edge']);
 const STORAGE_KEYS = {
   theme: 'vidogo:theme',
   locale: 'vidogo:locale',
@@ -712,6 +713,72 @@ const BROWSER_STATUS_TEXT = {
   'zh-TW': { media: '媒體識別', local: '本機儲存', adblock: '廣告過濾', network: '網速', currentSpeed: '目前下載總速度', queue: '下載佇列', openQueue: '開啟下載佇列' },
   en: { media: 'Media', local: 'Local save', adblock: 'Ad blocker', network: 'Speed', currentSpeed: 'Current total download speed', queue: 'Queue', openQueue: 'Open download queue' },
 };
+const EXTERNAL_LOGIN_TEXT = {
+  'zh-CN': {
+    externalLoginButton: '使用系统浏览器登录 YouTube',
+    externalLoginTitle: '使用系统浏览器登录 YouTube',
+    externalLoginSubtitle: 'Google 验证将在你电脑上的浏览器中完成，VidoGo 不会读取账号密码。',
+    externalLoginStepOpenTitle: '完成浏览器登录',
+    externalLoginStepOpenCopy: '在刚打开的浏览器中完成 Google 验证，并确认已经进入 YouTube。',
+    externalLoginStepCloseTitle: '保持登录窗口打开',
+    externalLoginStepCloseCopy: '验证完成后不要关闭该窗口，VidoGo 会通过仅限本机的通道读取登录结果。',
+    externalLoginStepSyncTitle: '同步登录状态',
+    externalLoginStepSyncCopy: '回到 VidoGo 点击同步；成功后登录窗口会自动关闭并刷新 YouTube。',
+    externalLoginBrowserLabel: '登录使用的浏览器',
+    externalLoginWaiting: '等待你在外部登录窗口中完成登录。完成后请保持该窗口打开，再点击“同步并刷新”。',
+    externalLoginOpening: '正在打开系统浏览器…',
+    externalLoginSyncing: '正在从所选浏览器读取 YouTube 登录状态，请稍候…',
+    externalLoginSuccess: '已同步 {count} 项登录信息，正在刷新 YouTube。',
+    externalLoginFailed: '同步失败：{message}',
+    externalLoginReopen: '重新打开登录页',
+    externalLoginSync: '已完成登录，同步并刷新',
+    externalLoginPrivacy: 'VidoGo 使用独立的浏览器登录配置，仅通过本机通道同步 Google/YouTube Cookie；不读取密码、不上传服务器、不导出明文 Cookie 文件。',
+    externalLoginNoCookies: '没有找到 Google/YouTube 登录信息。请确认已在刚打开的登录窗口中进入 YouTube，并保持该窗口打开。',
+  },
+  'zh-TW': {
+    externalLoginButton: '使用系統瀏覽器登入 YouTube',
+    externalLoginTitle: '使用系統瀏覽器登入 YouTube',
+    externalLoginSubtitle: 'Google 驗證會在電腦上的瀏覽器中完成，VidoGo 不會讀取帳號密碼。',
+    externalLoginStepOpenTitle: '完成瀏覽器登入',
+    externalLoginStepOpenCopy: '在剛開啟的瀏覽器中完成 Google 驗證，並確認已進入 YouTube。',
+    externalLoginStepCloseTitle: '保持登入視窗開啟',
+    externalLoginStepCloseCopy: '驗證完成後不要關閉該視窗，VidoGo 會透過僅限本機的通道讀取登入結果。',
+    externalLoginStepSyncTitle: '同步登入狀態',
+    externalLoginStepSyncCopy: '回到 VidoGo 按同步；成功後登入視窗會自動關閉並重新整理 YouTube。',
+    externalLoginBrowserLabel: '登入使用的瀏覽器',
+    externalLoginWaiting: '等待你在外部登入視窗中完成登入。完成後請保持該視窗開啟，再按「同步並重新整理」。',
+    externalLoginOpening: '正在開啟系統瀏覽器…',
+    externalLoginSyncing: '正在從所選瀏覽器讀取 YouTube 登入狀態，請稍候…',
+    externalLoginSuccess: '已同步 {count} 項登入資訊，正在重新整理 YouTube。',
+    externalLoginFailed: '同步失敗：{message}',
+    externalLoginReopen: '重新開啟登入頁',
+    externalLoginSync: '已完成登入，同步並重新整理',
+    externalLoginPrivacy: 'VidoGo 使用獨立的瀏覽器登入設定，僅透過本機通道同步 Google/YouTube Cookie；不讀取密碼、不上傳伺服器、不匯出明文 Cookie 檔案。',
+    externalLoginNoCookies: '找不到 Google/YouTube 登入資訊。請確認已在剛開啟的登入視窗中進入 YouTube，並保持該視窗開啟。',
+  },
+  en: {
+    externalLoginButton: 'Sign in to YouTube in your system browser',
+    externalLoginTitle: 'Sign in to YouTube in your system browser',
+    externalLoginSubtitle: 'Google verification happens in a browser on this computer. VidoGo never reads your password.',
+    externalLoginStepOpenTitle: 'Complete browser sign-in',
+    externalLoginStepOpenCopy: 'Complete Google verification in the browser that opened and make sure YouTube is signed in.',
+    externalLoginStepCloseTitle: 'Keep the login window open',
+    externalLoginStepCloseCopy: 'After verification, leave that window open so VidoGo can read the result over a local-only connection.',
+    externalLoginStepSyncTitle: 'Sync the sign-in state',
+    externalLoginStepSyncCopy: 'Return to VidoGo and sync. The login window closes automatically after YouTube refreshes.',
+    externalLoginBrowserLabel: 'Browser used to sign in',
+    externalLoginWaiting: 'Waiting for sign-in in the external login window. Keep that window open, then choose Sync and refresh.',
+    externalLoginOpening: 'Opening your system browser…',
+    externalLoginSyncing: 'Reading the YouTube sign-in state from the selected browser…',
+    externalLoginSuccess: 'Synced {count} sign-in items. Refreshing YouTube.',
+    externalLoginFailed: 'Sync failed: {message}',
+    externalLoginReopen: 'Reopen sign-in page',
+    externalLoginSync: 'I am signed in — sync and refresh',
+    externalLoginPrivacy: 'VidoGo uses an isolated browser login profile and copies only Google/YouTube cookies over a local-only connection. Passwords are never read, data is not uploaded, and no plaintext cookie file is exported.',
+    externalLoginNoCookies: 'No Google/YouTube sign-in data was found. Make sure YouTube is signed in in the login window and keep that window open.',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], EXTERNAL_LOGIN_TEXT[locale] || EXTERNAL_LOGIN_TEXT.en);
 const TITLEBAR_ACCOUNT_TEXT = {
   'zh-CN': { signedOut: '未登录 · 免费版', remaining: '今日剩余 {remaining}/{limit}', unlimited: '下载不限', open: '查看账户信息' },
   'zh-TW': { signedOut: '未登入 · 免費版', remaining: '今日剩餘 {remaining}/{limit}', unlimited: '下載不限', open: '查看帳戶資訊' },
@@ -842,6 +909,7 @@ const els = {
   downloadQuality: document.getElementById('download-quality'),
   candidateList: document.getElementById('candidate-list'),
   pageFavorite: document.getElementById('page-favorite'),
+  browserLoginButton: document.getElementById('browser-login-button'),
   pageFavoriteIcon: document.getElementById('page-favorite-icon'),
   favoritesPopover: document.getElementById('favorites-popover'),
   favoritesPopoverCount: document.getElementById('favorites-popover-count'),
@@ -947,6 +1015,12 @@ const els = {
   categoryEditId: document.getElementById('category-edit-id'),
   categoryEditName: document.getElementById('category-edit-name'),
   categoryEditCancel: document.getElementById('category-edit-cancel'),
+  externalLoginOverlay: document.getElementById('external-login-overlay'),
+  externalLoginClose: document.getElementById('external-login-close'),
+  externalLoginBrowser: document.getElementById('external-login-browser'),
+  externalLoginStatus: document.getElementById('external-login-status'),
+  externalLoginReopen: document.getElementById('external-login-reopen'),
+  externalLoginSync: document.getElementById('external-login-sync'),
   toastRegion: document.getElementById('toast-region'),
 };
 
@@ -1002,6 +1076,8 @@ const state = {
   entitlements: null,
   downloadDiagnostics: [],
   updateInfo: null,
+  externalLoginBusy: false,
+  externalLoginCanSync: false,
 };
 
 let webviewResizeFrame = 0;
@@ -1123,6 +1199,22 @@ function applyLocale() {
   els.tabAdd.setAttribute('aria-label', text('newTab'));
   els.pageFavorite.title = text('favoritesTitle');
   els.pageFavorite.setAttribute('aria-label', text('favoritesTitle'));
+  els.browserLoginButton.title = text('externalLoginButton');
+  els.browserLoginButton.setAttribute('aria-label', text('externalLoginButton'));
+  document.getElementById('external-login-title').textContent = text('externalLoginTitle');
+  document.getElementById('external-login-subtitle').textContent = text('externalLoginSubtitle');
+  document.getElementById('external-login-step-open-title').textContent = text('externalLoginStepOpenTitle');
+  document.getElementById('external-login-step-open-copy').textContent = text('externalLoginStepOpenCopy');
+  document.getElementById('external-login-step-close-title').textContent = text('externalLoginStepCloseTitle');
+  document.getElementById('external-login-step-close-copy').textContent = text('externalLoginStepCloseCopy');
+  document.getElementById('external-login-step-sync-title').textContent = text('externalLoginStepSyncTitle');
+  document.getElementById('external-login-step-sync-copy').textContent = text('externalLoginStepSyncCopy');
+  document.getElementById('external-login-browser-label').textContent = text('externalLoginBrowserLabel');
+  document.getElementById('external-login-reopen-label').textContent = text('externalLoginReopen');
+  document.getElementById('external-login-sync-label').textContent = text('externalLoginSync');
+  document.getElementById('external-login-privacy').textContent = text('externalLoginPrivacy');
+  els.externalLoginClose.title = text('close');
+  els.externalLoginClose.setAttribute('aria-label', text('close'));
   els.pageMediaToggle.title = state.mediaPanelVisible ? text('closePanel') : text('openPanel');
   els.pageMediaToggle.setAttribute('aria-label', state.mediaPanelVisible ? text('closePanel') : text('openPanel'));
   els.browserSideTitle.textContent = text('mediaPanel');
@@ -5924,8 +6016,107 @@ function toast(message, requestedKind = '') {
   scheduleRemoval(item);
 }
 
+function setExternalLoginStatus(message, kind = '') {
+  els.externalLoginStatus.textContent = String(message || '');
+  els.externalLoginStatus.classList.toggle('is-busy', kind === 'busy');
+  els.externalLoginStatus.classList.toggle('is-error', kind === 'error');
+  els.externalLoginStatus.classList.toggle('is-success', kind === 'success');
+}
+
+function syncExternalLoginControls() {
+  els.externalLoginBrowser.disabled = state.externalLoginBusy;
+  els.externalLoginReopen.disabled = state.externalLoginBusy;
+  els.externalLoginSync.disabled = state.externalLoginBusy || !state.externalLoginCanSync;
+}
+
+function showExternalLoginDialog(payload = null) {
+  els.externalLoginOverlay.hidden = false;
+  if (SUPPORTED_EXTERNAL_LOGIN_BROWSERS.has(payload?.browser)) els.externalLoginBrowser.value = payload.browser;
+  if (payload?.error) {
+    state.externalLoginCanSync = false;
+    setExternalLoginStatus(text('externalLoginFailed', { message: externalLoginErrorMessage(payload.error) }), 'error');
+  } else {
+    if (payload?.opened) state.externalLoginCanSync = true;
+    setExternalLoginStatus(text('externalLoginWaiting'));
+  }
+  syncExternalLoginControls();
+  queueMicrotask(() => els.externalLoginBrowser.focus());
+}
+
+function hideExternalLoginDialog() {
+  if (state.externalLoginBusy) return;
+  els.externalLoginOverlay.hidden = true;
+}
+
+function externalLoginErrorMessage(error) {
+  const raw = String(error?.message || error || '').trim();
+  if (/no (?:google|usable)|no .*cookies? (?:were )?found|could not find.*cookies?/i.test(raw)) {
+    return `${text('externalLoginNoCookies')} (${raw})`;
+  }
+  return raw || text('externalLoginNoCookies');
+}
+
+async function beginExternalLogin() {
+  showExternalLoginDialog();
+  state.externalLoginCanSync = false;
+  state.externalLoginBusy = true;
+  syncExternalLoginControls();
+  setExternalLoginStatus(text('externalLoginOpening'), 'busy');
+  try {
+    const result = await window.mediaDeck.startExternalYouTubeLogin({ browser: els.externalLoginBrowser.value });
+    if (SUPPORTED_EXTERNAL_LOGIN_BROWSERS.has(result?.browser)) els.externalLoginBrowser.value = result.browser;
+    state.externalLoginCanSync = result?.opened === true;
+    setExternalLoginStatus(text('externalLoginWaiting'));
+  } catch (error) {
+    state.externalLoginCanSync = false;
+    setExternalLoginStatus(text('externalLoginFailed', { message: externalLoginErrorMessage(error) }), 'error');
+  } finally {
+    state.externalLoginBusy = false;
+    syncExternalLoginControls();
+  }
+}
+
+async function syncExternalLogin() {
+  if (state.externalLoginBusy || !state.externalLoginCanSync) return;
+  state.externalLoginBusy = true;
+  syncExternalLoginControls();
+  setExternalLoginStatus(text('externalLoginSyncing'), 'busy');
+  let successMessage = '';
+  try {
+    const result = await window.mediaDeck.syncExternalBrowserLogin({
+      browser: els.externalLoginBrowser.value,
+    });
+    const imported = Number(result?.imported || 0);
+    successMessage = text('externalLoginSuccess', { count: imported });
+    setExternalLoginStatus(successMessage, 'success');
+    state.externalLoginCanSync = false;
+    const tab = activeTab();
+    if (tab?.webview) {
+      resetTabMediaForNavigation(tab);
+      tab.webview.loadURL(HOME_URL);
+    }
+  } catch (error) {
+    const message = text('externalLoginFailed', { message: externalLoginErrorMessage(error) });
+    setExternalLoginStatus(message, 'error');
+  } finally {
+    state.externalLoginBusy = false;
+    syncExternalLoginControls();
+  }
+  if (successMessage) {
+    hideExternalLoginDialog();
+    toast(successMessage, 'success');
+  }
+}
+
 function bindEvents() {
   bindPlatformManagerEvents();
+  els.browserLoginButton.addEventListener('click', () => void beginExternalLogin());
+  els.externalLoginClose.addEventListener('click', hideExternalLoginDialog);
+  els.externalLoginReopen.addEventListener('click', () => void beginExternalLogin());
+  els.externalLoginSync.addEventListener('click', () => void syncExternalLogin());
+  els.externalLoginOverlay.addEventListener('click', (event) => {
+    if (event.target === els.externalLoginOverlay) hideExternalLoginDialog();
+  });
   els.titlebarAccount?.addEventListener('click', () => setSection('account'));
   els.sidebar.forEach((button) => button.addEventListener('click', () => setSection(button.dataset.section)));
   els.browserStatusDownloads.addEventListener('click', () => setSection('downloads'));
@@ -6036,6 +6227,7 @@ function bindEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.favoritesPopoverOpen) setFavoritesPopoverOpen(false);
+    if (event.key === 'Escape' && !els.externalLoginOverlay.hidden) hideExternalLoginDialog();
     if (event.key === 'Escape' && !els.platformManagerOverlay.hidden) {
       els.platformManagerOverlay.hidden = true;
       closePlatformEditors();
@@ -6201,6 +6393,7 @@ function bindEvents() {
   window.addEventListener('resize', scheduleActiveWebviewResize);
   window.mediaDeck.onOpenNewTab((url) => openUrl(url));
   window.mediaDeck.onBrowserNavigate((url) => openUrl(url));
+  window.mediaDeck.onExternalLoginRequest((payload) => showExternalLoginDialog(payload));
   window.mediaDeck.onMediaCandidate((candidate) => addCandidate(candidate));
   window.mediaDeck.onNativeDownloadRequest((payload) => handleNativeDownloadRequest(payload));
   window.mediaDeck.onDownloadState((payload) => {
@@ -6442,6 +6635,8 @@ async function runRendererSelfTest() {
     'closeWindow',
     'rendererReady',
     'resetBrowserSession',
+    'startExternalYouTubeLogin',
+    'syncExternalBrowserLogin',
     'repairDailymotionPlayback',
     'inspectBrowserFrames',
     'getBlockedRequestDiagnostics',
@@ -6467,6 +6662,7 @@ async function runRendererSelfTest() {
     'verifyDownloadedFile',
     'onOpenNewTab',
     'onBrowserNavigate',
+    'onExternalLoginRequest',
     'onMediaCandidate',
     'onNativeDownloadRequest',
     'onDownloadState',
@@ -6476,6 +6672,13 @@ async function runRendererSelfTest() {
   ];
   const missingApiMethods = requiredApiMethods.filter((name) => typeof window.mediaDeck?.[name] !== 'function');
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
+  const externalLoginOpenState = await window.mediaDeck.startExternalYouTubeLogin();
+  await wait(30);
+  assert(externalLoginOpenState?.opened === true, 'System-browser YouTube login did not open');
+  assert(els.externalLoginOverlay.hidden === false, 'System-browser login instructions did not appear above the app');
+  await syncExternalLogin();
+  assert(els.externalLoginOverlay.hidden === true, 'System-browser login instructions did not close after synchronization');
+  assert(state.externalLoginCanSync === false && els.externalLoginSync.disabled, 'Completed external login remained retryable after its browser closed');
   assert(getComputedStyle(document.querySelector('.address-input-shell')).cursor === 'not-allowed', 'Read-only address bar must use the prohibited cursor');
   const applicationSelects = Array.from(document.querySelectorAll('select:not([multiple])'));
   const selectStyleDiagnostics = applicationSelects.map((select) => {

@@ -2,8 +2,10 @@ const { app, BrowserWindow, dialog, ipcMain, nativeImage, net, session, shell, w
 const crypto = require('node:crypto');
 const fsSync = require('fs');
 const fs = require('fs/promises');
+const nodeNet = require('node:net');
 const path = require('path');
 const { execFileSync, spawn } = require('child_process');
+const WebSocket = require('ws');
 const {
   classifyMediaPage,
   isProviderMediaContext,
@@ -892,6 +894,280 @@ function createPopupWindow(url, partition = BROWSER_PARTITION) {
 
 function getBrowserSession() {
   return session.fromPartition(BROWSER_PARTITION);
+}
+
+const EXTERNAL_YOUTUBE_LOGIN_URL = 'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F';
+const SUPPORTED_LOGIN_BROWSERS = new Set(['chrome', 'edge']);
+const EXTERNAL_LOGIN_PROFILE_ROOT = path.join(USER_DATA_PATH, 'ExternalBrowserLogin');
+const externalLoginSessions = new Map();
+
+function isGoogleLoginFromYouTube(targetUrl, openerUrl = '') {
+  try {
+    const target = new URL(String(targetUrl || '').trim());
+    const opener = new URL(String(openerUrl || '').trim());
+    const targetIsGoogleLogin = target.protocol === 'https:' && target.hostname === 'accounts.google.com';
+    const openerIsYouTube = opener.hostname === 'youtube.com'
+      || opener.hostname.endsWith('.youtube.com')
+      || (opener.hostname === 'accounts.google.com' && decodeURIComponent(opener.href).includes('youtube.com'));
+    return targetIsGoogleLogin && openerIsYouTube;
+  } catch {
+    return false;
+  }
+}
+
+function externalBrowserCandidates(browser) {
+  const env = process.env;
+  if (process.platform === 'win32') {
+    const roots = [env.LOCALAPPDATA, env.PROGRAMFILES, env['PROGRAMFILES(X86)']].filter(Boolean);
+    const suffixes = browser === 'edge'
+      ? [path.join('Microsoft', 'Edge', 'Application', 'msedge.exe')]
+      : [path.join('Google', 'Chrome', 'Application', 'chrome.exe')];
+    return roots.flatMap((root) => suffixes.map((suffix) => path.join(root, suffix)));
+  }
+  if (process.platform === 'darwin') {
+    return browser === 'edge'
+      ? ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge']
+      : ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'];
+  }
+  return browser === 'edge'
+    ? ['/usr/bin/microsoft-edge', '/usr/bin/microsoft-edge-stable']
+    : ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser'];
+}
+
+function findExternalBrowser(browser) {
+  return externalBrowserCandidates(browser).find((candidate) => fsSync.existsSync(candidate)) || null;
+}
+
+async function availableLoopbackPort() {
+  return new Promise((resolve, reject) => {
+    const server = nodeNet.createServer();
+    server.unref();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      server.close((error) => (error ? reject(error) : resolve(port)));
+    });
+  });
+}
+
+async function fetchCdpJson(port, pathname) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 4000);
+  try {
+    const response = await net.fetch(`http://127.0.0.1:${port}${pathname}`, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Login browser returned HTTP ${response.status}.`);
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function externalLoginSessionReady(sessionState) {
+  if (!sessionState?.port) return false;
+  try {
+    await fetchCdpJson(sessionState.port, '/json/version');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function launchExternalBrowserProcess(executable, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(executable, args, {
+      detached: false,
+      windowsHide: false,
+      stdio: 'ignore',
+    });
+    child.once('error', reject);
+    child.once('spawn', () => resolve(child));
+  });
+}
+
+async function startManagedExternalLogin(browserValue = 'chrome') {
+  let browser = String(browserValue || '').trim().toLowerCase();
+  if (!SUPPORTED_LOGIN_BROWSERS.has(browser)) browser = 'chrome';
+  let executable = findExternalBrowser(browser);
+  if (!executable) {
+    const fallback = browser === 'chrome' ? 'edge' : 'chrome';
+    executable = findExternalBrowser(fallback);
+    if (!executable) throw new Error('未找到 Google Chrome 或 Microsoft Edge。请先安装其中一个浏览器。');
+    browser = fallback;
+  }
+  const existing = externalLoginSessions.get(browser);
+  if (await externalLoginSessionReady(existing)) {
+    await launchExternalBrowserProcess(executable, [
+      `--user-data-dir=${existing.profileDir}`,
+      `--remote-debugging-port=${existing.port}`,
+      EXTERNAL_YOUTUBE_LOGIN_URL,
+    ]);
+    return { ...existing, browser, executable, process: existing.process };
+  }
+  const port = await availableLoopbackPort();
+  const profileDir = path.join(EXTERNAL_LOGIN_PROFILE_ROOT, browser);
+  await fs.mkdir(profileDir, { recursive: true });
+  const args = [
+    `--user-data-dir=${profileDir}`,
+    `--remote-debugging-port=${port}`,
+    '--remote-debugging-address=127.0.0.1',
+    '--no-first-run',
+    '--no-default-browser-check',
+    EXTERNAL_YOUTUBE_LOGIN_URL,
+  ];
+  const child = await launchExternalBrowserProcess(executable, args);
+  const sessionState = { browser, executable, port, profileDir, process: child };
+  externalLoginSessions.set(browser, sessionState);
+  child.once('exit', () => {
+    if (externalLoginSessions.get(browser)?.process === child) sessionState.process = null;
+  });
+  return sessionState;
+}
+
+function notifyExternalLoginRequest(payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('browser:external-login-request', payload);
+  }
+}
+
+async function beginExternalYouTubeLogin(browserValue = 'chrome') {
+  if (IS_SMOKE_TEST) {
+    const result = { opened: true, provider: 'youtube', browser: 'chrome', url: EXTERNAL_YOUTUBE_LOGIN_URL, smoke: true };
+    notifyExternalLoginRequest(result);
+    return result;
+  }
+  try {
+    const sessionState = await startManagedExternalLogin(browserValue);
+    const result = {
+      opened: true,
+      provider: 'youtube',
+      browser: sessionState.browser,
+      url: EXTERNAL_YOUTUBE_LOGIN_URL,
+    };
+    notifyExternalLoginRequest(result);
+    return result;
+  } catch (error) {
+    notifyExternalLoginRequest({ opened: false, provider: 'youtube', error: String(error?.message || error) });
+    throw error;
+  }
+}
+
+function runCdpCommand(webSocketDebuggerUrl, method, params = {}, timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    let socket;
+    let settled = false;
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      try { socket?.close(); } catch { /* already closed */ }
+      callback();
+    };
+    const timeout = setTimeout(() => finish(() => reject(new Error('登录浏览器响应超时，请保持登录窗口打开后重试。'))), timeoutMs);
+    try {
+      socket = new WebSocket(webSocketDebuggerUrl);
+    } catch (error) {
+      finish(() => reject(error));
+      return;
+    }
+    socket.addEventListener('open', () => {
+      socket.send(JSON.stringify({ id: 1, method, params }));
+    });
+    socket.addEventListener('message', (event) => {
+      try {
+        const payload = JSON.parse(String(event.data || ''));
+        if (payload.id !== 1) return;
+        if (payload.error) {
+          finish(() => reject(new Error(payload.error.message || `CDP command failed: ${method}`)));
+          return;
+        }
+        finish(() => resolve(payload.result || {}));
+      } catch {
+        // Ignore unrelated DevTools events and malformed non-command messages.
+      }
+    });
+    socket.addEventListener('error', () => finish(() => reject(new Error('无法连接登录浏览器，请保持该窗口打开后重试。'))));
+  });
+}
+
+async function managedExternalBrowserCookies(browser) {
+  const sessionState = externalLoginSessions.get(browser);
+  if (!await externalLoginSessionReady(sessionState)) {
+    throw new Error('登录浏览器已关闭或尚未打开。请点击“重新打开登录页”，登录后保持窗口打开，再执行同步。');
+  }
+  const targets = await fetchCdpJson(sessionState.port, '/json/list');
+  const pages = Array.isArray(targets) ? targets.filter((target) => target?.type === 'page' && target.webSocketDebuggerUrl) : [];
+  const target = pages.find((page) => /(?:google|youtube)\.com/i.test(String(page.url || ''))) || pages[0];
+  if (!target) throw new Error('没有找到可读取的登录页面，请在登录浏览器中打开 YouTube 后重试。');
+  const result = await runCdpCommand(target.webSocketDebuggerUrl, 'Network.getAllCookies');
+  return { cookies: Array.isArray(result.cookies) ? result.cookies : [], target };
+}
+
+function importedCookieDetails(cookie) {
+  const name = String(cookie?.name || '').trim();
+  const value = String(cookie?.value || '');
+  const domain = String(cookie?.domain || '').trim().toLowerCase();
+  const host = domain.replace(/^\./, '');
+  if (!name || !host || !/(^|\.)(?:google\.com|youtube\.com|googleapis\.com)$/.test(host)) return null;
+  const cookiePath = String(cookie?.path || '/').startsWith('/') ? String(cookie?.path || '/') : '/';
+  const secure = cookie?.secure !== false;
+  const details = {
+    url: `${secure ? 'https' : 'http'}://${host}${cookiePath}`,
+    name,
+    value,
+    path: cookiePath,
+    secure,
+    httpOnly: cookie?.httpOnly === true,
+  };
+  const sameSite = String(cookie?.sameSite || '').toLowerCase();
+  if (sameSite === 'none') details.sameSite = 'no_restriction';
+  else if (sameSite === 'lax' || sameSite === 'strict') details.sameSite = sameSite;
+  if (!name.startsWith('__Host-')) details.domain = domain;
+  const expirationDate = Number(cookie?.expirationDate);
+  if (Number.isFinite(expirationDate) && expirationDate > Date.now() / 1000) details.expirationDate = expirationDate;
+  return details;
+}
+
+function hasAuthenticatedGoogleSession(cookies) {
+  const authenticatedNames = new Set([
+    'SID', 'HSID', 'SSID', 'APISID', 'SAPISID', 'LOGIN_INFO',
+    '__Secure-1PSID', '__Secure-3PSID', '__Secure-1PAPISID', '__Secure-3PAPISID',
+  ]);
+  return cookies.some((cookie) => authenticatedNames.has(String(cookie?.name || '')));
+}
+
+async function syncExternalBrowserLogin(browserValue) {
+  const browser = String(browserValue || '').trim().toLowerCase();
+  if (!SUPPORTED_LOGIN_BROWSERS.has(browser)) throw new Error('请选择 Google Chrome 或 Microsoft Edge。');
+  if (IS_SMOKE_TEST) return { ok: true, browser, imported: 3, failed: 0, smoke: true };
+  const payload = await managedExternalBrowserCookies(browser);
+  if (!hasAuthenticatedGoogleSession(payload.cookies)) {
+    throw new Error('尚未检测到已登录的 Google/YouTube 会话。请在登录窗口中完成验证并进入 YouTube，然后保持窗口打开再试。');
+  }
+  const browserSession = getBrowserSession();
+  let imported = 0;
+  let failed = 0;
+  for (const cookie of payload.cookies) {
+    const details = importedCookieDetails(cookie);
+    if (!details) continue;
+    try {
+      await browserSession.cookies.set(details);
+      imported += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+  if (!imported) throw new Error('No usable Google or YouTube login cookies could be synchronized.');
+  browserSession.flushStorageData();
+  metadataExtractionCache.clear();
+  metadataGeneration += 1;
+  await runCdpCommand(payload.target.webSocketDebuggerUrl, 'Browser.close', {}, 3000).catch(() => null);
+  return {
+    ok: true,
+    browser,
+    imported,
+    failed,
+  };
 }
 
 function getBackgroundDownloadSession() {
@@ -2614,6 +2890,10 @@ app.on('second-instance', () => {
 app.on('web-contents-created', (_event, contents) => {
   if (contents.getType() !== 'webview') return;
   contents.setWindowOpenHandler(({ url }) => {
+    if (isGoogleLoginFromYouTube(url, contents.getURL())) {
+      void beginExternalYouTubeLogin().catch(() => null);
+      return { action: 'deny' };
+    }
     const disposition = classifyBrowserWindowOpen(url, contents.getURL());
     if (disposition === 'allow-popup') {
       return {
@@ -2633,6 +2913,11 @@ app.on('web-contents-created', (_event, contents) => {
       mainWindow.webContents.send('browser:open-new-tab', url);
     }
     return { action: 'deny' };
+  });
+  contents.on('will-navigate', (event, url) => {
+    if (!isGoogleLoginFromYouTube(url, contents.getURL())) return;
+    event.preventDefault();
+    void beginExternalYouTubeLogin().catch(() => null);
   });
   contents.once('destroyed', () => {
     finishRecordingsForSender(contents.id);
@@ -2683,6 +2968,20 @@ ipcMain.handle('app:get-legacy-info', () => getLegacyInfo());
 ipcMain.handle('session:reset-browser', async () => {
   await resetBrowserSession();
   return getRuntimeInfo();
+});
+
+ipcMain.handle('browser:start-external-login', async (event, options = {}) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('External browser login is only available to the app renderer.');
+  }
+  return beginExternalYouTubeLogin(options.browser);
+});
+
+ipcMain.handle('browser:sync-external-login', async (event, options = {}) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('Browser login synchronization is only available to the app renderer.');
+  }
+  return syncExternalBrowserLogin(options.browser);
 });
 
 ipcMain.handle('browser:set-preferred-language', (_event, locale) => {

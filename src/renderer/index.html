@@ -84,6 +84,7 @@
                   <input class="address-input" id="address-input" type="text" placeholder="当前网页地址" spellcheck="false" readonly aria-readonly="true" tabindex="-1" />
                 </div>
                 <div class="toolbar-extra">
+                  <button class="browser-login-button" id="browser-login-button" type="button" title="使用系统浏览器登录 YouTube" aria-label="使用系统浏览器登录 YouTube"><span data-icon="user"></span></button>
                   <div class="favorites-popover-anchor">
                     <button class="nav-favorites-button" id="page-favorite" type="button" title="收藏" aria-label="收藏" aria-haspopup="dialog" aria-expanded="false"><span id="page-favorite-icon" data-icon="star"></span></button>
                     <section class="favorites-popover" id="favorites-popover" aria-label="收藏" hidden>
@@ -548,6 +549,38 @@
             <button class="platform-primary-button" id="category-edit-save" type="submit">保存</button>
           </div>
         </form>
+      </div>
+    </section>
+    <section class="external-login-overlay" id="external-login-overlay" hidden>
+      <div class="external-login-dialog" role="dialog" aria-modal="true" aria-labelledby="external-login-title">
+        <header class="external-login-header">
+          <div class="external-login-brand" aria-hidden="true"><span data-icon="user"></span></div>
+          <div>
+            <h2 id="external-login-title">使用系统浏览器登录 YouTube</h2>
+            <p id="external-login-subtitle">Google 登录将在默认浏览器中完成，VidoGo 不会读取你的密码。</p>
+          </div>
+          <button class="platform-dialog-close" id="external-login-close" type="button" aria-label="关闭"><span data-icon="close"></span></button>
+        </header>
+        <ol class="external-login-steps">
+          <li><span>1</span><div><b id="external-login-step-open-title">完成浏览器登录</b><p id="external-login-step-open-copy">在刚打开的浏览器中完成 Google 验证并进入 YouTube。</p></div></li>
+          <li><span>2</span><div><b id="external-login-step-close-title">保持登录窗口打开</b><p id="external-login-step-close-copy">验证完成后不要关闭该窗口，VidoGo 会通过仅限本机的通道读取登录结果。</p></div></li>
+          <li><span>3</span><div><b id="external-login-step-sync-title">同步登录状态</b><p id="external-login-step-sync-copy">回到 VidoGo 点击同步；成功后登录窗口会自动关闭并刷新 YouTube。</p></div></li>
+        </ol>
+        <div class="external-login-controls">
+          <label>
+            <span id="external-login-browser-label">登录使用的浏览器</span>
+            <select id="external-login-browser">
+              <option value="chrome">Google Chrome</option>
+              <option value="edge">Microsoft Edge</option>
+            </select>
+          </label>
+        </div>
+        <div class="external-login-status" id="external-login-status" role="status" aria-live="polite">等待你在外部登录窗口中完成登录。</div>
+        <footer class="external-login-actions">
+          <button class="ghost-button" id="external-login-reopen" type="button"><span data-icon="refresh"></span><span id="external-login-reopen-label">重新打开登录页</span></button>
+          <button class="platform-primary-button" id="external-login-sync" type="button"><span data-icon="circle-check"></span><span id="external-login-sync-label">已完成登录，同步并刷新</span></button>
+        </footer>
+        <p class="external-login-privacy" id="external-login-privacy">使用独立的浏览器登录配置；登录 Cookie 仅通过本机通道同步到 VidoGo，不会上传服务器或导出为明文文件。</p>
       </div>
     </section>
     <div class="toast-region" id="toast-region" aria-live="polite"></div>
