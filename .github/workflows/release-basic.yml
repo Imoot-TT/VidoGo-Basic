@@ -1,0 +1,67 @@
+name: Build and publish VidoGo Basic
+
+on:
+  push:
+    tags:
+      - "basic-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing Basic release tag to receive the Windows installer
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          python -m pip install -r requirements-build.txt
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+            choco install ffmpeg -y --no-progress
+          }
+
+      - name: Verify source
+        shell: pwsh
+        run: |
+          npm run check
+          npm run check:backend
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: npm run dist:win
+
+      - name: Publish installer to GitHub Release
+        shell: pwsh
+        run: |
+          $asset = Get-ChildItem -LiteralPath dist -Filter "VidoGo-Basic-*-x64-Setup.exe" | Select-Object -First 1
+          if (-not $asset) { throw "Windows installer was not produced." }
+          gh release view $env:RELEASE_TAG *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:RELEASE_TAG --target main --title "VidoGo Basic $($env:RELEASE_TAG -replace '^basic-v','')" --generate-notes
+          }
+          gh release upload $env:RELEASE_TAG $asset.FullName --clobber
