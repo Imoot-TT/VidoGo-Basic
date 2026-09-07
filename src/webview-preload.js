@@ -264,9 +264,9 @@ function visibleArea(rect) {
   return width * height;
 }
 
-function activeVideoElement() {
+function activeVideoElement(scope = document) {
   const viewportCenter = window.innerHeight / 2;
-  return Array.from(document.querySelectorAll('video')).map((video) => {
+  return Array.from(scope?.querySelectorAll?.('video') || []).map((video) => {
     const rect = video.getBoundingClientRect();
     const style = getComputedStyle(video);
     if (rect.width < 120 || rect.height < 120 || style.display === 'none' || style.visibility === 'hidden') return null;
@@ -613,6 +613,206 @@ function douyinActiveMediaSnapshot() {
   };
 }
 
+function xiaohongshuNoteScope(video = null) {
+  const selectors = [
+    '#noteContainer',
+    '.note-container',
+    '[class*="note-detail" i]',
+    '[class*="noteDetail" i]',
+    '[class*="note-container" i]',
+    '[class*="modal" i]',
+  ];
+  const roots = selectors.flatMap((selector) => Array.from(document.querySelectorAll(selector)));
+  const unique = [...new Set(roots)].filter((root) => {
+    const rect = root.getBoundingClientRect();
+    const style = getComputedStyle(root);
+    return rect.width >= 420 && rect.height >= 320 && style.display !== 'none' && style.visibility !== 'hidden';
+  });
+  if (video) {
+    const containingVideo = unique.find((root) => root.contains(video));
+    if (containingVideo) return containingVideo;
+  }
+  return unique.sort((left, right) => visibleArea(right.getBoundingClientRect()) - visibleArea(left.getBoundingClientRect()))[0]
+    || document;
+}
+
+function xiaohongshuImageExtension(rawUrl) {
+  try {
+    const parsed = new URL(rawUrl);
+    const pathExtension = parsed.pathname.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'avif'].includes(pathExtension)) return pathExtension === 'jpeg' ? 'jpg' : pathExtension;
+    const format = String(parsed.searchParams.get('format') || parsed.searchParams.get('fmt') || '').toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'webp', 'avif'].includes(format)) return format === 'jpeg' ? 'jpg' : format;
+  } catch {
+    // Use JPG as a display hint; the downloader also verifies Content-Type.
+  }
+  return 'jpg';
+}
+
+function xiaohongshuImageUrl(value) {
+  if (!value || typeof value !== 'object') return '';
+  const direct = [value.urlDefault, value.urlPre, value.url, value.src, value.originalUrl, value.original_url];
+  const nested = [
+    ...(Array.isArray(value.infoList) ? value.infoList : []),
+    ...(Array.isArray(value.info_list) ? value.info_list : []),
+    ...(Array.isArray(value.urlList) ? value.urlList : []),
+    ...(Array.isArray(value.url_list) ? value.url_list : []),
+  ];
+  return [...direct, ...nested.map((item) => typeof item === 'string' ? item : item?.url)]
+    .find((item) => typeof item === 'string' && /^https:\/\//i.test(item)) || '';
+}
+
+function xiaohongshuStateImages(mediaId, hasVideo) {
+  if (hasVideo) return [];
+  const roots = [window.__INITIAL_STATE__, window.__INITIAL_SSR_STATE__, window.__NUXT__].filter(Boolean);
+  const seenObjects = new WeakSet();
+  const seenLists = new WeakSet();
+  const matchingLists = [];
+  let visited = 0;
+  const collectImageLists = (value, depth) => {
+    if (!value || typeof value !== 'object' || depth > 3) return;
+    for (const key of Object.keys(value).slice(0, 120)) {
+      let child;
+      try { child = value[key]; } catch { continue; }
+      if (['imageList', 'image_list', 'images'].includes(key) && Array.isArray(child) && child.length && !seenLists.has(child)) {
+        seenLists.add(child);
+        matchingLists.push(child);
+      } else if (child && typeof child === 'object' && !Array.isArray(child)) {
+        collectImageLists(child, depth + 1);
+      }
+    }
+  };
+  const scan = (value, depth) => {
+    if (!value || typeof value !== 'object' || seenObjects.has(value) || depth > 11 || visited >= 30_000) return;
+    seenObjects.add(value);
+    visited += 1;
+    const candidateId = String(value.noteId || value.note_id || value.id || value.itemId || '');
+    if (candidateId === mediaId) collectImageLists(value, 0);
+    for (const key of Object.keys(value).slice(0, 180)) {
+      if (/^(?:parent|ownerDocument|window|document)$/i.test(key)) continue;
+      let child;
+      try { child = value[key]; } catch { continue; }
+      scan(child, depth + 1);
+    }
+  };
+  roots.forEach((root) => scan(root, 0));
+  const seenUrls = new Set();
+  return matchingLists.flatMap((list) => list).map((image) => {
+    const url = xiaohongshuImageUrl(image);
+    if (!url || seenUrls.has(url)) return null;
+    seenUrls.add(url);
+    return {
+      id: `image-${seenUrls.size}`,
+      assetType: 'image',
+      assetRole: 'gallery',
+      extension: xiaohongshuImageExtension(url),
+      url,
+      width: Number(image?.width || 0) || null,
+      height: Number(image?.height || 0) || null,
+      name: `图片 ${seenUrls.size}`,
+    };
+  }).filter(Boolean).slice(0, 30);
+}
+
+function xiaohongshuContentImages(scope, hasVideo) {
+  if (hasVideo) return [];
+  const selectors = [
+    '.swiper-slide img',
+    '.swiper-wrapper img',
+    '[class*="slider" i] img',
+    '[class*="carousel" i] img',
+    '[class*="note-content" i] img',
+    '[class*="media-container" i] img',
+    '[class*="image-container" i] img',
+  ];
+  const images = [...new Set(selectors.flatMap((selector) => Array.from(scope.querySelectorAll?.(selector) || [])))];
+  const seen = new Set();
+  return images.map((image) => {
+    const url = String(image.currentSrc || image.src || image.getAttribute('data-src') || '').trim();
+    if (!/^https:\/\//i.test(url) || seen.has(url)) return null;
+    let parsed;
+    try { parsed = new URL(url); } catch { return null; }
+    if (!/(?:^|\.)xhscdn\.(?:com|net)$/i.test(parsed.hostname)) return null;
+    const marker = `${parsed.pathname} ${image.className || ''} ${image.alt || ''}`;
+    if (/avatar|profile|head|icon|logo|emoji/i.test(marker)) return null;
+    const width = Number(image.naturalWidth || image.width || 0);
+    const height = Number(image.naturalHeight || image.height || 0);
+    if (width && height && (width < 280 || height < 280)) return null;
+    seen.add(url);
+    return {
+      id: `image-${seen.size}`,
+      assetType: 'image',
+      assetRole: 'gallery',
+      extension: xiaohongshuImageExtension(url),
+      url,
+      width: width || null,
+      height: height || null,
+      name: `图片 ${seen.size}`,
+    };
+  }).filter(Boolean).slice(0, 30);
+}
+
+function xiaohongshuMediaSnapshot() {
+  const host = location.hostname.toLowerCase();
+  if (host !== 'xiaohongshu.com' && !host.endsWith('.xiaohongshu.com')) return null;
+  const mediaId = location.pathname.match(/^\/(?:explore|discovery\/item)\/([A-Za-z0-9]+)/i)?.[1] || '';
+  if (!mediaId) return null;
+  const initialScope = xiaohongshuNoteScope();
+  const video = activeVideoElement(initialScope);
+  const scope = xiaohongshuNoteScope(video);
+  const directUrl = /^https:\/\//i.test(String(video?.currentSrc || video?.src || ''))
+    ? String(video.currentSrc || video.src)
+    : '';
+  const stateImages = xiaohongshuStateImages(mediaId, Boolean(video));
+  const domImages = xiaohongshuContentImages(scope, Boolean(video));
+  const images = [...stateImages, ...domImages]
+    .filter((image, index, all) => all.findIndex((other) => other.url === image.url) === index)
+    .slice(0, 30)
+    .map((image, index) => ({ ...image, id: `image-${index + 1}`, name: `图片 ${index + 1}` }));
+  if (!directUrl && !images.length) return null;
+  const metaTitle = document.querySelector('meta[property="og:title"]')?.content || '';
+  const title = textFrom(scope, [
+    '[class*="title" i]',
+    '[class*="note-text" i]',
+    'h1',
+    'h2',
+  ]) || metaTitle || document.title || '小红书笔记';
+  const poster = String(video?.poster || '').trim();
+  const metaThumbnail = String(document.querySelector('meta[property="og:image"]')?.content || '').trim();
+  const thumbnailUrl = images[0]?.url
+    || (/^https:\/\//i.test(poster) ? poster : '')
+    || (/^https:\/\//i.test(metaThumbnail) ? metaThumbnail : '');
+  const width = Number(video?.videoWidth || images[0]?.width || 0);
+  const height = Number(video?.videoHeight || images[0]?.height || 0);
+  return {
+    provider: 'xiaohongshu',
+    mediaId,
+    canonicalUrl: location.href,
+    title: String(title).replace(/\s+/g, ' ').trim().slice(0, 300),
+    thumbnailUrl,
+    directUrl,
+    width,
+    height,
+    resolution: video ? (Math.min(width, height) || 0) : 0,
+    variants: directUrl ? [{
+      url: directUrl,
+      extension: 'mp4',
+      mimeType: 'video/mp4',
+      width,
+      height,
+      resolution: Math.min(width, height) || 0,
+      qualityLabel: height ? `${height}p` : '当前播放',
+      sizeBytes: 0,
+      hasAudio: true,
+      hasVideo: true,
+      isDrmProtected: false,
+      sourceClient: 'xiaohongshu-page',
+    }] : [],
+    images,
+    kind: directUrl ? 'video' : 'image',
+  };
+}
+
 function stockActiveMediaSnapshot() {
   const host = location.hostname.toLowerCase();
   const providers = [
@@ -731,11 +931,13 @@ function installActiveMediaReporter() {
     updateVerificationPageTheme();
     const snapshot = tiktokActiveMediaSnapshot() || douyinActiveMediaSnapshot();
     const stockSnapshot = stockActiveMediaSnapshot();
+    const xiaohongshuSnapshot = xiaohongshuMediaSnapshot();
     const collection = collectionMediaSnapshot();
     const signature = JSON.stringify([
       snapshot?.provider || '', snapshot?.mediaId || '', snapshot?.title || '', snapshot?.thumbnailUrl || '', snapshot?.directUrl || '', snapshot?.playing || false,
       collection?.provider || '', ...(collection?.entries || []).map((entry) => entry.canonicalUrl),
       stockSnapshot?.provider || '', stockSnapshot?.canonicalUrl || '', ...(stockSnapshot?.variants || []).map((entry) => entry.url),
+      xiaohongshuSnapshot?.mediaId || '', xiaohongshuSnapshot?.directUrl || '', ...(xiaohongshuSnapshot?.images || []).map((entry) => entry.url),
     ]);
     if (signature === lastSignature) return;
     lastSignature = signature;
@@ -752,6 +954,7 @@ function installActiveMediaReporter() {
     }
     ipcRenderer.sendToHost('vidogo:media-collection', collection || { provider: providerSiteName(), entries: [] });
     ipcRenderer.sendToHost('vidogo:stock-media', stockSnapshot || { provider: providerSiteName(), cleared: true });
+    ipcRenderer.sendToHost('vidogo:xiaohongshu-media', xiaohongshuSnapshot || { provider: providerSiteName(), cleared: true });
   };
   const schedule = () => {
     if (timer) return;
@@ -776,6 +979,7 @@ function providerSiteName() {
   const host = location.hostname.toLowerCase();
   if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) return 'tiktok';
   if (host === 'douyin.com' || host.endsWith('.douyin.com')) return 'douyin';
+  if (host === 'xiaohongshu.com' || host.endsWith('.xiaohongshu.com')) return 'xiaohongshu';
   if (host === 'agedm.io' || host.endsWith('.agedm.io')) return 'agedm';
   if (host === 'pixabay.com' || host.endsWith('.pixabay.com')) return 'pixabay';
   if (host === 'pexels.com' || host.endsWith('.pexels.com')) return 'pexels';

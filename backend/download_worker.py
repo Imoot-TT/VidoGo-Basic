@@ -64,6 +64,12 @@ def main() -> int:
             merge_output_format=normalize_merge_output_format(task.get("mergeOutputFormat")),
             referrer=normalize_referrer(task.get("referrer")),
             thumbnail_url=normalize_thumbnail_url(task.get("thumbnailUrl")),
+            asset_type=str(task.get("assetType") or ("audio" if task.get("audioOnly") else "video")),
+            asset_role=str(task.get("assetRole") or "").strip(),
+            subtitle_language=str(task.get("subtitleLanguage") or "").strip() or None,
+            subtitle_automatic=bool(task.get("subtitleAutomatic")),
+            title=str(task.get("title") or task.get("fileName") or "Untitled"),
+            media_id=str(task.get("mediaId") or ""),
         )
     except (TypeError, ValueError) as exc:
         emit({"type": "error", "message": str(exc)})

@@ -20,6 +20,8 @@ const supportedPages = [
   ['https://player.vimeo.com/video/76979871', 'vimeo'],
   ['https://www.tiktok.com/@scout2015/video/6718335390845095173', 'tiktok'],
   ['https://www.douyin.com/jingxuan?modal_id=7662233163963387177', 'douyin'],
+  ['https://www.xiaohongshu.com/explore/6a768d1600000003202326a', 'xiaohongshu'],
+  ['https://www.xiaohongshu.com/discovery/item/6a768d1600000003202326a', 'xiaohongshu'],
   ['https://www.instagram.com/reel/ABC_def-123/', 'instagram'],
   ['https://www.facebook.com/watch/?v=1234567890', 'facebook'],
   ['https://x.com/example/status/1234567890123456789', 'twitter'],
@@ -63,6 +65,7 @@ assert(
 );
 assert(providerSiteForUrl('https://www.tiktok.com/') === 'tiktok', 'TikTok collection pages should retain their provider context');
 assert(providerSiteForUrl('https://www.dailymotion.com/us') === 'dailymotion', 'Dailymotion home should retain its provider context');
+assert(providerSiteForUrl('https://www.xiaohongshu.com/explore') === 'xiaohongshu', 'Xiaohongshu pages should retain their provider context');
 assert(
   isProviderMediaContext('https://www.tiktok.com/', 'https://www.tiktok.com/@scout2015/video/6718335390845095173'),
   'A TikTok feed should be allowed to analyze its active canonical video',

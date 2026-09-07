@@ -139,9 +139,9 @@
                   <span class="browser-status-item" title="Local save"><span data-icon="folder-opened" aria-hidden="true"></span><b id="browser-status-local-label">本地保存</b></span>
                   <span class="browser-status-item" title="Ad blocker"><span data-icon="circle-check" aria-hidden="true"></span><b id="browser-status-adblock-label">广告过滤</b><em id="browser-status-adblock-state">ON</em></span>
                 </div>
-                <span class="browser-status-network" id="browser-status-network" title="当前下载总速度">
+                <span class="browser-status-network" id="browser-status-network" title="当前系统网络速度">
                   <span class="browser-status-network-bars" aria-hidden="true"><i></i><i></i><i></i></span>
-                  <b id="browser-status-network-label">网速</b><em id="browser-status-network-speed"><bdi>0 B/s</bdi></em>
+                  <b id="browser-status-network-label">网络速度</b><em id="browser-status-network-speed"><bdi>0 B/s</bdi></em>
                 </span>
                 <button class="browser-status-downloads" id="browser-status-downloads" type="button" title="打开下载队列">
                   <span data-icon="download" aria-hidden="true"></span><b id="browser-status-download-label">下载队列</b><em id="browser-status-download-count">0</em>
@@ -196,6 +196,7 @@
                 </details>
                 <div class="downloads-row downloads-header-row" id="downloads-header" hidden>
                   <div id="head-file">文件名</div>
+                  <div id="head-type">类型</div>
                   <div id="head-progress">进度</div>
                   <div id="head-downloaded">已下载</div>
                   <div id="head-size">文件大小</div>
@@ -581,6 +582,22 @@
           <button class="platform-primary-button" id="external-login-sync" type="button"><span data-icon="circle-check"></span><span id="external-login-sync-label">已完成登录，同步并刷新</span></button>
         </footer>
         <p class="external-login-privacy" id="external-login-privacy">使用独立的浏览器登录配置；登录 Cookie 仅通过本机通道同步到 VidoGo，不会上传服务器或导出为明文文件。</p>
+      </div>
+    </section>
+    <section class="media-preview-overlay" id="media-preview-overlay" hidden>
+      <div class="media-preview-dialog" id="media-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="media-preview-title">
+        <header class="media-preview-header">
+          <div>
+            <span id="media-preview-kind">预览</span>
+            <h2 id="media-preview-title">媒体预览</h2>
+          </div>
+          <button class="platform-dialog-close" id="media-preview-close" type="button" aria-label="关闭"><span data-icon="close"></span></button>
+        </header>
+        <div class="media-preview-body" id="media-preview-body"></div>
+        <footer class="media-preview-footer">
+          <span id="media-preview-status"></span>
+          <button class="ghost-button" id="media-preview-system-open" type="button"><span data-icon="switch-button"></span><span id="media-preview-system-open-label">使用系统应用打开</span></button>
+        </footer>
       </div>
     </section>
     <div class="toast-region" id="toast-region" aria-live="polite"></div>

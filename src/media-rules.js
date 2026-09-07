@@ -48,6 +48,7 @@
     if (isHostOrSubdomain(host, 'vimeo.com')) return 'vimeo';
     if (isHostOrSubdomain(host, 'tiktok.com')) return 'tiktok';
     if (isHostOrSubdomain(host, 'douyin.com')) return 'douyin';
+    if (isHostOrSubdomain(host, 'xiaohongshu.com')) return 'xiaohongshu';
     if (isHostOrSubdomain(host, 'instagram.com')) return 'instagram';
     if (host === 'fb.watch' || isHostOrSubdomain(host, 'facebook.com')) return 'facebook';
     if (isHostOrSubdomain(host, 'x.com') || isHostOrSubdomain(host, 'twitter.com')) return 'twitter';
@@ -119,6 +120,11 @@
       const videoId = pathname.match(/^\/video\/(\d+)/i)?.[1]
         || (/^\d{12,}$/.test(String(modalId || '')) ? modalId : null);
       if (videoId) return { provider: 'douyin', mediaId: videoId, pageKind: 'video' };
+    }
+
+    if (isHostOrSubdomain(host, 'xiaohongshu.com')) {
+      const noteId = pathname.match(/^\/(?:explore|discovery\/item)\/([A-Za-z0-9]+)/i)?.[1];
+      if (noteId) return { provider: 'xiaohongshu', mediaId: noteId, pageKind: 'post' };
     }
 
     if (isHostOrSubdomain(host, 'instagram.com')) {

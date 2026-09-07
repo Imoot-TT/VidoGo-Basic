@@ -210,6 +210,70 @@ def _thumbnail_url(info: dict[str, Any]) -> str | None:
     return None
 
 
+def _subtitle_tracks(info: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return one useful downloadable track per language.
+
+    yt-dlp exposes manual subtitles and automatic captions as mappings whose
+    values often contain many equivalent transport formats.  The renderer only
+    needs a stable language-level choice; yt-dlp selects the concrete format at
+    download time.
+    """
+    tracks: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    sources = (
+        (info.get("subtitles"), False),
+        (info.get("automatic_captions"), True),
+    )
+    for raw_tracks, automatic in sources:
+        if not isinstance(raw_tracks, dict):
+            continue
+        for language, formats in raw_tracks.items():
+            language_id = str(language or "").strip()
+            if not language_id or language_id in seen or not isinstance(formats, list):
+                continue
+            available = [item for item in formats if isinstance(item, dict) and item.get("url")]
+            if not available:
+                continue
+            preferred = next(
+                (item for extension in ("srt", "vtt", "ttml", "srv3", "json3")
+                 for item in available if str(item.get("ext") or "").lower() == extension),
+                available[0],
+            )
+            seen.add(language_id)
+            tracks.append(
+                {
+                    "id": f"subtitle-{language_id}",
+                    "assetType": "subtitle",
+                    "assetRole": "caption",
+                    "language": language_id,
+                    "name": str(preferred.get("name") or language_id),
+                    "extension": str(preferred.get("ext") or "vtt").lower(),
+                    "automatic": automatic,
+                }
+            )
+    return tracks[:50]
+
+
+def _candidate_assets(info: dict[str, Any], thumbnail_url: str | None, has_audio: bool, is_live: bool = False) -> dict[str, Any]:
+    return {
+        "audio": ([{
+            "id": "audio-mp3",
+            "assetType": "audio",
+            "assetRole": "derived",
+            "extension": "mp3",
+            "generated": True,
+        }] if has_audio and not is_live else []),
+        "images": ([{
+            "id": "cover",
+            "assetType": "image",
+            "assetRole": "cover",
+            "extension": "jpg",
+            "url": thumbnail_url,
+        }] if thumbnail_url else []),
+        "subtitles": ([] if is_live else _subtitle_tracks(info)),
+    }
+
+
 def _safe_file_name(title: str) -> str:
     value = "".join("_" if char in '<>:"/\\|?*' else char for char in title).strip(" .")
     return value[:180] or "video"
@@ -244,6 +308,7 @@ def create_media_candidates(
         title = str(item.get("title") or item.get("fulltitle") or "Video")
         video_id = str(item.get("id") or item_url)
         provider = _provider_name(item, item_url, provider_hint)
+        thumbnail_url = _thumbnail_url(item)
         if _is_live_media(item):
             candidate_id = sha1(f"{provider}:{video_id}".encode("utf-8")).hexdigest()[:20]
             candidates.append(
@@ -257,7 +322,8 @@ def create_media_candidates(
                     "fileName": _safe_file_name(title),
                     "title": title,
                     "kind": "video",
-                    "thumbnailUrl": _thumbnail_url(item),
+                    "thumbnailUrl": thumbnail_url,
+                    "assets": _candidate_assets(item, thumbnail_url, True, True),
                     "variants": [],
                     "hasAudio": True,
                     "hasVideo": True,
@@ -285,6 +351,7 @@ def create_media_candidates(
             video_codec = _video_codec_label(item.get("vcodec"))
             audio_state = _codec_state(item.get("acodec"))
             audio_extension = str(item.get("audio_ext") or "").strip().lower()
+            item_has_audio = audio_state == "present" or (audio_state == "unknown" and audio_extension != "none")
             candidates.append(
                 {
                     "id": f"media-{web_contents_id}-{candidate_id}",
@@ -296,7 +363,7 @@ def create_media_candidates(
                     "fileName": _safe_file_name(title),
                     "title": title,
                     "kind": "video",
-                    "thumbnailUrl": _thumbnail_url(item),
+                    "thumbnailUrl": thumbnail_url,
                     "formatId": str(item.get("format_id") or "").strip() or None,
                     "mimeType": f"video/{extension}",
                     "extension": extension,
@@ -309,8 +376,9 @@ def create_media_candidates(
                     "videoCodec": video_codec,
                     "audioCodec": _audio_codec_label(item.get("acodec")),
                     "fps": _positive_integer(item.get("fps")),
-                    "hasAudio": audio_state == "present" or (audio_state == "unknown" and audio_extension != "none"),
+                    "hasAudio": item_has_audio,
                     "hasVideo": True,
+                    "assets": _candidate_assets(item, thumbnail_url, item_has_audio),
                     "isRecommended": True,
                     "downloadStrategy": "merge",
                     "sourceClient": "yt-dlp",
@@ -352,7 +420,7 @@ def create_media_candidates(
                 "fileName": _safe_file_name(title),
                 "title": title,
                 "kind": "video",
-                "thumbnailUrl": _thumbnail_url(item),
+                "thumbnailUrl": thumbnail_url,
                 "formatId": primary["formatId"],
                 "mimeType": primary["mimeType"],
                 "extension": primary["extension"],
@@ -367,6 +435,7 @@ def create_media_candidates(
                 "fps": primary["fps"],
                 "hasAudio": primary["hasAudio"],
                 "hasVideo": True,
+                "assets": _candidate_assets(item, thumbnail_url, primary["hasAudio"]),
                 "isRecommended": True,
                 "downloadStrategy": "merge",
                 "sourceClient": "yt-dlp",

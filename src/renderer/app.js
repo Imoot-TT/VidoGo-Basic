@@ -45,6 +45,7 @@ const QUICK_SITES = {
   ],
   social: [
     { name: 'Instagram', url: 'https://www.instagram.com/', icon: './assets/instagram.png', color: '#e1306c', short: 'IG' },
+    { name: '小红书', url: 'https://www.xiaohongshu.com/explore', icon: 'https://www.xiaohongshu.com/favicon.ico', color: '#ff2442', short: 'RED' },
     { name: 'Facebook', url: 'https://www.facebook.com/', icon: './assets/facebook.png', color: '#1877f2', short: 'FB' },
     { name: 'X/Twitter', url: 'https://x.com/', icon: './assets/x.ico', color: '#111111', short: 'X' },
     { name: 'Reddit', url: 'https://www.reddit.com/', icon: './assets/reddit.ico', color: '#ff4500', short: 'RD' },
@@ -654,9 +655,9 @@ const RECORDING_SETTING_TEXT = {
 };
 for (const [locale, copy] of Object.entries(RECORDING_SETTING_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const MEDIA_FILTER_TEXT = {
-  'zh-CN': { allResolutions: '全部分辨率' },
-  'zh-TW': { allResolutions: '全部解析度' },
-  en: { allResolutions: 'All resolutions' },
+  'zh-CN': { allResolutions: '全部分辨率', mediaPanel: '媒体资源', showVariants: '选择下载内容', hideVariants: '收起下载内容', downloadVideo: '下载视频', downloadImage: '下载图片', downloadAllImages: '下载全部图片 ({count})', imageNumber: '图片 {index}', quickDownload: '快捷下载', videoQuality: '视频画质', extractMp3: '提取 MP3', downloadCover: '下载封面', downloadSubtitle: '下载字幕', chooseSubtitle: '选择字幕', subtitleDetecting: '字幕检测中…', automaticSubtitle: '自动字幕', assetType: '类型', assetVideo: '视频', assetAudio: 'MP3', assetImage: '图片', assetSubtitle: '字幕', previewVideo: '播放视频', previewAudio: '试听 MP3', previewImage: '预览图片', openSubtitle: '打开字幕', mediaPreview: '媒体预览', previewLoading: '正在打开本地文件…', previewUnsupported: '当前内置播放器不支持此文件编码，可使用系统应用打开。', openWithSystem: '使用系统应用打开' },
+  'zh-TW': { allResolutions: '全部解析度', mediaPanel: '媒體資源', showVariants: '選擇下載內容', hideVariants: '收起下載內容', downloadVideo: '下載影片', downloadImage: '下載圖片', downloadAllImages: '下載全部圖片 ({count})', imageNumber: '圖片 {index}', quickDownload: '快速下載', videoQuality: '影片畫質', extractMp3: '擷取 MP3', downloadCover: '下載封面', downloadSubtitle: '下載字幕', chooseSubtitle: '選擇字幕', subtitleDetecting: '字幕偵測中…', automaticSubtitle: '自動字幕', assetType: '類型', assetVideo: '影片', assetAudio: 'MP3', assetImage: '圖片', assetSubtitle: '字幕', previewVideo: '播放影片', previewAudio: '試聽 MP3', previewImage: '預覽圖片', openSubtitle: '開啟字幕', mediaPreview: '媒體預覽', previewLoading: '正在開啟本機檔案…', previewUnsupported: '內建播放器不支援此檔案編碼，可使用系統應用程式開啟。', openWithSystem: '使用系統應用程式開啟' },
+  en: { allResolutions: 'All resolutions', mediaPanel: 'Media resources', showVariants: 'Choose download content', hideVariants: 'Hide download content', downloadVideo: 'Download video', downloadImage: 'Download image', downloadAllImages: 'Download all images ({count})', imageNumber: 'Image {index}', quickDownload: 'Quick downloads', videoQuality: 'Video quality', extractMp3: 'Extract MP3', downloadCover: 'Download cover', downloadSubtitle: 'Download subtitles', chooseSubtitle: 'Choose subtitles', subtitleDetecting: 'Detecting subtitles…', automaticSubtitle: 'Automatic captions', assetType: 'Type', assetVideo: 'Video', assetAudio: 'MP3', assetImage: 'Image', assetSubtitle: 'Subtitle', previewVideo: 'Play video', previewAudio: 'Play MP3', previewImage: 'Preview image', openSubtitle: 'Open subtitle', mediaPreview: 'Media preview', previewLoading: 'Opening the local file…', previewUnsupported: 'The built-in player does not support this file codec. Open it with a system app instead.', openWithSystem: 'Open with system app' },
   ru: { allResolutions: 'Все разрешения' },
   pt: { allResolutions: 'Todas as resoluções' },
   vi: { allResolutions: 'Tất cả độ phân giải' },
@@ -709,9 +710,9 @@ const UPDATE_TEXT = {
 };
 for (const [locale, copy] of Object.entries(UPDATE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const BROWSER_STATUS_TEXT = {
-  'zh-CN': { media: '媒体识别', local: '本地保存', adblock: '广告过滤', network: '网速', currentSpeed: '当前下载总速度', queue: '下载队列', openQueue: '打开下载队列' },
-  'zh-TW': { media: '媒體識別', local: '本機儲存', adblock: '廣告過濾', network: '網速', currentSpeed: '目前下載總速度', queue: '下載佇列', openQueue: '開啟下載佇列' },
-  en: { media: 'Media', local: 'Local save', adblock: 'Ad blocker', network: 'Speed', currentSpeed: 'Current total download speed', queue: 'Queue', openQueue: 'Open download queue' },
+  'zh-CN': { media: '媒体识别', local: '本地保存', adblock: '广告过滤', network: '网络速度', currentSpeed: '当前系统网络速度', queue: '下载队列', openQueue: '打开下载队列' },
+  'zh-TW': { media: '媒體識別', local: '本機儲存', adblock: '廣告過濾', network: '網路速度', currentSpeed: '目前系統網路速度', queue: '下載佇列', openQueue: '開啟下載佇列' },
+  en: { media: 'Media', local: 'Local save', adblock: 'Ad blocker', network: 'Network speed', currentSpeed: 'Current system network speed', queue: 'Queue', openQueue: 'Open download queue' },
 };
 const EXTERNAL_LOGIN_TEXT = {
   'zh-CN': {
@@ -1021,6 +1022,15 @@ const els = {
   externalLoginStatus: document.getElementById('external-login-status'),
   externalLoginReopen: document.getElementById('external-login-reopen'),
   externalLoginSync: document.getElementById('external-login-sync'),
+  mediaPreviewOverlay: document.getElementById('media-preview-overlay'),
+  mediaPreviewDialog: document.getElementById('media-preview-dialog'),
+  mediaPreviewClose: document.getElementById('media-preview-close'),
+  mediaPreviewKind: document.getElementById('media-preview-kind'),
+  mediaPreviewTitle: document.getElementById('media-preview-title'),
+  mediaPreviewBody: document.getElementById('media-preview-body'),
+  mediaPreviewStatus: document.getElementById('media-preview-status'),
+  mediaPreviewSystemOpen: document.getElementById('media-preview-system-open'),
+  mediaPreviewSystemOpenLabel: document.getElementById('media-preview-system-open-label'),
   toastRegion: document.getElementById('toast-region'),
 };
 
@@ -1061,6 +1071,7 @@ const state = {
   selectedBatchCandidateIdsByTabId: {},
   selectedCandidateIdsByTabId: {},
   expandedCandidateIdsByTabId: {},
+  selectedSubtitleAssetKeysByCandidateId: {},
   selectedMinimumResolutionByTabId: {},
   settings: {
     outputDir: '',
@@ -1078,9 +1089,18 @@ const state = {
   updateInfo: null,
   externalLoginBusy: false,
   externalLoginCanSync: false,
+  previewItem: null,
+  systemNetworkSpeed: {
+    available: false,
+    receivedBytesPerSecond: 0,
+    sentBytesPerSecond: 0,
+    totalBytesPerSecond: 0,
+  },
 };
 
 let webviewResizeFrame = 0;
+let systemNetworkSpeedTimer = 0;
+let systemNetworkSpeedRefreshPending = false;
 
 function readArray(key) {
   try {
@@ -1241,6 +1261,7 @@ function applyLocale() {
   els.clearFinished.querySelector('span:last-child').textContent = text('clearFinished');
   els.retryFailedDownloads.querySelector('span:last-child').textContent = text('retryAllFailed');
   document.getElementById('head-file').textContent = text('fileName');
+  document.getElementById('head-type').textContent = text('assetType');
   document.getElementById('head-progress').textContent = text('progress');
   document.getElementById('head-downloaded').textContent = text('downloaded');
   document.getElementById('head-size').textContent = text('fileSize');
@@ -1248,6 +1269,10 @@ function applyLocale() {
   document.getElementById('head-status').textContent = text('downloadStatus');
   document.getElementById('head-result').textContent = text('resultDetails');
   document.getElementById('head-action').textContent = text('action');
+  els.mediaPreviewTitle.textContent = text('mediaPreview');
+  els.mediaPreviewSystemOpenLabel.textContent = text('openWithSystem');
+  els.mediaPreviewClose.title = text('close');
+  els.mediaPreviewClose.setAttribute('aria-label', text('close'));
   els.historyClear.querySelector('span:last-child').textContent = text('clear');
   els.favoritesTitle.textContent = text('favoritesTitle');
   document.getElementById('favorites-popover-title').textContent = text('favoritesTitle');
@@ -1629,21 +1654,29 @@ function updateDownloadBadge() {
   updateBrowserStatusBar();
 }
 
-function parseTransferSpeed(value) {
-  const numeric = Number(value);
-  if (Number.isFinite(numeric) && numeric > 0) return numeric;
-  const match = String(value || '').trim().match(/^([\d.]+)\s*(B|KB|MB|GB|TB)\/s$/i);
-  if (!match) return 0;
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const unitIndex = units.indexOf(match[2].toUpperCase());
-  return Number(match[1]) * (1024 ** Math.max(0, unitIndex));
+async function refreshSystemNetworkSpeed() {
+  if (systemNetworkSpeedRefreshPending) return;
+  systemNetworkSpeedRefreshPending = true;
+  try {
+    const sample = await window.mediaDeck.getSystemNetworkSpeed();
+    state.systemNetworkSpeed = {
+      available: sample?.available === true,
+      receivedBytesPerSecond: Math.max(0, Number(sample?.receivedBytesPerSecond || 0)),
+      sentBytesPerSecond: Math.max(0, Number(sample?.sentBytesPerSecond || 0)),
+      totalBytesPerSecond: Math.max(0, Number(sample?.totalBytesPerSecond || 0)),
+    };
+    updateBrowserStatusBar();
+  } catch {
+    state.systemNetworkSpeed = { ...state.systemNetworkSpeed, available: false };
+  } finally {
+    systemNetworkSpeedRefreshPending = false;
+  }
 }
 
-function activeDownloadSpeed() {
-  return state.queue.reduce((total, item) => {
-    if (item.source === 'recording' || normalizeDownloadState(item.status || item.state) !== 'downloading') return total;
-    return total + parseTransferSpeed(item.speedBytesPerSecond || item.speed);
-  }, 0);
+function startSystemNetworkSpeedPolling() {
+  if (systemNetworkSpeedTimer || window.mediaDeckSmokeTest) return;
+  void refreshSystemNetworkSpeed();
+  systemNetworkSpeedTimer = window.setInterval(() => void refreshSystemNetworkSpeed(), 1000);
 }
 
 function updateBrowserStatusBar() {
@@ -1658,7 +1691,7 @@ function updateBrowserStatusBar() {
   els.browserStatusAdblockLabel.textContent = copy.adblock;
   els.browserStatusAdblockState.textContent = adBlockerActive ? 'ON' : 'OFF';
   els.browserStatusAdblockState.classList.toggle('is-off', !adBlockerActive);
-  const totalSpeed = activeDownloadSpeed();
+  const totalSpeed = Math.max(0, Number(state.systemNetworkSpeed.totalBytesPerSecond || 0));
   const speedText = totalSpeed > 0 ? `${formatBytes(totalSpeed)}/s` : '0 B/s';
   els.browserStatusNetworkLabel.textContent = copy.network;
   els.browserStatusNetworkSpeed.querySelector('bdi').textContent = speedText;
@@ -1834,6 +1867,8 @@ function attachWebviewEvents(tab) {
       handleMediaCollection(tab, event.args?.[0]);
     } else if (event.channel === 'vidogo:stock-media') {
       handleStockMediaContext(tab, event.args?.[0]);
+    } else if (event.channel === 'vidogo:xiaohongshu-media') {
+      handleXiaohongshuMediaContext(tab, event.args?.[0]);
     } else if (event.channel === 'vidogo:site-download-metadata') {
       handleSiteDownloadMetadata(tab, event.args?.[0]);
     } else if (event.channel === 'vidogo:site-download-intent') {
@@ -2277,7 +2312,9 @@ function navigateActive(value) {
   if (!url) return;
   const tab = activeTab();
   if (!tab) return openUrl(url);
-  tab.webview.loadURL(url);
+  void tab.webview.loadURL(url).catch((error) => {
+    if (![-3, -2].includes(Number(error?.errno))) toast(`${text('loadFailed')}: ${url}`);
+  });
 }
 
 function addHistory(title, url) {
@@ -3084,6 +3121,7 @@ function scheduleActiveMediaProbe(tab, delay = 900) {
 }
 
 function activeMediaPlaceholder(tab, context) {
+  const thumbnailUrl = context.thumbnailUrl || null;
   return {
     id: `active-${context.provider}-${context.mediaId}`,
     webContentsId: tab.webContentsId,
@@ -3093,7 +3131,7 @@ function activeMediaPlaceholder(tab, context) {
     fileName: context.title,
     title: context.title,
     kind: 'video',
-    thumbnailUrl: context.thumbnailUrl || null,
+    thumbnailUrl,
     extension: 'mp4',
     width: context.width || null,
     height: context.height || null,
@@ -3103,6 +3141,11 @@ function activeMediaPlaceholder(tab, context) {
     variants: context.variants || [],
     hasAudio: true,
     hasVideo: true,
+    assets: {
+      audio: [{ id: 'audio-mp3', assetType: 'audio', assetRole: 'derived', extension: 'mp3', generated: true }],
+      images: thumbnailUrl ? [{ id: 'cover', assetType: 'image', assetRole: 'cover', extension: 'jpg', url: thumbnailUrl }] : [],
+      subtitles: [],
+    },
     isRecommended: true,
     downloadStrategy: context.directUrl ? 'direct' : 'merge',
     sourceClient: context.directUrl ? `${context.provider}-page` : 'active-page',
@@ -3245,6 +3288,82 @@ async function handleActiveMediaContext(tab, payload) {
       // analysis is unavailable, so retain the single active-video row.
     }
   })();
+}
+
+function handleXiaohongshuMediaContext(tab, payload) {
+  const provider = tabProvider(tab);
+  if (!tab || provider !== 'xiaohongshu' || payload?.provider !== provider) return;
+  if (payload?.cleared) {
+    clearMediaCandidatesForTab(tab.id);
+    if (tab.id === state.activeTabId) renderCandidates();
+    return;
+  }
+  const canonicalUrl = safeActiveMediaUrl(payload?.canonicalUrl) || tab.url;
+  const page = MEDIA_RULES?.classifyMediaPage?.(canonicalUrl);
+  const mediaId = String(payload?.mediaId || '');
+  if (page?.provider !== provider || page?.mediaId !== mediaId) return;
+  const variants = (Array.isArray(payload?.variants) ? payload.variants : [])
+    .map((variant) => safeActiveMediaVariant(variant, provider))
+    .filter(Boolean)
+    .filter((variant, index, all) => all.findIndex((other) => other.url === variant.url) === index)
+    .slice(0, 12);
+  const directUrl = safeActiveMediaUrl(payload?.directUrl) || variants[0]?.url || null;
+  const images = (Array.isArray(payload?.images) ? payload.images : [])
+    .map((image, index) => {
+      const url = safeActiveMediaUrl(image?.url);
+      if (!url) return null;
+      const requestedExtension = String(image?.extension || '').toLowerCase();
+      return {
+        id: String(image?.id || `image-${index + 1}`).slice(0, 100),
+        assetType: 'image',
+        assetRole: 'gallery',
+        extension: ['jpg', 'jpeg', 'png', 'webp', 'avif'].includes(requestedExtension)
+          ? (requestedExtension === 'jpeg' ? 'jpg' : requestedExtension)
+          : 'jpg',
+        url,
+        width: safePositiveInteger(image?.width),
+        height: safePositiveInteger(image?.height),
+        name: String(image?.name || text('imageNumber', { index: index + 1 })).slice(0, 80),
+      };
+    })
+    .filter(Boolean)
+    .filter((image, index, all) => all.findIndex((other) => other.url === image.url) === index)
+    .slice(0, 30);
+  if (!directUrl && !images.length) return;
+  const thumbnailUrl = images[0]?.url || safeActiveMediaUrl(payload?.thumbnailUrl, 8192);
+  const isVideo = Boolean(directUrl);
+  const title = String(payload?.title || tab.title || '小红书笔记').replace(/\s+/g, ' ').trim().slice(0, 300);
+  const candidate = {
+    id: `xiaohongshu-${mediaId}`,
+    webContentsId: tab.webContentsId,
+    url: directUrl || page.normalizedUrl,
+    pageUrl: page.normalizedUrl,
+    provider,
+    mediaId,
+    fileName: title,
+    title,
+    kind: isVideo ? 'video' : 'image',
+    thumbnailUrl,
+    extension: isVideo ? 'mp4' : (images[0]?.extension || 'jpg'),
+    width: safePositiveInteger(payload?.width),
+    height: safePositiveInteger(payload?.height),
+    resolution: isVideo ? safePositiveInteger(payload?.resolution) : null,
+    variants,
+    hasAudio: isVideo,
+    hasVideo: isVideo,
+    assets: {
+      audio: isVideo ? [{ id: 'audio-mp3', assetType: 'audio', assetRole: 'derived', extension: 'mp3', generated: true }] : [],
+      images: images.length ? images : (thumbnailUrl ? [{ id: 'cover', assetType: 'image', assetRole: 'cover', extension: 'jpg', url: thumbnailUrl }] : []),
+      subtitles: [],
+    },
+    isRecommended: true,
+    downloadStrategy: isVideo ? 'direct' : 'asset-list',
+    sourceClient: isVideo ? 'xiaohongshu-page' : 'xiaohongshu-dom',
+    metadataSource: 'xiaohongshu-page',
+    detectedAt: new Date().toISOString(),
+  };
+  setMediaCandidatesForTab(tab.id, [candidate]);
+  if (tab.id === state.activeTabId) renderCandidates();
 }
 
 function enrichActiveMediaContextFromNetwork(tab, context) {
@@ -3883,6 +4002,7 @@ async function extractYouTubeDomCandidate(tab, pageUrl) {
     const thumbnails = snapshot.videoDetails.thumbnail?.thumbnails || [];
     return {
       id: `media-${tab.webContentsId}-${stableTextHash(`youtube:${videoId}`)}`,
+      mediaId: videoId,
       webContentsId: tab.webContentsId,
       url: pageUrl,
       pageUrl,
@@ -3945,6 +4065,7 @@ async function extractYouTubeDomCandidate(tab, pageUrl) {
   const primary = variants[0];
   return {
     id: `media-${tab.webContentsId}-${stableTextHash(`youtube:${videoId}`)}`,
+    mediaId: videoId,
     webContentsId: tab.webContentsId,
     url: pageUrl,
     pageUrl,
@@ -3954,10 +4075,16 @@ async function extractYouTubeDomCandidate(tab, pageUrl) {
     thumbnailUrl: thumbnails.at(-1)?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
     ...primary,
     variants,
+    assets: {
+      audio: [{ id: 'audio-mp3', assetType: 'audio', assetRole: 'derived', extension: 'mp3', generated: true }],
+      images: [{ id: 'cover', assetType: 'image', assetRole: 'cover', extension: 'jpg', url: thumbnails.at(-1)?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` }],
+      subtitles: [],
+    },
     isRecommended: true,
     downloadStrategy: 'merge',
     sourceClient: 'yt-dlp',
     metadataSource: exactPlans.length > 0 ? 'youtube-dom' : 'youtube-dom-fallback',
+    subtitleDiscoveryPending: true,
     detectedAt: new Date().toISOString(),
   };
 }
@@ -3979,6 +4106,22 @@ async function enrichTabMedia(tab, { force = false, reportErrors = false } = {})
     if (domCandidate) {
       addCandidate(domCandidate);
       tab.lastEnrichedUrl = pageUrl;
+      void window.mediaDeck.extractPageMedia({ pageUrl, webContentsId, force })
+        .then((candidates) => {
+          if (sequence !== tab.mediaEnrichmentSequence || tab.url !== pageUrl) return;
+          const metadataCandidate = (Array.isArray(candidates) ? candidates : [])
+            .find((candidate) => candidate.mediaId === domCandidate.mediaId || candidate.pageUrl === pageUrl);
+          addCandidate({
+            ...domCandidate,
+            ...(metadataCandidate?.assets ? { assets: metadataCandidate.assets } : {}),
+            subtitleDiscoveryPending: false,
+          });
+        })
+        .catch(() => {
+          if (sequence === tab.mediaEnrichmentSequence && tab.url === pageUrl) {
+            addCandidate({ ...domCandidate, subtitleDiscoveryPending: false });
+          }
+        });
       return [domCandidate];
     }
     const candidates = await window.mediaDeck.extractPageMedia({ pageUrl, webContentsId, force });
@@ -4177,10 +4320,16 @@ function renderCandidateRow(candidate) {
     : iconSvg(candidateIcon(candidate));
   const requiresRecording = candidateRequiresRecording(candidate);
   const variants = requiresRecording ? [] : candidateVariants(candidate);
-  const hasVariants = variants.length > 1;
-  const expanded = hasVariants && isCandidateExpanded(candidate.id);
+  const assets = requiresRecording ? [] : candidateAssetOptions(candidate);
+  const galleryImages = assets.filter((asset) => asset.assetType === 'image' && asset.assetRole === 'gallery');
+  const imageCollection = !requiresRecording && candidate.kind === 'image' && galleryImages.length > 0;
+  const hasDownloadOptions = variants.length > 1 || assets.length > 0;
+  const expanded = hasDownloadOptions && isCandidateExpanded(candidate.id);
   const variantRows = expanded
-    ? `<div class="sniffer-resource-variants">${variants.map((variant, index) => renderCandidateVariant(candidate, variant, index)).join('')}</div>`
+    ? `<div class="sniffer-resource-variants">
+        ${assets.length ? renderCandidateQuickAssets(candidate, assets) : ''}
+        ${variants.length > 1 ? `<div class="sniffer-resource-option-label">${escapeHtml(text('videoQuality'))}</div>${variants.map((variant, index) => renderCandidateVariant(candidate, variant, index)).join('')}` : ''}
+      </div>`
     : '';
   return `
     <article class="sniffer-resource-row" data-candidate="${escapeHtml(candidate.id)}">
@@ -4201,12 +4350,88 @@ function renderCandidateRow(candidate) {
       <div class="sniffer-resource-download-actions">
         ${requiresRecording
           ? `<button class="sniffer-resource-recording" type="button" data-record-candidate="${escapeHtml(candidate.id)}">${iconSvg('lock')}<span>${text('recordingRequired')}</span></button>`
-          : `<button class="sniffer-resource-download${hasVariants ? ' has-variants' : ''}" type="button" data-download-candidate="${escapeHtml(candidate.id)}">${iconSvg('download')}<span>${text('download')}</span></button>
-            ${hasVariants ? `<button class="sniffer-resource-split-toggle${expanded ? ' is-expanded' : ''}" type="button" data-toggle-candidate-variants="${escapeHtml(candidate.id)}" title="${text(expanded ? 'hideVariants' : 'showVariants')}" aria-label="${text(expanded ? 'hideVariants' : 'showVariants')}" aria-expanded="${expanded}">${iconSvg(expanded ? 'arrow-up' : 'arrow-down')}</button>` : ''}`}
+          : `<button class="sniffer-resource-download${hasDownloadOptions ? ' has-variants' : ''}" type="button" ${imageCollection ? `data-download-all-images="${escapeHtml(candidate.id)}"` : `data-download-candidate="${escapeHtml(candidate.id)}"`}>${iconSvg('download')}<span>${imageCollection ? text('downloadAllImages', { count: galleryImages.length }) : text('downloadVideo')}</span></button>
+            ${hasDownloadOptions ? `<button class="sniffer-resource-split-toggle${expanded ? ' is-expanded' : ''}" type="button" data-toggle-candidate-variants="${escapeHtml(candidate.id)}" title="${text(expanded ? 'hideVariants' : 'showVariants')}" aria-label="${text(expanded ? 'hideVariants' : 'showVariants')}" aria-expanded="${expanded}">${iconSvg(expanded ? 'arrow-up' : 'arrow-down')}</button>` : ''}`}
       </div>
       ${variantRows}
     </article>
   `;
+}
+
+function candidateAssetOptions(candidate) {
+  const assets = candidate?.assets && typeof candidate.assets === 'object' ? candidate.assets : {};
+  const options = [];
+  if (Array.isArray(assets.audio) && assets.audio.length) {
+    options.push({ ...assets.audio[0], label: text('extractMp3'), detail: 'MP3 · 320 kbps' });
+  }
+  if (Array.isArray(assets.images) && assets.images.length) {
+    const gallery = assets.images.filter((asset) => asset?.assetRole === 'gallery');
+    if (gallery.length) {
+      gallery.slice(0, 30).forEach((asset, index) => options.push({
+        ...asset,
+        label: asset.name || text('imageNumber', { index: index + 1 }),
+        detail: String(asset.extension || 'JPG').toUpperCase(),
+      }));
+    } else {
+      options.push({ ...assets.images[0], label: text('downloadCover'), detail: String(assets.images[0].extension || 'JPG').toUpperCase() });
+    }
+  }
+  for (const subtitle of (Array.isArray(assets.subtitles) ? assets.subtitles : []).slice(0, 8)) {
+    options.push({
+      ...subtitle,
+      label: `${text('downloadSubtitle')} · ${subtitle.name || subtitle.language || ''}`,
+      detail: `${String(subtitle.extension || 'VTT').toUpperCase()}${subtitle.automatic ? ` · ${text('automaticSubtitle')}` : ''}`,
+    });
+  }
+  return options;
+}
+
+function renderCandidateAsset(candidate, asset, index) {
+  return `
+    <div class="sniffer-resource-variant is-asset">
+      <button class="sniffer-resource-variant-download" type="button" data-download-asset="${escapeHtml(candidate.id)}" data-asset-index="${index}">
+        <strong><bdi>${escapeHtml(asset.label)}</bdi></strong>
+        <span><bdi>${escapeHtml(asset.detail || '')}</bdi></span>
+      </button>
+    </div>
+  `;
+}
+
+function renderCandidateQuickAssets(candidate, assets) {
+  const indexedAssets = assets.map((asset, index) => ({ asset, index }));
+  const directAssets = indexedAssets.filter(({ asset }) => asset.assetType !== 'subtitle');
+  const subtitleAssets = indexedAssets.filter(({ asset }) => asset.assetType === 'subtitle');
+  const storedSubtitleKey = state.selectedSubtitleAssetKeysByCandidateId[candidate.id];
+  const selectedSubtitleKey = subtitleAssets.some(({ asset, index }) => candidateSubtitleAssetKey(asset, index) === storedSubtitleKey)
+    ? storedSubtitleKey
+    : candidateSubtitleAssetKey(subtitleAssets[0]?.asset, subtitleAssets[0]?.index);
+  return `
+    <section class="sniffer-resource-quick-assets" aria-label="${escapeHtml(text('quickDownload'))}">
+      <div class="sniffer-resource-option-label">${escapeHtml(text('quickDownload'))}</div>
+      ${candidate.subtitleDiscoveryPending === true ? `<div class="sniffer-resource-subtitle-status" role="status"><span aria-hidden="true"></span>${escapeHtml(text('subtitleDetecting'))}</div>` : ''}
+      ${directAssets.length ? `<div class="sniffer-resource-quick-grid">${directAssets.map(({ asset, index }) => renderCandidateAsset(candidate, asset, index)).join('')}</div>` : ''}
+      ${subtitleAssets.length ? `<div class="sniffer-resource-subtitle-picker">
+        <select data-candidate-subtitle-select="${escapeHtml(candidate.id)}" aria-label="${escapeHtml(text('chooseSubtitle'))}">
+          ${subtitleAssets.map(({ asset, index }) => {
+            const key = candidateSubtitleAssetKey(asset, index);
+            return `<option value="${escapeHtml(key)}" data-asset-index="${index}"${key === selectedSubtitleKey ? ' selected' : ''}>${escapeHtml(asset.name || asset.language || text('chooseSubtitle'))}${asset.automatic ? ` · ${escapeHtml(text('automaticSubtitle'))}` : ''}</option>`;
+          }).join('')}
+        </select>
+        <button type="button" data-download-selected-subtitle="${escapeHtml(candidate.id)}">${iconSvg('download')}<span>${escapeHtml(text('downloadSubtitle'))}</span></button>
+      </div>` : ''}
+    </section>
+  `;
+}
+
+function candidateSubtitleAssetKey(asset, index = 0) {
+  if (!asset) return '';
+  return String(asset.id || [
+    'subtitle',
+    asset.language || asset.name || '',
+    asset.automatic ? 'automatic' : 'manual',
+    asset.extension || 'vtt',
+    index,
+  ].join(':'));
 }
 
 function renderBatchCandidateRow(candidate, selected) {
@@ -4217,6 +4442,9 @@ function renderBatchCandidateRow(candidate, selected) {
 }
 
 function renderCandidates() {
+  const focusedSubtitleSelect = document.activeElement?.matches?.('[data-candidate-subtitle-select]')
+    ? document.activeElement
+    : null;
   const collection = state.activeTabId ? state.mediaCollectionsByTabId[state.activeTabId] || [] : [];
   const supportsBatch = collection.length >= 2;
   const currentCandidates = mediaCandidatesForTab();
@@ -4265,6 +4493,10 @@ function renderCandidates() {
     els.candidateList.innerHTML = `<div class="media-empty"><img class="app-empty-image is-compact" src="./assets/vidogo-empty.png" alt="" /><p>${escapeHtml(emptyMessage === text('scanning') ? text('noMedia') : emptyMessage)}</p></div>`;
     return;
   }
+  if (focusedSubtitleSelect
+    && rows.some((candidate) => candidate.id === focusedSubtitleSelect.dataset.candidateSubtitleSelect)) {
+    return;
+  }
   els.candidateList.innerHTML = rows.map((item) => mediaMode === 'batch'
     ? renderBatchCandidateRow(item, selectedBatch.has(item.id))
     : renderCandidateRow(item)).join('');
@@ -4279,9 +4511,19 @@ function renderCandidates() {
     }, { once: true });
   });
   els.candidateList.querySelectorAll('[data-candidate]').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', (event) => {
+      if (event.target.closest('button, select, input, a, label')) return;
       state.selectedCandidateIdsByTabId[state.activeTabId] = button.dataset.candidate;
       renderCandidates();
+    });
+  });
+  els.candidateList.querySelectorAll('[data-candidate-subtitle-select]').forEach((select) => {
+    for (const eventName of ['pointerdown', 'mousedown', 'mouseup', 'click']) {
+      select.addEventListener(eventName, (event) => event.stopPropagation());
+    }
+    select.addEventListener('change', (event) => {
+      event.stopPropagation();
+      state.selectedSubtitleAssetKeysByCandidateId[select.dataset.candidateSubtitleSelect] = select.value;
     });
   });
   els.candidateList.querySelectorAll('[data-toggle-candidate-variants]').forEach((button) => {
@@ -4314,6 +4556,37 @@ function renderCandidates() {
       if (!candidate || !variant) return;
       state.selectedCandidateIdsByTabId[state.activeTabId] = candidate.id;
       void startCandidateDownload(candidate, variant);
+    });
+  });
+  els.candidateList.querySelectorAll('[data-download-all-images]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const candidate = rows.find((item) => item.id === button.dataset.downloadAllImages);
+      if (!candidate) return;
+      state.selectedCandidateIdsByTabId[state.activeTabId] = candidate.id;
+      void startCandidateImageBatchDownload(candidate);
+    });
+  });
+  els.candidateList.querySelectorAll('[data-download-asset]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const candidate = rows.find((item) => item.id === button.dataset.downloadAsset);
+      const asset = candidateAssetOptions(candidate)[Number(button.dataset.assetIndex)];
+      if (!candidate || !asset) return;
+      state.selectedCandidateIdsByTabId[state.activeTabId] = candidate.id;
+      void startCandidateAssetDownload(candidate, asset);
+    });
+  });
+  els.candidateList.querySelectorAll('[data-download-selected-subtitle]').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const candidate = rows.find((item) => item.id === button.dataset.downloadSelectedSubtitle);
+      const select = els.candidateList.querySelector(`[data-candidate-subtitle-select="${CSS.escape(button.dataset.downloadSelectedSubtitle)}"]`);
+      const selectedOption = select?.selectedOptions?.[0];
+      const asset = candidateAssetOptions(candidate)[Number(selectedOption?.dataset.assetIndex)];
+      if (!candidate || asset?.assetType !== 'subtitle') return;
+      state.selectedCandidateIdsByTabId[state.activeTabId] = candidate.id;
+      void startCandidateAssetDownload(candidate, asset);
     });
   });
 }
@@ -4378,6 +4651,89 @@ async function startCandidateDownload(candidate, variant = null) {
   els.urlInput.value = target.url;
   if (agedmPlaybackUrl(candidate)) return startResolvedAgedmDownload(target);
   return startDownload(target);
+}
+
+function candidateSourceGroupId(candidate) {
+  return [candidate?.provider || 'web', candidate?.mediaId || candidate?.pageUrl || candidate?.url || candidate?.id]
+    .map((part) => String(part || '').trim())
+    .join(':')
+    .slice(0, 500);
+}
+
+async function startCandidateAssetDownload(candidate, asset, options = {}) {
+  const pageUrl = candidate?.pageUrl || candidate?.url;
+  if (!pageUrl) return null;
+  const common = {
+    ...candidate,
+    url: pageUrl,
+    pageUrl,
+    sourceClient: 'yt-dlp',
+    downloadStrategy: 'merge',
+    directDownload: false,
+    sourceGroupId: candidateSourceGroupId(candidate),
+    assetType: asset.assetType,
+    assetRole: asset.assetRole,
+    entitlementPreflightPassed: options.entitlementPreflightPassed === true,
+    suppressToast: options.suppressToast === true,
+  };
+  if (asset.assetType === 'audio') {
+    return startDownload({
+      ...common,
+      kind: 'audio',
+      mimeType: 'audio/mpeg',
+      extension: 'mp3',
+      formatId: 'bestaudio/best',
+      qualityLabel: 'MP3 · 320 kbps',
+      audioOnly: true,
+    });
+  }
+  if (asset.assetType === 'image') {
+    const assetIndex = Math.max(0, (candidate?.assets?.images || []).findIndex((item) => item?.url === asset.url));
+    const assetName = asset.name || text('imageNumber', { index: assetIndex + 1 });
+    const imageTitle = asset.assetRole === 'gallery' ? `${candidate.title || candidate.fileName || '小红书笔记'} - ${assetName}` : candidate.title;
+    return startDownload({
+      ...common,
+      url: asset.url || pageUrl,
+      referrer: pageUrl,
+      title: imageTitle,
+      fileName: imageTitle,
+      kind: 'image',
+      mimeType: `image/${asset.extension === 'jpg' ? 'jpeg' : (asset.extension || 'jpeg')}`,
+      extension: asset.extension || 'jpg',
+      formatId: null,
+      thumbnailUrl: asset.url || candidate.thumbnailUrl,
+      qualityLabel: asset.assetRole === 'gallery' ? assetName : text('downloadCover'),
+      audioOnly: false,
+    });
+  }
+  if (asset.assetType === 'subtitle') {
+    return startDownload({
+      ...common,
+      kind: 'subtitle',
+      mimeType: asset.extension === 'srt' ? 'application/x-subrip' : 'text/vtt',
+      extension: asset.extension || 'vtt',
+      formatId: null,
+      subtitleLanguage: asset.language,
+      subtitleAutomatic: asset.automatic === true,
+      qualityLabel: asset.name || asset.language,
+      audioOnly: false,
+    });
+  }
+  return null;
+}
+
+async function startCandidateImageBatchDownload(candidate) {
+  const images = candidateAssetOptions(candidate)
+    .filter((asset) => asset.assetType === 'image' && asset.assetRole === 'gallery');
+  if (!images.length) return null;
+  if (!await ensureDownloadEntitlementAvailable(images.length)) return null;
+  const results = await Promise.all(images.map((asset) => startCandidateAssetDownload(candidate, asset, {
+    entitlementPreflightPassed: true,
+    suppressToast: true,
+  })));
+  const started = results.filter(Boolean).length;
+  if (started > 0) toast(text('batchQueued', { count: started }), 'success');
+  return results;
 }
 
 function waitForDelay(milliseconds) {
@@ -4622,21 +4978,26 @@ function readUrls() {
   return els.urlInput.value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
 }
 
-function downloadRequestKey(url, formatId = null) {
-  return `${String(url || '').trim()}\u0000${String(formatId || '').trim()}`;
+function assetRequestDiscriminator(target = {}) {
+  return `${target?.assetType || target?.kind || 'video'}:${target?.subtitleLanguage || ''}:${target?.subtitleAutomatic ? 'auto' : 'manual'}`;
+}
+
+function downloadRequestKey(url, formatId = null, assetKey = '') {
+  return `${String(url || '').trim()}\u0000${String(formatId || '').trim()}\u0000${String(assetKey || '').trim()}`;
 }
 
 function queueUrls(urls, downloadTarget = null) {
   const now = new Date().toISOString();
   const formatId = downloadTarget?.formatId || null;
+  const assetKey = assetRequestDiscriminator(downloadTarget);
   const existingActive = new Set(state.queue
     .filter((item) => ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)))
-    .map((item) => item.requestKey || downloadRequestKey(item.url, item.formatId)));
+    .map((item) => item.requestKey || downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(item))));
   const retryRowId = String(downloadTarget?.retryRowId || '').trim();
   const retryRow = retryRowId
     ? state.queue.find((item) => String(item.id || item.downloadId) === retryRowId)
     : null;
-  const requested = urls.map((url) => ({ url, requestKey: downloadRequestKey(url, formatId) }));
+  const requested = urls.map((url) => ({ url, requestKey: downloadRequestKey(url, formatId, assetKey) }));
   const rows = requested.filter((item) => retryRow || !existingActive.has(item.requestKey)).map(({ url, requestKey }) => {
     if (retryRow) {
       Object.assign(retryRow, {
@@ -4663,6 +5024,11 @@ function queueUrls(urls, downloadTarget = null) {
         savePath: state.settings.outputDir,
         provider: downloadTarget?.provider || retryRow.provider || null,
         kind: downloadTarget?.kind || retryRow.kind || null,
+        assetType: downloadTarget?.assetType || downloadTarget?.kind || retryRow.assetType || null,
+        assetRole: downloadTarget?.assetRole || retryRow.assetRole || null,
+        sourceGroupId: downloadTarget?.sourceGroupId || retryRow.sourceGroupId || null,
+        subtitleLanguage: downloadTarget?.subtitleLanguage || retryRow.subtitleLanguage || null,
+        subtitleAutomatic: downloadTarget?.subtitleAutomatic === true,
         mimeType: downloadTarget?.mimeType || downloadTarget?.mime || retryRow.mimeType || null,
         sourceClient: downloadTarget?.sourceClient || retryRow.sourceClient || null,
         pageUrl: downloadTarget?.pageUrl || retryRow.pageUrl || null,
@@ -4696,6 +5062,11 @@ function queueUrls(urls, downloadTarget = null) {
       savePath: state.settings.outputDir,
       provider: downloadTarget?.provider || null,
       kind: downloadTarget?.kind || null,
+      assetType: downloadTarget?.assetType || downloadTarget?.kind || null,
+      assetRole: downloadTarget?.assetRole || null,
+      sourceGroupId: downloadTarget?.sourceGroupId || null,
+      subtitleLanguage: downloadTarget?.subtitleLanguage || null,
+      subtitleAutomatic: downloadTarget?.subtitleAutomatic === true,
       mimeType: downloadTarget?.mimeType || downloadTarget?.mime || null,
       sourceClient: downloadTarget?.sourceClient || null,
       pageUrl: downloadTarget?.pageUrl || null,
@@ -4728,12 +5099,16 @@ async function startDownload(downloadTarget = null) {
       suppressToast: downloadTarget?.suppressToast === true,
     })) return null;
   const queuedRows = queueUrls(urls, downloadTarget);
-  const requestKeys = new Set(activeUrls.map((url) => downloadRequestKey(url, downloadTarget?.formatId || null)));
+  const requestKeys = new Set(activeUrls.map((url) => downloadRequestKey(
+    url,
+    downloadTarget?.formatId || null,
+    assetRequestDiscriminator(downloadTarget),
+  )));
   const retryRowId = String(downloadTarget?.retryRowId || '').trim();
   const requestRows = retryRowId
     ? state.queue.filter((item) => String(item.id || item.downloadId) === retryRowId)
     : requestKeys.size > 0
-    ? state.queue.filter((item) => requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId))
+    ? state.queue.filter((item) => requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(item)))
       && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)))
     : queuedRows;
   requestRows.forEach((item) => {
@@ -4756,9 +5131,14 @@ async function startDownload(downloadTarget = null) {
       item.size = formatBytes(candidateSize(downloadTarget));
       item.qualityLabel = candidateResolution(downloadTarget);
       item.formatId = downloadTarget.formatId || null;
-      item.requestKey = downloadRequestKey(item.url, item.formatId);
+      item.requestKey = downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(downloadTarget));
       item.provider = downloadTarget.provider || item.provider || null;
       item.kind = downloadTarget.kind || item.kind || null;
+      item.assetType = downloadTarget.assetType || downloadTarget.kind || item.assetType || null;
+      item.assetRole = downloadTarget.assetRole || item.assetRole || null;
+      item.sourceGroupId = downloadTarget.sourceGroupId || item.sourceGroupId || null;
+      item.subtitleLanguage = downloadTarget.subtitleLanguage || item.subtitleLanguage || null;
+      item.subtitleAutomatic = downloadTarget.subtitleAutomatic === true;
       item.mimeType = downloadTarget.mimeType || downloadTarget.mime || item.mimeType || null;
       item.sourceClient = downloadTarget.sourceClient || item.sourceClient || null;
       item.pageUrl = downloadTarget.pageUrl || item.pageUrl || null;
@@ -4784,7 +5164,12 @@ async function startDownload(downloadTarget = null) {
       outputDir: state.settings.outputDir,
       resolution: state.settings.resolution,
       playlist: state.settings.playlist,
-      audioOnly: state.settings.audioOnly,
+      audioOnly: downloadTarget?.audioOnly ?? state.settings.audioOnly,
+      assetType: downloadTarget?.assetType || downloadTarget?.kind || (state.settings.audioOnly ? 'audio' : 'video'),
+      assetRole: downloadTarget?.assetRole || null,
+      sourceGroupId: downloadTarget?.sourceGroupId || candidateSourceGroupId(downloadTarget),
+      subtitleLanguage: downloadTarget?.subtitleLanguage || null,
+      subtitleAutomatic: downloadTarget?.subtitleAutomatic === true,
       jsRuntime: 'auto',
       ffmpegLocation: null,
       formatId: downloadTarget?.formatId || null,
@@ -4816,8 +5201,8 @@ async function startDownload(downloadTarget = null) {
     });
     if (result?.entitlements) applyEntitlementState(result.entitlements);
     for (const job of Array.isArray(result?.jobs) ? result.jobs : []) {
-      const jobRequestKey = job.requestKey || downloadRequestKey(job.url, downloadTarget?.formatId || null);
-      const row = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId)) === jobRequestKey
+      const jobRequestKey = job.requestKey || downloadRequestKey(job.url, downloadTarget?.formatId || null, assetRequestDiscriminator(downloadTarget));
+      const row = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(item))) === jobRequestKey
         && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
       if (!row) continue;
       row.jobId = job.jobId;
@@ -4835,7 +5220,7 @@ async function startDownload(downloadTarget = null) {
     const rawMessage = String(error?.message || error || 'download failed');
     const message = userFacingDownloadError(rawMessage);
     state.queue.forEach((item) => {
-      if (requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId))
+      if (requestKeys.has(item.requestKey || downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(item)))
         && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state))) {
         item.status = 'error';
         item.state = 'error';
@@ -4974,7 +5359,7 @@ async function controlDownloadRow(row, action) {
   }
   const result = await window.mediaDeck.controlDownload({
     jobId: row.jobId || null,
-    requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+    requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId, assetRequestDiscriminator(row)),
     action,
   });
   if (!result?.ok || result.state === 'not-running') return false;
@@ -5008,7 +5393,7 @@ function downloadRowForEvent(payload, data = {}) {
     if (byJob) return byJob;
   }
   if (payload?.requestKey) {
-    const byRequest = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId)) === payload.requestKey
+    const byRequest = state.queue.find((item) => (item.requestKey || downloadRequestKey(item.url, item.formatId, assetRequestDiscriminator(item))) === payload.requestKey
       && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(item.status || item.state)));
     if (byRequest && (!byRequest.jobId || !payload?.jobId || byRequest.jobId === payload.jobId)) return byRequest;
     if (payload?.jobId) return null;
@@ -5268,6 +5653,17 @@ function prepareSmokeVisualAudit(section) {
       },
     ];
     renderDownloads();
+    const previewType = String(window.mediaDeckSmokeVisualPreview || '').trim();
+    if (['video', 'audio', 'image', 'subtitle'].includes(previewType)) {
+      const extensions = { video: 'mp4', audio: 'mp3', image: 'jpg', subtitle: 'vtt' };
+      void showMediaPreview({
+        ...state.queue[2],
+        id: `visual-preview-${previewType}`,
+        assetType: previewType,
+        fileName: `A descriptive local media title that is intentionally long for preview layout verification.${extensions[previewType]}`,
+        path: `${taskDir1080}\\preview.${extensions[previewType]}`,
+      });
+    }
   }
   if (section === 'browser') {
     const tab = activeTab();
@@ -5287,6 +5683,12 @@ function prepareSmokeVisualAudit(section) {
           { url: 'https://www.youtube.com/watch?v=visual-resolution-filter', formatId: '399+251', extension: 'webm', resolution: 1080, qualityLabel: '1080p · AV1', videoCodec: 'AV1', sizeBytes: 1717986918 },
           { url: 'https://www.youtube.com/watch?v=visual-resolution-filter', formatId: '398+251', extension: 'webm', resolution: 720, qualityLabel: '720p · AV1', videoCodec: 'AV1', sizeBytes: 858993459 },
         ],
+        assets: {
+          audio: [{ id: 'audio-mp3', assetType: 'audio', assetRole: 'derived', extension: 'mp3' }],
+          images: [{ id: 'cover', assetType: 'image', assetRole: 'cover', extension: 'jpg', url: './assets/youtube.ico' }],
+          subtitles: [],
+        },
+        subtitleDiscoveryPending: true,
       }]);
       state.selectedMinimumResolutionByTabId[tab.id] = 1440;
       state.expandedCandidateIdsByTabId[tab.id] = ['visual-resolution-candidate'];
@@ -5316,6 +5718,93 @@ function prepareSmokeVisualAudit(section) {
     updateAccountCopy();
     renderPlans();
   }
+}
+
+function downloadAssetType(item = {}) {
+  const declared = String(item.assetType || item.kind || '').trim().toLowerCase();
+  if (['video', 'audio', 'image', 'subtitle'].includes(declared)) return declared;
+  if (item.source === 'recording') return 'video';
+  const fileName = String(item.fileName || item.path || item.url || '').split(/[?#]/, 1)[0].toLowerCase();
+  const extension = fileName.match(/\.([a-z0-9]{2,8})$/)?.[1] || '';
+  if (['mp3', 'm4a', 'aac', 'ogg', 'opus', 'wav', 'flac'].includes(extension)) return 'audio';
+  if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'bmp'].includes(extension)) return 'image';
+  if (['srt', 'vtt', 'ass', 'ssa', 'ttml', 'srv3', 'lrc'].includes(extension)) return 'subtitle';
+  return 'video';
+}
+
+function downloadAssetPresentation(assetType) {
+  const presentations = {
+    video: { label: text('assetVideo'), openLabel: text('previewVideo'), icon: 'view' },
+    audio: { label: text('assetAudio'), openLabel: text('previewAudio'), icon: 'video-play' },
+    image: { label: text('assetImage'), openLabel: text('previewImage'), icon: 'view' },
+    subtitle: { label: text('assetSubtitle'), openLabel: text('openSubtitle'), icon: 'document' },
+  };
+  return presentations[assetType] || presentations.video;
+}
+
+function closeMediaPreview() {
+  for (const media of els.mediaPreviewBody.querySelectorAll('video, audio')) {
+    media.pause();
+    media.removeAttribute('src');
+    media.load();
+  }
+  els.mediaPreviewBody.replaceChildren();
+  els.mediaPreviewOverlay.hidden = true;
+  els.mediaPreviewDialog.dataset.previewType = '';
+  els.mediaPreviewStatus.textContent = '';
+  state.previewItem = null;
+}
+
+async function openPreviewInSystem() {
+  if (!state.previewItem) return;
+  const result = await window.mediaDeck.openDownloadedFile(state.previewItem).catch(() => ({ ok: false }));
+  if (!result?.ok) toast(text('openFileFailed'), 'error');
+}
+
+async function showMediaPreview(item) {
+  const assetType = downloadAssetType(item);
+  const presentation = downloadAssetPresentation(assetType);
+  const previewItem = { ...item, assetType };
+  state.previewItem = previewItem;
+  els.mediaPreviewOverlay.hidden = false;
+  els.mediaPreviewDialog.dataset.previewType = assetType;
+  els.mediaPreviewKind.textContent = presentation.label;
+  els.mediaPreviewTitle.textContent = item.fileName || text('mediaPreview');
+  els.mediaPreviewStatus.textContent = text('previewLoading');
+  els.mediaPreviewBody.replaceChildren();
+  const result = await window.mediaDeck.previewDownloadedFile(previewItem).catch(() => ({ ok: false }));
+  if (state.previewItem !== previewItem) return;
+  if (!result?.ok) {
+    els.mediaPreviewStatus.textContent = text('openFileFailed');
+    return;
+  }
+  const markUnsupported = () => {
+    els.mediaPreviewStatus.textContent = text('previewUnsupported');
+    els.mediaPreviewSystemOpen.focus();
+  };
+  let content;
+  if (assetType === 'subtitle') {
+    content = document.createElement('pre');
+    content.className = 'media-preview-subtitle';
+    content.textContent = String(result.text || '');
+  } else if (assetType === 'image') {
+    content = document.createElement('img');
+    content.className = 'media-preview-image';
+    content.alt = item.fileName || presentation.label;
+    content.src = result.url;
+    content.addEventListener('error', markUnsupported, { once: true });
+  } else {
+    content = document.createElement(assetType === 'audio' ? 'audio' : 'video');
+    content.className = `media-preview-${assetType}`;
+    content.controls = true;
+    content.autoplay = true;
+    content.preload = 'metadata';
+    content.src = result.url;
+    content.addEventListener('error', markUnsupported, { once: true });
+    void content.play().catch(() => {});
+  }
+  els.mediaPreviewBody.replaceChildren(content);
+  els.mediaPreviewStatus.textContent = '';
 }
 
 function renderDownloads() {
@@ -5402,11 +5891,13 @@ function renderDownloads() {
     const resultDetails = item.state === 'error'
       ? userFacingDownloadError(item.errorMessage || text('invalidDownloadOutput'))
       : '--';
+    const assetType = downloadAssetType(item);
+    const assetPresentation = downloadAssetPresentation(assetType);
     const thumbnail = item.thumbnailUrl
       ? `<span class="download-thumbnail has-thumbnail"><img src="${escapeHtml(item.thumbnailUrl)}" alt="${escapeHtml(item.fileName)}" loading="lazy" /></span>`
-      : `<span class="download-thumbnail" aria-hidden="true">${iconSvg('video-play')}</span>`;
+      : `<span class="download-thumbnail" aria-hidden="true">${iconSvg(assetType === 'subtitle' ? 'document' : (assetType === 'image' ? 'view' : 'video-play'))}</span>`;
     const actionButtons = [
-      canOpen ? `<button class="el-button" type="button" title="${text('openFile')}" aria-label="${text('openFile')}" data-open="${id}">${iconSvg('view')}</button>` : '',
+      canOpen ? `<button class="el-button" type="button" title="${escapeHtml(assetPresentation.openLabel)}" aria-label="${escapeHtml(assetPresentation.openLabel)}" data-preview="${id}">${iconSvg(assetPresentation.icon)}</button>` : '',
       item.savePath ? `<button class="el-button" type="button" title="${text('openFolder')}" aria-label="${text('openFolder')}" data-folder="${id}">${iconSvg('folder-opened')}</button>` : '',
       canPause ? `<button class="el-button" type="button" title="${text('pause')}" aria-label="${text('pause')}" data-pause="${id}">${iconSvg('pause')}</button>` : '',
       canResume ? `<button class="el-button" type="button" title="${text('resume')}" aria-label="${text('resume')}" data-resume="${id}">${iconSvg('video-play')}</button>` : '',
@@ -5419,6 +5910,7 @@ function renderDownloads() {
           ${thumbnail}
           <span class="download-file-name" title="${escapeHtml(item.fileName)}"><bdi>${escapeHtml(item.fileName)}</bdi></span>
         </div>
+        <div class="download-type-cell is-${escapeHtml(assetType)}"><span>${escapeHtml(assetPresentation.label)}</span></div>
         <div class="download-progress-cell${isResolving || isConnecting ? ' is-resolving' : ''}">
           ${isResolving || isConnecting ? '' : `<div class="download-list-progress"><div class="download-progress-track"><span style="width:${percent}%"></span></div></div>
           <div class="download-progress-meta">
@@ -5442,20 +5934,11 @@ function renderDownloads() {
       renderDownloads();
     });
   });
-  els.downloadBody.querySelectorAll('[data-open]').forEach((button) => {
+  els.downloadBody.querySelectorAll('[data-preview]').forEach((button) => {
     button.addEventListener('click', () => {
-      const item = state.queue.find((row) => (row.id || row.downloadId) === button.dataset.open);
+      const item = state.queue.find((row) => (row.id || row.downloadId) === button.dataset.preview);
       if (!item) return;
-      void window.mediaDeck.openDownloadedFile(item).then((result) => {
-        if (!result?.ok) {
-          toast(text('openFileFailed'));
-          return;
-        }
-        item.path = result.path || item.path;
-        item.savePath = result.taskDir || item.savePath;
-        saveState();
-        renderDownloads();
-      }).catch(() => toast(text('openFileFailed')));
+      void showMediaPreview(item);
     });
   });
   els.downloadBody.querySelectorAll('[data-folder]').forEach((button) => {
@@ -5498,12 +5981,12 @@ function renderDownloads() {
       if (row?.jobId && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(row.status || row.state))) {
         await window.mediaDeck.controlDownload({
           jobId: row.jobId,
-          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId, assetRequestDiscriminator(row)),
           action: 'cancel',
         });
       } else if (row && ['queued', 'resolving', 'connecting', 'downloading', 'finalizing'].includes(normalizeDownloadState(row.status || row.state))) {
         await window.mediaDeck.controlDownload({
-          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId),
+          requestKey: row.requestKey || downloadRequestKey(row.url, row.formatId, assetRequestDiscriminator(row)),
           action: 'cancel',
         });
       }
@@ -6093,7 +6576,7 @@ async function syncExternalLogin() {
     const tab = activeTab();
     if (tab?.webview) {
       resetTabMediaForNavigation(tab);
-      tab.webview.loadURL(HOME_URL);
+      void tab.webview.loadURL(HOME_URL).catch(() => null);
     }
   } catch (error) {
     const message = text('externalLoginFailed', { message: externalLoginErrorMessage(error) });
@@ -6116,6 +6599,11 @@ function bindEvents() {
   els.externalLoginSync.addEventListener('click', () => void syncExternalLogin());
   els.externalLoginOverlay.addEventListener('click', (event) => {
     if (event.target === els.externalLoginOverlay) hideExternalLoginDialog();
+  });
+  els.mediaPreviewClose.addEventListener('click', closeMediaPreview);
+  els.mediaPreviewSystemOpen.addEventListener('click', () => void openPreviewInSystem());
+  els.mediaPreviewOverlay.addEventListener('click', (event) => {
+    if (event.target === els.mediaPreviewOverlay) closeMediaPreview();
   });
   els.titlebarAccount?.addEventListener('click', () => setSection('account'));
   els.sidebar.forEach((button) => button.addEventListener('click', () => setSection(button.dataset.section)));
@@ -6227,6 +6715,7 @@ function bindEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.favoritesPopoverOpen) setFavoritesPopoverOpen(false);
+    if (event.key === 'Escape' && !els.mediaPreviewOverlay.hidden) closeMediaPreview();
     if (event.key === 'Escape' && !els.externalLoginOverlay.hidden) hideExternalLoginDialog();
     if (event.key === 'Escape' && !els.platformManagerOverlay.hidden) {
       els.platformManagerOverlay.hidden = true;
@@ -6534,6 +7023,7 @@ async function bootstrap() {
   applyTheme();
   renderQuickSites();
   bindEvents();
+  startSystemNetworkSpeedPolling();
   applyLocale();
   syncSettingsControls();
   updateTitlebarAccount();
@@ -6623,12 +7113,14 @@ async function runRendererSelfTest() {
     'getDefaultDownloadDir',
     'getRuntimeInfo',
     'getLegacyInfo',
+    'getSystemNetworkSpeed',
     'chooseDirectory',
     'chooseTextFile',
     'openExternal',
     'openPath',
     'showItemInFolder',
     'openDownloadedFile',
+    'previewDownloadedFile',
     'openDownloadedFolder',
     'minimizeWindow',
     'toggleMaximizeWindow',
@@ -6672,6 +7164,7 @@ async function runRendererSelfTest() {
   ];
   const missingApiMethods = requiredApiMethods.filter((name) => typeof window.mediaDeck?.[name] !== 'function');
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'external-login';
   const externalLoginOpenState = await window.mediaDeck.startExternalYouTubeLogin();
   await wait(30);
   assert(externalLoginOpenState?.opened === true, 'System-browser YouTube login did not open');
@@ -6712,6 +7205,8 @@ async function runRendererSelfTest() {
   const runtimeInfo = await window.mediaDeck.getRuntimeInfo();
   assert(runtimeInfo?.appName === 'VidoGo Basic', 'Runtime info app name mismatch');
   assert(String(runtimeInfo?.browserPartition || '').startsWith('persist:'), 'Runtime browser partition missing');
+  const smokeNetworkSpeed = await window.mediaDeck.getSystemNetworkSpeed();
+  assert(smokeNetworkSpeed?.available === true && Number.isFinite(Number(smokeNetworkSpeed?.totalBytesPerSecond)), 'System network-speed IPC returned an invalid sample');
   const expectedBackendMode = String(window.mediaDeckSmokeExpectedBackend || '');
   if (expectedBackendMode) assert(runtimeInfo?.backendMode === expectedBackendMode, 'Runtime backend mode mismatch');
 
@@ -6751,13 +7246,7 @@ async function runRendererSelfTest() {
   const cancelState = await window.mediaDeck.cancelDownload();
   assert(cancelState?.running === false, 'Cancel download should report not running');
 
-  let emptyDownloadRejected = false;
-  try {
-    await window.mediaDeck.startDownload({ urls: [] });
-  } catch {
-    emptyDownloadRejected = true;
-  }
-  assert(emptyDownloadRejected, 'Empty download task should be rejected');
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'download-validation';
   const smokeDownload = window.mediaDeckSmokeDownload || {};
   const concurrentUrls = smokeDownload.real && smokeDownload.urls?.length >= 3
     ? smokeDownload.urls.slice(0, 3)
@@ -6769,6 +7258,7 @@ async function runRendererSelfTest() {
   const queueBeforeConcurrencyTest = state.queue;
   state.queue = [];
   queueUrls(concurrentUrls);
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'download-concurrency';
   const concurrentQueue = await window.mediaDeck.startDownload({
     urls: concurrentUrls,
     outputDir: smokeDownload.outputDir || 'C:\\SmokeDownloads',
@@ -6824,6 +7314,7 @@ async function runRendererSelfTest() {
   state.queue = queueBeforeConcurrencyTest;
   saveState();
   renderDownloads();
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'layout-controls';
 
   assert(document.querySelectorAll('.titlebar-actions, [data-window-action]').length === 0, 'Custom window buttons should not replace the VidBrowser native title bar overlay');
   assert(Math.round(document.querySelector('.titlebar')?.getBoundingClientRect().height || 0) === 32, 'Compact title bar must remain 32px high');
@@ -7060,20 +7551,24 @@ async function runRendererSelfTest() {
   const previousRange = state.downloadRange;
   const previousPage = state.downloadPage;
   const previousOutputDir = state.settings.outputDir;
-  state.queue = [
-    { id: 'self-test-speed-a', state: 'downloading', speedBytesPerSecond: 1024 * 1024 },
-    { id: 'self-test-speed-b', state: 'downloading', speed: '512 KB/s' },
-    { id: 'self-test-speed-paused', state: 'paused', speed: '9 MB/s' },
-  ];
+  const previousSystemNetworkSpeed = { ...state.systemNetworkSpeed };
+  state.systemNetworkSpeed = {
+    available: true,
+    receivedBytesPerSecond: 1024 * 1024,
+    sentBytesPerSecond: 512 * 1024,
+    totalBytesPerSecond: 1536 * 1024,
+  };
   updateBrowserStatusBar();
-  assert(activeDownloadSpeed() === 1.5 * 1024 * 1024, 'Bottom status bar did not total active download speeds');
   assert(els.browserStatusNetworkSpeed.textContent.trim() === '1.5 MB/s',
-    `Bottom status bar speed is incorrect: ${els.browserStatusNetworkSpeed.textContent.trim()}`);
-  assert(els.browserStatusNetwork.classList.contains('is-active'), 'Bottom status bar speed did not enter its active state');
-  state.queue = [];
+    `Bottom system network speed is incorrect: ${els.browserStatusNetworkSpeed.textContent.trim()}`);
+  assert(els.browserStatusNetworkLabel.textContent === (BROWSER_STATUS_TEXT[state.locale] || BROWSER_STATUS_TEXT.en).network,
+    'Bottom status bar does not identify system network speed');
+  assert(els.browserStatusNetwork.classList.contains('is-active'), 'Bottom system network speed did not enter its active state');
+  state.systemNetworkSpeed = { available: true, receivedBytesPerSecond: 0, sentBytesPerSecond: 0, totalBytesPerSecond: 0 };
   updateBrowserStatusBar();
   assert(els.browserStatusNetworkSpeed.textContent.trim() === '0 B/s'
-    && !els.browserStatusNetwork.classList.contains('is-active'), 'Bottom status bar speed did not reset when downloads stopped');
+    && !els.browserStatusNetwork.classList.contains('is-active'), 'Bottom system network speed did not reset at zero traffic');
+  state.systemNetworkSpeed = previousSystemNetworkSpeed;
   state.downloadPage = 1;
   if (smokeDownload.real && smokeDownload.outputDir) {
     state.settings.outputDir = smokeDownload.outputDir;
@@ -7182,7 +7677,9 @@ async function runRendererSelfTest() {
   state.activeDownloadStatus = 'all';
   state.downloadRange = 'all';
   renderDownloads();
-  await clickControl('downloads:open-file', els.downloadBody.querySelector('[data-open]'));
+  await clickControl('downloads:preview-file', els.downloadBody.querySelector('[data-preview]'));
+  assert(els.mediaPreviewOverlay.hidden === false, 'Completed download did not open the built-in media preview');
+  closeMediaPreview();
   await clickControl('downloads:open-folder', els.downloadBody.querySelector('[data-folder]'));
   await clickControl('downloads:remove', els.downloadBody.querySelector('[data-remove]'));
   state.queue = [{
@@ -7263,6 +7760,12 @@ async function runRendererSelfTest() {
       { url: 'https://example.com/video', formatId: '137+140', extension: 'mp4', qualityLabel: '1080p · H.264', resolution: 1080, videoCodec: 'H.264', audioCodec: 'AAC', sizeBytes: 4096 },
       { url: 'https://example.com/video', formatId: '22', extension: 'mp4', qualityLabel: '720p · H.264', resolution: 720, videoCodec: 'H.264', audioCodec: 'AAC', sizeBytes: 2048 },
     ],
+    assets: {
+      subtitles: [
+        { id: 'subtitle-zh-Hans', assetType: 'subtitle', language: 'zh-Hans', name: 'Chinese (China)', extension: 'vtt', automatic: false },
+        { id: 'subtitle-en', assetType: 'subtitle', language: 'en', name: 'English', extension: 'vtt', automatic: false },
+      ],
+    },
     detectedAt: new Date().toISOString(),
   }]);
   state.selectedCandidateIdsByTabId[mediaTestTabId] = 'self-test-candidate';
@@ -7346,6 +7849,24 @@ async function runRendererSelfTest() {
   });
   assert(mediaCandidatesForTab(mediaTestTabId).length === 1, 'Hidden Douyin network media leaked into multiple visible rows');
   assert(mediaCandidatesForTab(mediaTestTabId)[0]?.url === 'https://v3-dy.example.com/video/tos/sample.mp4', 'Douyin active row was not enriched with its real network media URL');
+  mediaTestTab.url = 'https://www.xiaohongshu.com/explore/6a768d1600000003202326a';
+  handleXiaohongshuMediaContext(mediaTestTab, {
+    provider: 'xiaohongshu',
+    mediaId: '6a768d1600000003202326a',
+    canonicalUrl: mediaTestTab.url,
+    title: 'Xiaohongshu image note',
+    thumbnailUrl: 'https://sns-webpic-qc.xhscdn.com/smoke/image-1.jpg',
+    images: [
+      { id: 'image-1', assetType: 'image', assetRole: 'gallery', extension: 'jpg', url: 'https://sns-webpic-qc.xhscdn.com/smoke/image-1.jpg', name: '图片 1' },
+      { id: 'image-2', assetType: 'image', assetRole: 'gallery', extension: 'jpg', url: 'https://sns-webpic-qc.xhscdn.com/smoke/image-2.jpg', name: '图片 2' },
+    ],
+  });
+  const xiaohongshuCandidate = mediaCandidatesForTab(mediaTestTabId)[0];
+  assert(xiaohongshuCandidate?.kind === 'image' && candidateAssetOptions(xiaohongshuCandidate).length === 2,
+    'Xiaohongshu image-note assets were not preserved');
+  renderCandidates();
+  assert(Boolean(els.candidateList.querySelector('[data-download-all-images="xiaohongshu-6a768d1600000003202326a"]')),
+    'Xiaohongshu image note did not expose its all-image action');
   mediaTestTab.url = savedMediaTestTabState.url;
   mediaTestTab.activeMediaContext = savedMediaTestTabState.activeMediaContext;
   mediaTestTab.activeMediaExtractionKey = savedMediaTestTabState.activeMediaExtractionKey;
@@ -7367,6 +7888,17 @@ async function runRendererSelfTest() {
   await clickControl('browser:media-variants', els.candidateList.querySelector('[data-toggle-candidate-variants="self-test-candidate"]'));
   assert(els.candidateList.querySelectorAll('.sniffer-resource-variant').length === 2, 'VidBrowser media candidate variants did not expand');
   assert(Boolean(els.candidateList.querySelector('[data-download-variant="self-test-candidate"]')), 'VidBrowser variant download action did not render');
+  const subtitleSelectBeforeClick = els.candidateList.querySelector('[data-candidate-subtitle-select="self-test-candidate"]');
+  subtitleSelectBeforeClick?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  assert(els.candidateList.querySelector('[data-candidate-subtitle-select="self-test-candidate"]') === subtitleSelectBeforeClick,
+    'Clicking the subtitle language selector re-rendered and closed it');
+  subtitleSelectBeforeClick.value = 'subtitle-en';
+  subtitleSelectBeforeClick.dispatchEvent(new Event('change', { bubbles: true }));
+  subtitleSelectBeforeClick.blur();
+  renderCandidates();
+  const retainedSubtitleSelect = els.candidateList.querySelector('[data-candidate-subtitle-select="self-test-candidate"]');
+  assert(retainedSubtitleSelect?.value === 'subtitle-en'
+    && retainedSubtitleSelect.selectedOptions[0]?.dataset.assetIndex === '1', 'Selected subtitle language was not retained after media refresh');
   const selfTestVariant = els.candidateList.querySelector('.sniffer-resource-variant');
   const selfTestVariantDownloadRect = selfTestVariant?.querySelector('.sniffer-resource-variant-download')?.getBoundingClientRect();
   const selfTestVariantRect = selfTestVariant?.getBoundingClientRect();

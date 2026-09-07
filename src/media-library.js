@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const MEDIA_LIBRARY_SCHEMA_VERSION = 1;
+const MEDIA_LIBRARY_SCHEMA_VERSION = 2;
 
 const PROVIDER_ALIASES = Object.freeze({
   x: 'twitter',
@@ -129,8 +129,17 @@ function mediaExtension(task = {}) {
     'audio/mp4': 'm4a',
     'audio/webm': 'webm',
     'audio/ogg': 'ogg',
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'text/vtt': 'vtt',
+    'application/x-subrip': 'srt',
   };
-  return byMime[mime] || (/^audio\//.test(mime) ? 'm4a' : 'mp4');
+  if (byMime[mime]) return byMime[mime];
+  if (/^audio\//.test(mime)) return 'm4a';
+  if (/^image\//.test(mime)) return 'jpg';
+  if (String(task.assetType || task.kind || '').toLowerCase() === 'subtitle') return 'vtt';
+  return 'mp4';
 }
 
 function compactMediaToken(value, maxLength = 24) {
@@ -143,14 +152,18 @@ function compactMediaToken(value, maxLength = 24) {
 }
 
 function downloadMediaFileName(task = {}) {
-  const kind = String(task.kind || '').toLowerCase() === 'audio' || String(task.mimeType || '').toLowerCase().startsWith('audio/')
-    ? 'audio'
+  const requestedKind = String(task.assetType || task.kind || '').toLowerCase();
+  const mimeType = String(task.mimeType || '').toLowerCase();
+  const kind = requestedKind === 'audio' || mimeType.startsWith('audio/') ? 'audio'
+    : requestedKind === 'image' || mimeType.startsWith('image/') ? 'cover'
+    : requestedKind === 'subtitle' || mimeType.includes('subrip') || mimeType.includes('vtt') ? 'subtitle'
     : 'video';
   const quality = String(task.qualityLabel || '').match(/\b\d{3,4}p\b/i)?.[0]?.toLowerCase()
     || (Number(task.resolution) > 0 ? `${Math.floor(Number(task.resolution))}p` : '');
-  const codec = compactMediaToken(kind === 'audio' ? task.audioCodec : task.videoCodec);
+  const codec = compactMediaToken(kind === 'audio' ? task.audioCodec : (kind === 'video' ? task.videoCodec : ''));
   const format = !quality && !codec ? compactMediaToken(task.formatId, 36) : '';
-  const descriptors = [quality, codec, format].filter(Boolean);
+  const language = kind === 'subtitle' ? compactMediaToken(task.subtitleLanguage, 20) : '';
+  const descriptors = [language, quality, codec, format].filter(Boolean);
   return `${kind}${descriptors.length ? `-${descriptors.join('-')}` : ''}.${mediaExtension(task)}`;
 }
 
@@ -166,9 +179,14 @@ function normalizeLibraryItem(item) {
   if (!item || typeof item !== 'object') return null;
   const filePath = String(item.filePath || '').trim();
   if (!filePath) return null;
+  const requestedAssetType = String(item.assetType || item.kind || '').trim().toLowerCase();
+  const assetType = ['video', 'audio', 'image', 'subtitle'].includes(requestedAssetType)
+    ? requestedAssetType
+    : 'video';
   return {
     id: String(item.id || `asset-${crypto.randomUUID()}`),
     sourceTaskId: String(item.sourceTaskId || ''),
+    sourceGroupId: String(item.sourceGroupId || item.mediaId || item.sourceUrl || '').slice(0, 500),
     title: String(item.title || path.basename(filePath)),
     provider: normalizeProviderId(item.provider, item.sourceUrl, item.mediaUrl),
     mediaId: String(item.mediaId || ''),
@@ -181,7 +199,11 @@ function normalizeLibraryItem(item) {
     resolution: String(item.resolution || ''),
     qualityLabel: String(item.qualityLabel || ''),
     formatId: String(item.formatId || ''),
-    kind: String(item.kind || 'video'),
+    kind: assetType,
+    assetType,
+    assetRole: String(item.assetRole || (assetType === 'image' ? 'cover' : (assetType === 'subtitle' ? 'caption' : 'primary'))),
+    language: String(item.language || item.subtitleLanguage || ''),
+    automatic: item.automatic === true || item.subtitleAutomatic === true,
     mimeType: String(item.mimeType || ''),
     videoCodec: String(item.videoCodec || ''),
     audioCodec: String(item.audioCodec || ''),
@@ -250,6 +272,29 @@ function createMediaLibraryStore(filePath) {
       if (existingIndex >= 0) document.items[existingIndex] = { ...document.items[existingIndex], ...normalized };
       else document.items.unshift(normalized);
       await save(document);
+      const manifestPath = path.join(normalized.folderPath, 'metadata.json');
+      const groupAssets = document.items
+        .filter((entry) => entry.folderPath === normalized.folderPath)
+        .map((entry) => ({
+          id: entry.id,
+          assetType: entry.assetType,
+          assetRole: entry.assetRole,
+          language: entry.language || null,
+          automatic: entry.automatic === true,
+          fileName: path.basename(entry.filePath),
+          fileSize: entry.fileSize,
+          mimeType: entry.mimeType || null,
+        }));
+      await fs.writeFile(manifestPath, `${JSON.stringify({
+        schemaVersion: MEDIA_LIBRARY_SCHEMA_VERSION,
+        sourceGroupId: normalized.sourceGroupId,
+        title: normalized.title,
+        provider: normalized.provider,
+        mediaId: normalized.mediaId || null,
+        sourceUrl: normalized.sourceUrl || null,
+        updatedAt: new Date().toISOString(),
+        assets: groupAssets,
+      }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 }).catch(() => {});
       return { ...normalized };
     });
   }

@@ -82,6 +82,12 @@ def verify_metadata_planning() -> None:
         "title": "Sample video",
         "webpage_url": "https://www.youtube.com/watch?v=sample123",
         "thumbnail": "https://i.ytimg.com/vi/sample123/maxresdefault.jpg",
+        "subtitles": {
+            "zh-Hans": [{"ext": "vtt", "url": "https://example.com/subtitles/zh-Hans.vtt", "name": "Chinese (Simplified)"}],
+        },
+        "automatic_captions": {
+            "en": [{"ext": "json3", "url": "https://example.com/subtitles/en.json3", "name": "English"}],
+        },
         "duration": 120,
         "formats": [
             {"format_id": "137", "ext": "mp4", "width": 1920, "height": 1080, "fps": 30, "tbr": 4500, "vcodec": "avc1.640028", "acodec": "none"},
@@ -99,6 +105,10 @@ def verify_metadata_planning() -> None:
     assert_equal(candidate["mediaId"], info["id"], "metadata candidate should preserve the provider media id")
     assert_equal(candidate["metadataSource"], "yt-dlp:youtube", "metadata source should identify the provider")
     assert_equal(candidate["thumbnailUrl"], info["thumbnail"], "metadata thumbnail")
+    assert_equal(len(candidate["assets"]["audio"]), 1, "metadata should expose MP3 as a derived asset")
+    assert_equal(len(candidate["assets"]["images"]), 1, "metadata should expose the cover asset")
+    assert_equal(len(candidate["assets"]["subtitles"]), 2, "metadata should expose manual and automatic subtitle languages")
+    assert_equal(candidate["assets"]["subtitles"][0]["automatic"], False, "manual subtitles should take priority")
     assert_equal(len(candidate["variants"]), 3, "metadata should retain codec and resolution variants")
     assert_equal(candidate["variants"][0]["qualityLabel"], "1080p · VP9", "variants should sort by resolution and codec")
     assert_equal(candidate["variants"][0]["formatId"].startswith("248+251/"), True, "webm video should pair with compatible audio")
@@ -232,8 +242,8 @@ def verify_runtime_progress_hook() -> None:
     assert_equal(captured_options[0].get("noprogress"), True, "yt-dlp textual progress must be suppressed")
     assert_equal(captured_options[0].get("writethumbnail"), True, "source thumbnail must be downloaded")
     assert_equal(captured_options[0].get("impersonate").client, "chrome", "downloads should use browser impersonation for protected media pages")
-    if "/audio-%(format_id)s.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
-        raise AssertionError("audio downloads must use a descriptive format-specific file name")
+    if "/audio/audio-%(format_id)s.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
+        raise AssertionError("audio downloads must use the typed asset folder and descriptive file name")
     assert_equal("download_archive" in captured_options[0], True, "ordinary downloads should retain archive protection")
     if not captured_options[0]["outtmpl"]["default"][:19].replace("-", "").isdigit():
         raise AssertionError("download task folders must begin with a sortable millisecond timestamp")
@@ -249,11 +259,119 @@ def verify_runtime_progress_hook() -> None:
                 format_events.append,
             )
     explicit_options = captured_options[-1]
-    if "/video-%(format_id)s.%(ext)s" not in explicit_options["outtmpl"]["default"].replace("\\", "/"):
-        raise AssertionError("video downloads must use a descriptive format-specific file name")
+    if "/video/video-%(format_id)s.%(ext)s" not in explicit_options["outtmpl"]["default"].replace("\\", "/"):
+        raise AssertionError("video downloads must use the typed asset folder and descriptive file name")
     assert_equal("download_archive" in explicit_options, False, "format-specific downloads must not suppress later resolutions")
     if "[%(format_id)s]" not in explicit_options["outtmpl"]["default"]:
         raise AssertionError("format-specific downloads need unique output filenames")
+
+
+def verify_image_asset_download() -> None:
+    class FakeResponse:
+        status = 200
+        headers = {"Content-Length": "8", "Content-Type": "image/png"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            pass
+
+        def read(self, _limit: int) -> bytes:
+            return b"png-data"
+
+    events: list[dict] = []
+    with tempfile.TemporaryDirectory() as output_dir:
+        with patch("downloader_core.urlopen", return_value=FakeResponse()):
+            result = download_urls(
+                ["https://example.com/watch/123"],
+                DownloadSettings(
+                    output_dir=Path(output_dir),
+                    asset_type="image",
+                    thumbnail_url="https://cdn.example.com/cover.png",
+                    title="Sample cover",
+                    media_id="123",
+                ),
+                lambda _message: None,
+                events.append,
+            )
+        assert_equal(result, (1, 0), "cover asset accounting")
+        assert_equal(events[-1]["status"], "completed", "cover asset completion event")
+        assert_equal(Path(events[-1]["filename"]).name, "cover.png", "cover asset file name")
+        assert_equal(Path(events[-1]["filename"]).read_bytes(), b"png-data", "cover asset contents")
+        assert_equal(Path(events[-1]["filename"]).parent.name, "images", "cover asset typed folder")
+
+    gallery_events: list[dict] = []
+    with tempfile.TemporaryDirectory() as output_dir:
+        with patch("downloader_core.urlopen", return_value=FakeResponse()):
+            result = download_urls(
+                ["https://cdn.example.com/gallery-1.png"],
+                DownloadSettings(
+                    output_dir=Path(output_dir),
+                    asset_type="image",
+                    asset_role="gallery",
+                    thumbnail_url="https://cdn.example.com/gallery-1.png",
+                    title="Sample note - Image 1",
+                    media_id="note-123",
+                ),
+                lambda _message: None,
+                gallery_events.append,
+            )
+        assert_equal(result, (1, 0), "gallery image accounting")
+        assert_equal(Path(gallery_events[-1]["filename"]).name, "image.png", "gallery image file name")
+
+
+def verify_subtitle_asset_download() -> None:
+    events: list[dict] = []
+    captured_options: list[dict] = []
+
+    class FakeSubtitleDL:
+        def __init__(self, options: dict) -> None:
+            self.options = options
+            self.progress_hooks = []
+            self.post_hooks = []
+            captured_options.append(options)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            pass
+
+        def add_progress_hook(self, hook) -> None:
+            self.progress_hooks.append(hook)
+
+        def add_post_hook(self, hook) -> None:
+            self.post_hooks.append(hook)
+
+        def download(self, _urls: list[str]) -> int:
+            root = Path(self.options["paths"]["home"])
+            task_dir = root / "20260907 - Sample [123] [subtitle]"
+            subtitle_dir = task_dir / "subtitles"
+            subtitle_dir.mkdir(parents=True, exist_ok=True)
+            (subtitle_dir / "subtitle.zh-Hans.vtt").write_text("WEBVTT\n", encoding="utf-8")
+            return 0
+
+    with tempfile.TemporaryDirectory() as output_dir:
+        with patch.dict(sys.modules, {"yt_dlp": types.SimpleNamespace(YoutubeDL=FakeSubtitleDL)}):
+            result = download_urls(
+                ["https://example.com/watch/123"],
+                DownloadSettings(
+                    output_dir=Path(output_dir),
+                    asset_type="subtitle",
+                    subtitle_language="zh-Hans",
+                ),
+                lambda _message: None,
+                events.append,
+            )
+        assert_equal(result, (1, 0), "subtitle asset accounting")
+        assert_equal(events[-1]["status"], "completed", "subtitle completion event")
+        assert_equal(Path(events[-1]["filename"]).parent.name, "subtitles", "subtitle typed folder")
+        assert_equal(Path(events[-1]["task_dir"]).name, "20260907 - Sample [123] [subtitle]", "subtitle task root")
+    options = captured_options[0]
+    assert_equal(options["skip_download"], True, "subtitle task must not download the video")
+    assert_equal(options["subtitleslangs"], ["zh-Hans"], "subtitle language selection")
+    assert_equal("download_archive" in options, False, "subtitle asset must not mutate the ordinary video archive")
 
 
 def verify_worker_rejects_empty_payload() -> None:
@@ -337,6 +455,7 @@ def verify_generated_video_cover() -> None:
         final_path, cover_path = finalize_task_output(video_path, None, None, Path(ffmpeg).parent)
         assert_equal(final_path, video_path.resolve(), "generated-cover final video path")
         assert_equal(cover_path is not None and cover_path.name == "cover.jpg", True, "generated fallback cover path")
+        assert_equal(cover_path is not None and cover_path.parent.name == "images", True, "generated cover typed folder")
         assert_equal(cover_path is not None and cover_path.stat().st_size > 0, True, "generated fallback cover contents")
 
 
@@ -344,6 +463,8 @@ def main() -> int:
     verify_core_helpers()
     verify_metadata_planning()
     verify_runtime_progress_hook()
+    verify_image_asset_download()
+    verify_subtitle_asset_download()
     verify_generated_video_cover()
     verify_worker_rejects_empty_payload()
     verify_worker_rejects_invalid_payloads()

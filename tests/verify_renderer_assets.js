@@ -224,6 +224,11 @@ assert(main.includes('entitlements.remainingToday > 0 && (retryExisting || reque
 assert(app.indexOf('ensureDownloadEntitlementAvailable(candidates.length)') < app.indexOf('const queuedTasks = candidates.map'), 'Batch entitlement preflight must run before queue rows are mounted or resolved');
 assert(app.indexOf('ensureDownloadEntitlementAvailable(activeUrls.length') < app.indexOf('const queuedRows = queueUrls(urls, downloadTarget)'), 'Single-download entitlement preflight must run before a queue row is mounted');
 assert(html.includes('id="head-result"'), 'Downloads table must include the result-details column header');
+assert(html.includes('id="head-type"') && app.includes("document.getElementById('head-type').textContent = text('assetType')"), 'Downloads table must expose a localized asset-type column');
+assert(app.includes('downloadAssetType') && app.includes('downloadAssetTitle') === false && app.includes("subtitle: { label: text('assetSubtitle')"), 'Download rows must infer and label video, MP3, image, and subtitle assets');
+assert(app.includes("previewAudio: '试听 MP3'") && app.includes("openSubtitle: '打开字幕'"), 'Asset-aware download action labels are incomplete');
+assert(app.includes("icon: 'video-play'") && app.includes("icon: 'document'"), 'MP3 and subtitle rows must use distinct open-action icons');
+assert(main.includes("throw new Error('No URLs provided.')"), 'Main process must reject an empty download request');
 assert(app.includes("resultDetails: '结果详情'") && app.includes('download-result-cell'), 'Downloads table must render localized failure details');
 assert(css.includes('minmax(180px, 1.5fr)') && css.includes('text-overflow: ellipsis') && css.includes('white-space: nowrap'), 'Failure details column must use a compact single-line ellipsis');
 assert(app.includes('browser-download-interrupted:') && app.includes('Chromium 将媒体下载标记为'), 'Browser download failures must expose factual Chromium diagnostics');
@@ -249,11 +254,26 @@ for (const token of ['browserSession.fetch', 'MAX_MANIFEST_BYTES', 'MANIFEST_FET
   assert(main.includes(token), `Main manifest integration token missing: ${token}`);
 }
 assert(app.includes('candidateMergeOutputFormat') && app.includes('candidateDownloadUrl'), 'Media download actions do not normalize HLS targets and merge containers');
+assert(app.includes('renderCandidateQuickAssets(candidate, assets)') && app.includes('data-download-selected-subtitle'), 'Derived media assets must remain reachable above the long video-quality list');
+assert(app.indexOf("renderCandidateQuickAssets(candidate, assets)") < app.indexOf("text('videoQuality')"), 'Quick MP3, cover, and subtitle actions must render before video quality rows');
+assert(css.includes('.sniffer-resource-quick-grid') && css.includes('.sniffer-resource-subtitle-picker'), 'Compact quick-download and subtitle-picker styles are missing');
+assert(app.includes('selectedSubtitleAssetKeysByCandidateId') && app.includes('data-asset-index'), 'Subtitle selection must survive candidate refreshes');
+assert(app.includes("subtitleDetecting: '字幕检测中…'") && app.includes('subtitleDiscoveryPending: true') && css.includes('.sniffer-resource-subtitle-status'), 'YouTube subtitle discovery must expose a visible pending state');
+assert(/select:not\(\[multiple\]\):focus-visible\s*\{[^}]*outline:\s*1px[^}]*box-shadow:\s*none/s.test(css), 'Select controls must use the restrained global focus treatment');
+for (const token of ['xiaohongshuMediaSnapshot', 'xiaohongshuContentImages', "vidogo:xiaohongshu-media", "assetRole: 'gallery'"]) {
+  assert(webviewPreload.includes(token) || app.includes(token), `Xiaohongshu image-note integration token missing: ${token}`);
+}
+assert(app.includes('data-download-all-images') && app.includes('startCandidateImageBatchDownload'), 'Xiaohongshu image posts must support all-image downloads');
+assert(main.includes("ipcMain.handle('system:get-network-speed'") && preload.includes('getSystemNetworkSpeed') && app.includes('startSystemNetworkSpeedPolling'), 'System network-speed monitoring is incomplete');
+assert(html.includes('网络速度') && !html.includes('当前下载总速度'), 'Browser status bar must describe total network speed rather than only download speed');
 assert(app.includes('resetTabMediaForNavigation') && app.includes('candidateMatchesTabPage'), 'Page navigation must clear stale media and reject candidates from the previous page');
 assert(app.includes('filterCandidatesByResolution') && app.includes('selectedMinimumResolutionByTabId') && app.includes("text('allResolutions')"), 'Browser resolution control must filter candidates by minimum resolution');
 assert(app.includes('downloadRequestKey') && main.includes('downloadRequestKey') && main.includes('existingByRequestKey'), 'Downloads must be keyed by URL and format so separate resolutions stay independent');
 assert(app.includes("!/^\\[download\\]/i.test(message)") && downloaderCore.includes('"noprogress": True'), 'yt-dlp textual progress must not flood the notification area');
 assert(main.includes("ipcMain.handle('download:open-file'") && main.includes('resolveDownloadedFile') && preload.includes('openDownloadedFile'), 'Completed downloads must resolve and open the final media file');
+assert(main.includes("ipcMain.handle('download:preview-file'") && main.includes('pathToFileURL') && preload.includes('previewDownloadedFile'), 'Built-in local media preview bridge is incomplete');
+assert(html.includes('id="media-preview-overlay"') && app.includes('showMediaPreview') && app.includes('closeMediaPreview'), 'Built-in video, audio, image, and subtitle preview UI is incomplete');
+assert(css.includes('.media-preview-dialog[data-preview-type="audio"]') && css.includes('height: 250px'), 'Audio preview must use a compact layout instead of the video canvas');
 assert(main.includes("ipcMain.handle('download:open-folder'") && preload.includes('openDownloadedFolder'), 'Download folder action must open the task folder');
 assert(downloaderCore.includes('"writethumbnail": True') && downloaderCore.includes('thumbnail_filename') && downloaderCore.includes('task_dir'), 'Each download task must retain its source cover beside the final media file');
 assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.includes('downloadTaskFolderName') && main.includes('downloadMediaFileName'), 'New downloads must use platform classification and descriptive names');
@@ -264,6 +284,7 @@ assert(preload.includes('startExternalYouTubeLogin') && preload.includes('syncEx
 assert(main.includes("ipcMain.handle('browser:start-external-login'") && main.includes("ipcMain.handle('browser:sync-external-login'"), 'External browser login IPC handlers are missing');
 assert(main.includes('startManagedExternalLogin') && main.includes('isGoogleLoginFromYouTube'), 'Embedded Google login is not redirected to an external Chrome/Edge login window');
 assert(main.includes("'Network.getAllCookies'") && main.includes("'Browser.close'"), 'External login must sync through the local browser debugging channel without copying a locked cookie database');
+assert(main.includes('cookie?.expirationDate ?? cookie?.expires'), 'Synchronized YouTube cookies must preserve the CDP expiry so login survives an app restart');
 assert(packageJson.dependencies?.ws, 'External login WebSocket support must be packaged with the application');
 assert(app.includes('syncExternalLogin') && app.includes("text('externalLoginSuccess'"), 'External login modal does not synchronize and refresh YouTube');
 assert(css.includes('.external-login-overlay') && /\.external-login-overlay\s*\{[^}]*z-index:\s*2147483646/s.test(css), 'External login instructions must stay above browser content and other dialogs');

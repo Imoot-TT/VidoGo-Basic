@@ -4,7 +4,8 @@ const fsSync = require('fs');
 const fs = require('fs/promises');
 const nodeNet = require('node:net');
 const path = require('path');
-const { execFileSync, spawn } = require('child_process');
+const { pathToFileURL } = require('node:url');
+const { execFile, execFileSync, spawn } = require('child_process');
 const WebSocket = require('ws');
 const {
   classifyMediaPage,
@@ -178,6 +179,93 @@ let accountSession = loadAccountSession();
 const mediaLibraryStore = createMediaLibraryStore(MEDIA_LIBRARY_PATH);
 const smokeAccounts = new Map();
 let smokeOrders = [];
+let systemNetworkTimer = null;
+let systemNetworkSampling = false;
+let previousSystemNetworkTotals = null;
+let systemNetworkSpeed = {
+  available: false,
+  receivedBytesPerSecond: 0,
+  sentBytesPerSecond: 0,
+  totalBytesPerSecond: 0,
+  sampledAt: 0,
+};
+
+function parseWindowsNetworkTotals(output) {
+  for (const line of String(output || '').split(/\r?\n/)) {
+    const numericParts = line.trim().split(/\s+/).filter((part) => /^\d+$/.test(part));
+    if (numericParts.length !== 2) continue;
+    const receivedBytes = Number(numericParts[0]);
+    const sentBytes = Number(numericParts[1]);
+    if (Number.isSafeInteger(receivedBytes) && Number.isSafeInteger(sentBytes)) {
+      return { receivedBytes, sentBytes };
+    }
+  }
+  return null;
+}
+
+function readWindowsNetworkTotals() {
+  return new Promise((resolve) => {
+    execFile('netstat.exe', ['-e'], { encoding: 'utf8', timeout: 3000, windowsHide: true }, (error, stdout) => {
+      resolve(error ? null : parseWindowsNetworkTotals(stdout));
+    });
+  });
+}
+
+async function readLinuxNetworkTotals() {
+  try {
+    const content = await fs.readFile('/proc/net/dev', 'utf8');
+    return content.split(/\r?\n/).reduce((totals, line) => {
+      const match = line.match(/^\s*([^:]+):\s*(\d+)(?:\s+\d+){7}\s+(\d+)/);
+      if (!match || match[1].trim() === 'lo') return totals;
+      totals.receivedBytes += Number(match[2]) || 0;
+      totals.sentBytes += Number(match[3]) || 0;
+      return totals;
+    }, { receivedBytes: 0, sentBytes: 0 });
+  } catch {
+    return null;
+  }
+}
+
+async function sampleSystemNetworkSpeed() {
+  if (systemNetworkSampling) return systemNetworkSpeed;
+  systemNetworkSampling = true;
+  try {
+    const totals = process.platform === 'win32'
+      ? await readWindowsNetworkTotals()
+      : (process.platform === 'linux' ? await readLinuxNetworkTotals() : null);
+    const sampledAt = Date.now();
+    if (!totals) {
+      systemNetworkSpeed = { ...systemNetworkSpeed, available: false, sampledAt };
+      previousSystemNetworkTotals = null;
+      return systemNetworkSpeed;
+    }
+    let receivedBytesPerSecond = 0;
+    let sentBytesPerSecond = 0;
+    if (previousSystemNetworkTotals) {
+      const elapsedSeconds = Math.max(0.25, (sampledAt - previousSystemNetworkTotals.sampledAt) / 1000);
+      receivedBytesPerSecond = Math.max(0, totals.receivedBytes - previousSystemNetworkTotals.receivedBytes) / elapsedSeconds;
+      sentBytesPerSecond = Math.max(0, totals.sentBytes - previousSystemNetworkTotals.sentBytes) / elapsedSeconds;
+    }
+    previousSystemNetworkTotals = { ...totals, sampledAt };
+    systemNetworkSpeed = {
+      available: true,
+      receivedBytesPerSecond,
+      sentBytesPerSecond,
+      totalBytesPerSecond: receivedBytesPerSecond + sentBytesPerSecond,
+      sampledAt,
+    };
+    return systemNetworkSpeed;
+  } finally {
+    systemNetworkSampling = false;
+  }
+}
+
+function startSystemNetworkMonitor() {
+  if (systemNetworkTimer || IS_SMOKE_TEST) return;
+  void sampleSystemNetworkSpeed();
+  systemNetworkTimer = setInterval(() => void sampleSystemNetworkSpeed(), 1000);
+  systemNetworkTimer.unref?.();
+}
 
 function bundledPlatformConfigPath() {
   return app.isPackaged
@@ -687,7 +775,21 @@ function createWindow(url = null) {
 }
 
 async function runSmokeTest(window) {
-  const result = await window.webContents.executeJavaScript(`
+  let lastSmokeProgress = '';
+  const progressTimer = setInterval(() => {
+    if (window.isDestroyed() || window.webContents.isDestroyed()) return;
+    void window.webContents.executeJavaScript('window.__VIDOGO_SELF_TEST_PROGRESS || "booting"')
+      .then((progress) => {
+        const value = String(progress || 'booting');
+        if (value === lastSmokeProgress) return;
+        lastSmokeProgress = value;
+        console.log(`Electron smoke progress: ${value}`);
+      })
+      .catch(() => {});
+  }, 1000);
+  let result;
+  try {
+    result = await window.webContents.executeJavaScript(`
     new Promise((resolve) => {
       const startedAt = Date.now();
       const check = () => {
@@ -806,7 +908,10 @@ async function runSmokeTest(window) {
       };
       check();
     })
-  `);
+    `);
+  } finally {
+    clearInterval(progressTimer);
+  }
 
   if (!result?.ok) {
     await writeSmokeResult({ ok: false, result });
@@ -1123,7 +1228,10 @@ function importedCookieDetails(cookie) {
   if (sameSite === 'none') details.sameSite = 'no_restriction';
   else if (sameSite === 'lax' || sameSite === 'strict') details.sameSite = sameSite;
   if (!name.startsWith('__Host-')) details.domain = domain;
-  const expirationDate = Number(cookie?.expirationDate);
+  // CDP calls this field `expires`; Electron expects `expirationDate`.
+  // Without the translation, synchronized Google cookies become temporary
+  // session cookies and YouTube signs out when VidoGo is restarted.
+  const expirationDate = Number(cookie?.expirationDate ?? cookie?.expires);
   if (Number.isFinite(expirationDate) && expirationDate > Date.now() / 1000) details.expirationDate = expirationDate;
   return details;
 }
@@ -1670,8 +1778,8 @@ function normalizeFormatSelector(value) {
   return selector;
 }
 
-function downloadRequestKey(url, formatId = null) {
-  return `${String(url || '').trim()}\u0000${String(formatId || '').trim()}`;
+function downloadRequestKey(url, formatId = null, assetKey = '') {
+  return `${String(url || '').trim()}\u0000${String(formatId || '').trim()}\u0000${String(assetKey || '').trim()}`;
 }
 
 function normalizeMergeOutputFormat(value) {
@@ -2060,9 +2168,10 @@ function registerCompletedDownload(job, data = {}) {
   const filePath = String(data.filename || '').trim();
   if (!filePath) return;
   const task = job.task || {};
-  void mediaLibraryStore.addCompleted({
+  const completedAsset = {
     id: `asset-${crypto.randomUUID()}`,
     sourceTaskId: job.id,
+    sourceGroupId: task.sourceGroupId,
     title: task.title || path.basename(filePath),
     provider: task.provider,
     mediaId: task.mediaId,
@@ -2075,12 +2184,38 @@ function registerCompletedDownload(job, data = {}) {
     resolution: task.resolution,
     qualityLabel: task.qualityLabel,
     formatId: task.formatId,
-    kind: task.kind,
+    kind: task.assetType || task.kind,
+    assetType: task.assetType || task.kind,
+    assetRole: task.assetRole,
+    subtitleLanguage: task.subtitleLanguage,
+    subtitleAutomatic: task.subtitleAutomatic,
     mimeType: task.mimeType,
     videoCodec: task.videoCodec,
     audioCodec: task.audioCodec,
     downloadedAt: new Date().toISOString(),
-  }).catch(() => {});
+  };
+  void (async () => {
+    await mediaLibraryStore.addCompleted(completedAsset);
+    const coverPath = String(data.thumbnail_filename || '').trim();
+    if (!coverPath || path.resolve(coverPath) === path.resolve(filePath) || completedAsset.assetType === 'image') return;
+    await mediaLibraryStore.addCompleted({
+      ...completedAsset,
+      id: `asset-${crypto.randomUUID()}`,
+      sourceTaskId: `${job.id}:cover`,
+      filePath: coverPath,
+      coverPath,
+      fileSize: 0,
+      resolution: '',
+      qualityLabel: '',
+      formatId: '',
+      kind: 'image',
+      assetType: 'image',
+      assetRole: 'cover',
+      mimeType: '',
+      videoCodec: '',
+      audioCodec: '',
+    });
+  })().catch(() => {});
 }
 
 function releaseDownloadJobCookie(job) {
@@ -2189,10 +2324,12 @@ async function reserveDirectDownloadPaths(outputDir, title, task = {}) {
     const taskDir = path.join(root, stem + suffix);
     try {
       await fs.mkdir(taskDir);
+      const assetDir = path.join(taskDir, assetDirectoryName(task));
+      await fs.mkdir(assetDir, { recursive: true });
       return {
         taskDir,
-        finalPath: path.join(taskDir, mediaFileName),
-        temporaryPath: path.join(taskDir, `.${mediaFileName}.download`),
+        finalPath: path.join(assetDir, mediaFileName),
+        temporaryPath: path.join(assetDir, `.${mediaFileName}.download`),
       };
     } catch (error) {
       if (error?.code !== 'EEXIST') throw error;
@@ -2258,6 +2395,14 @@ function openDirectMediaResponse(url, signal, headers = {}, timeoutMs = 20_000, 
   });
 }
 
+function assetDirectoryName(task = {}) {
+  const assetType = String(task.assetType || task.kind || '').toLowerCase();
+  if (assetType === 'audio') return 'audio';
+  if (assetType === 'image') return 'images';
+  if (assetType === 'subtitle') return 'subtitles';
+  return 'video';
+}
+
 async function directMediaRequestHeaders(url, referrer, includeRange = false) {
   const cookies = await getBrowserSession().cookies.get({ url }).catch(() => []);
   return {
@@ -2296,7 +2441,9 @@ async function downloadDirectThumbnail(taskDir, thumbnailUrl, referrer, signal) 
       chunks.push(chunk);
     }
     if (!contentLength) return null;
-    const coverPath = path.join(taskDir, 'cover' + extension);
+    const imageDir = path.join(taskDir, 'images');
+    await fs.mkdir(imageDir, { recursive: true });
+    const coverPath = path.join(imageDir, 'cover' + extension);
     await fs.writeFile(coverPath, Buffer.concat(chunks));
     return coverPath;
   } catch {
@@ -2398,7 +2545,7 @@ function spawnDirectDownloadJob(job) {
     } catch (error) {
       if (handle) await handle.close().catch(() => {});
       await fs.unlink(reserved.temporaryPath).catch(() => {});
-      await fs.rmdir(reserved.taskDir).catch(() => {});
+      await fs.rm(reserved.taskDir, { recursive: true, force: true }).catch(() => {});
       if (!job.cancelled) {
         sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
       }
@@ -2453,14 +2600,14 @@ async function finalizeWebviewDirectDownloadJob(job, outcome = {}) {
       sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
     } else {
       if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
-      if (stream?.reserved?.taskDir) await fs.rmdir(stream.reserved.taskDir).catch(() => {});
+      if (stream?.reserved?.taskDir) await fs.rm(stream.reserved.taskDir, { recursive: true, force: true }).catch(() => {});
       if (!job.cancelled && outcome.error) {
         sendDownloadJobEvent(job, { type: 'error', message: outcome.error?.message || String(outcome.error) });
       }
     }
   } catch (error) {
     if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
-    if (stream?.reserved?.taskDir) await fs.rmdir(stream.reserved.taskDir).catch(() => {});
+    if (stream?.reserved?.taskDir) await fs.rm(stream.reserved.taskDir, { recursive: true, force: true }).catch(() => {});
     if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
   } finally {
     activeDownloadJobs.delete(job.id);
@@ -2503,7 +2650,7 @@ function spawnWebviewDirectDownloadJob(job) {
     job.temporaryPath = reserved.temporaryPath;
     job.taskDir = reserved.taskDir;
     if (job.cancelled || job.finalized) {
-      await fs.rmdir(reserved.taskDir).catch(() => {});
+      await fs.rm(reserved.taskDir, { recursive: true, force: true }).catch(() => {});
       return;
     }
     const handle = await fs.open(reserved.temporaryPath, 'w');
@@ -2737,7 +2884,7 @@ function spawnBrowserDownloadJob(job) {
     sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
   })().catch(async (error) => {
     if (job.temporaryPath) await fs.unlink(job.temporaryPath).catch(() => {});
-    if (job.taskDir) await fs.rmdir(job.taskDir).catch(() => {});
+    if (job.taskDir) await fs.rm(job.taskDir, { recursive: true, force: true }).catch(() => {});
     if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
   }).finally(() => {
     programmaticMediaRequests.delete(job.url);
@@ -2929,6 +3076,7 @@ app.whenReady().then(async () => {
   await ensureUserDataPath();
   configureBrowserIdentity();
   registerBrowserRequestFeatures();
+  startSystemNetworkMonitor();
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -2940,6 +3088,8 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  if (systemNetworkTimer) clearInterval(systemNetworkTimer);
+  systemNetworkTimer = null;
   for (const job of queuedDownloadJobs.splice(0)) {
     job.cancelled = true;
     releaseDownloadJobCookie(job);
@@ -2964,6 +3114,11 @@ ipcMain.handle('app:get-default-download-dir', () => (IS_SMOKE_TEST
 
 ipcMain.handle('app:get-runtime-info', () => getRuntimeInfo());
 ipcMain.handle('app:get-legacy-info', () => getLegacyInfo());
+ipcMain.handle('system:get-network-speed', async () => {
+  if (IS_SMOKE_TEST) return { ...systemNetworkSpeed, available: true };
+  if (!systemNetworkSpeed.sampledAt) await sampleSystemNetworkSpeed();
+  return { ...systemNetworkSpeed };
+});
 
 ipcMain.handle('session:reset-browser', async () => {
   await resetBrowserSession();
@@ -3605,6 +3760,42 @@ ipcMain.handle('download:open-file', async (_event, item) => {
   return { ok: result === '', path: resolvedPath, taskDir: path.dirname(resolvedPath), reason: result || null };
 });
 
+ipcMain.handle('download:preview-file', async (_event, item = {}) => {
+  const requestedType = String(item.assetType || item.kind || '').toLowerCase();
+  if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
+    const smokeImage = `data:image/svg+xml;base64,${Buffer.from(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+        <defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#12345a"/><stop offset="1" stop-color="#54a8ff"/></linearGradient></defs>
+        <rect width="1600" height="900" fill="url(#g)"/>
+        <circle cx="800" cy="420" r="190" fill="#ffffff" fill-opacity=".14"/>
+        <text x="800" y="455" text-anchor="middle" font-family="Arial" font-size="82" fill="white">VidoGo image preview</text>
+      </svg>
+    `).toString('base64')}`;
+    return {
+      ok: true,
+      type: ['video', 'audio', 'image', 'subtitle'].includes(requestedType) ? requestedType : 'video',
+      path: item.path || '',
+      url: requestedType === 'image' ? smokeImage : 'data:video/mp4;base64,',
+      text: requestedType === 'subtitle' ? 'WEBVTT\n\n00:00.000 --> 00:01.000\nSmoke subtitle' : null,
+    };
+  }
+  const resolvedPath = await resolveDownloadedFile(item);
+  if (!resolvedPath) return { ok: false, reason: 'file-not-found' };
+  const extension = path.extname(resolvedPath).slice(1).toLowerCase();
+  const inferredType = ['mp3', 'm4a', 'aac', 'ogg', 'opus', 'wav', 'flac'].includes(extension)
+    ? 'audio'
+    : (['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'bmp'].includes(extension)
+      ? 'image'
+      : (['srt', 'vtt', 'ass', 'ssa', 'ttml', 'srv3', 'lrc'].includes(extension) ? 'subtitle' : 'video'));
+  const type = ['video', 'audio', 'image', 'subtitle'].includes(requestedType) ? requestedType : inferredType;
+  if (type === 'subtitle') {
+    const fileStat = await fs.stat(resolvedPath);
+    if (!fileStat.isFile() || fileStat.size > 4 * 1024 * 1024) return { ok: false, reason: 'subtitle-too-large' };
+    return { ok: true, type, path: resolvedPath, text: await fs.readFile(resolvedPath, 'utf8') };
+  }
+  return { ok: true, type, path: resolvedPath, url: pathToFileURL(resolvedPath).href };
+});
+
 ipcMain.handle('download:open-folder', async (_event, item) => {
   if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) return { ok: true, path: item?.savePath || '' };
   const resolvedPath = await resolveDownloadedFolder(item || {});
@@ -3757,11 +3948,19 @@ ipcMain.handle('download:start', async (_event, task) => {
     outputDir: classifiedOutputDirectory(outputRoot, provider),
     provider,
     mediaId: String(task.mediaId || sourceContext?.mediaId || '').trim().slice(0, 300),
+    sourceGroupId: String(task.sourceGroupId || '').trim().slice(0, 500)
+      || crypto.createHash('sha1').update(`${provider}\u0000${task.mediaId || sourcePageUrl}`).digest('hex'),
     pageUrl: sourcePageUrl,
     resolution: task.resolution,
     qualityLabel: String(task.qualityLabel || '').trim().slice(0, 80),
     playlist: task.playlist,
     audioOnly: task.audioOnly,
+    assetType: ['video', 'audio', 'image', 'subtitle'].includes(String(task.assetType || '').toLowerCase())
+      ? String(task.assetType).toLowerCase()
+      : (task.audioOnly ? 'audio' : 'video'),
+    assetRole: String(task.assetRole || '').trim().slice(0, 40),
+    subtitleLanguage: String(task.subtitleLanguage || '').trim().slice(0, 80),
+    subtitleAutomatic: task.subtitleAutomatic === true,
     jsRuntime: task.jsRuntime || 'auto',
     ffmpegLocation: task.ffmpegLocation || resolveBundledFfmpegLocation(),
     formatId: normalizeFormatSelector(task.formatId),
@@ -3784,9 +3983,10 @@ ipcMain.handle('download:start', async (_event, task) => {
       ? Number(task.webContentsId)
       : null,
   };
+  const assetRequestKey = `${baseTask.assetType}:${baseTask.subtitleLanguage}:${baseTask.subtitleAutomatic ? 'auto' : 'manual'}`;
   const requestedEntries = urls.map((url) => ({
     url,
-    requestKey: downloadRequestKey(url, baseTask.formatId),
+    requestKey: downloadRequestKey(url, baseTask.formatId, assetRequestKey),
     nativeBrowserDownload: baseTask.directDownload && (
       consumeNativeDownloadPermit(url, baseTask.webContentsId)
       || (baseTask.siteDownloadIntent && isAllowedSiteDownloadIntent(url, baseTask.referrer, baseTask.webContentsId))
@@ -3795,7 +3995,7 @@ ipcMain.handle('download:start', async (_event, task) => {
   const existingByRequestKey = new Map([
     ...Array.from(activeDownloadJobs.values()),
     ...queuedDownloadJobs,
-  ].map((job) => [job.requestKey || downloadRequestKey(job.url, job.task?.formatId), job]));
+  ].map((job) => [job.requestKey || downloadRequestKey(job.url, job.task?.formatId, `${job.task?.assetType || 'video'}:${job.task?.subtitleLanguage || ''}`), job]));
   const newEntries = requestedEntries.filter((entry) => !existingByRequestKey.has(entry.requestKey));
   if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
     const consumed = consumeCurrentDailyEntitlement(downloadEntitlementCharge(newEntries.length, task.retryExisting));

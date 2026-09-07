@@ -14,6 +14,7 @@
     { "id": "dailymotion", "name": "Dailymotion", "url": "https://www.dailymotion.com/", "categoryId": "video", "icon": "./assets/dailymotion.ico", "enabled": true, "builtIn": true },
     { "id": "rumble", "name": "Rumble", "url": "https://rumble.com/", "categoryId": "video", "icon": "./assets/rumble.ico", "enabled": true, "builtIn": true },
     { "id": "instagram", "name": "Instagram", "url": "https://www.instagram.com/", "categoryId": "social", "icon": "./assets/instagram.png", "enabled": true, "builtIn": true },
+    { "id": "xiaohongshu", "name": "小红书", "url": "https://www.xiaohongshu.com/explore", "categoryId": "social", "icon": "https://www.xiaohongshu.com/favicon.ico", "enabled": true, "builtIn": true },
     { "id": "facebook", "name": "Facebook", "url": "https://www.facebook.com/", "categoryId": "social", "icon": "./assets/facebook.png", "enabled": true, "builtIn": true },
     { "id": "x", "name": "X/Twitter", "url": "https://x.com/", "categoryId": "social", "icon": "./assets/x.ico", "enabled": true, "builtIn": true },
     { "id": "reddit", "name": "Reddit", "url": "https://www.reddit.com/", "categoryId": "social", "icon": "./assets/reddit.ico", "enabled": true, "builtIn": true },

@@ -45,6 +45,12 @@ class DownloadSettings:
     merge_output_format: str = "mp4"
     referrer: str | None = None
     thumbnail_url: str | None = None
+    asset_type: str = "video"
+    asset_role: str = ""
+    subtitle_language: str | None = None
+    subtitle_automatic: bool = False
+    title: str = "Untitled"
+    media_id: str = ""
 
 
 def normalize_resolution(value: str) -> str:
@@ -133,6 +139,12 @@ def normalize_thumbnail_url(value: object) -> str | None:
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}
 VIDEO_EXTENSIONS = {".mp4", ".webm", ".mkv", ".mov", ".m4v", ".avi"}
 MAX_THUMBNAIL_BYTES = 20 * 1024 * 1024
+ASSET_DIRECTORY_NAMES = {"video", "audio", "images", "subtitles"}
+
+
+def _content_task_directory(file_path: Path) -> Path:
+    parent = file_path.resolve().parent
+    return parent.parent if parent.name.lower() in ASSET_DIRECTORY_NAMES else parent
 
 
 def _thumbnail_extension(url: str, content_type: str | None) -> str:
@@ -150,7 +162,12 @@ def _thumbnail_extension(url: str, content_type: str | None) -> str:
     return extension if extension in IMAGE_EXTENSIONS else ".jpg"
 
 
-def _download_fallback_thumbnail(task_dir: Path, thumbnail_url: str | None, referrer: str | None) -> Path | None:
+def _download_fallback_thumbnail(
+    task_dir: Path,
+    thumbnail_url: str | None,
+    referrer: str | None,
+    file_stem: str = "cover",
+) -> Path | None:
     if not thumbnail_url:
         return None
     headers = {"User-Agent": "Mozilla/5.0 VidoGo/1.0"}
@@ -168,12 +185,60 @@ def _download_fallback_thumbnail(task_dir: Path, thumbnail_url: str | None, refe
                 return None
             extension = _thumbnail_extension(thumbnail_url, response.headers.get("Content-Type"))
         temporary_path.write_bytes(content)
-        cover_path = task_dir / f"cover{extension}"
+        cover_path = task_dir / f"{_safe_output_segment(file_stem, 'cover', 48)}{extension}"
         temporary_path.replace(cover_path)
         return cover_path
     except Exception:
         temporary_path.unlink(missing_ok=True)
         return None
+
+
+def _asset_task_directory(settings: DownloadSettings) -> Path:
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")[:-3]
+    title = _safe_output_segment(settings.title, "Untitled", 120)
+    media_id = _safe_output_segment(settings.media_id, "", 72)
+    stem = f"{stamp} - {title}{f' [{media_id}]' if media_id else ''}"
+    for index in range(1000):
+        suffix = f" ({index + 1})" if index else ""
+        candidate = settings.output_dir / f"{stem}{suffix}"
+        try:
+            candidate.mkdir(parents=True, exist_ok=False)
+            return candidate
+        except FileExistsError:
+            continue
+    raise RuntimeError("Could not reserve an asset download folder.")
+
+
+def _safe_output_segment(value: object, fallback: str, max_length: int) -> str:
+    cleaned = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', " ", str(value or ""))
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" .")[:max_length]
+    return cleaned or fallback
+
+
+def _download_image_asset(settings: DownloadSettings, progress: ProgressCallback) -> tuple[int, int]:
+    task_dir = _asset_task_directory(settings)
+    image_dir = task_dir / "images"
+    image_dir.mkdir(parents=True, exist_ok=True)
+    file_stem = "image" if settings.asset_role == "gallery" else "cover"
+    cover_path = _download_fallback_thumbnail(image_dir, settings.thumbnail_url, settings.referrer, file_stem)
+    if not cover_path:
+        shutil.rmtree(task_dir, ignore_errors=True)
+        raise RuntimeError("No downloadable cover image was found for this media.")
+    file_size = cover_path.stat().st_size
+    progress({
+        "item_index": 1,
+        "item_total": 1,
+        "percent": 100.0,
+        "status": "completed",
+        "filename": str(cover_path.resolve()),
+        "task_dir": str(task_dir.resolve()),
+        "thumbnail_filename": str(cover_path.resolve()),
+        "downloaded_bytes": file_size,
+        "total_bytes": file_size,
+        "speed": 0,
+        "eta": 0,
+    })
+    return 1, 0
 
 
 def _generate_video_cover(final_path: Path, ffmpeg_location: Path | None) -> Path | None:
@@ -212,29 +277,37 @@ def finalize_task_output(
     ffmpeg_location: Path | None = None,
 ) -> tuple[Path, Path | None]:
     final_path = Path(final_filename).resolve()
-    task_dir = final_path.parent
+    task_dir = _content_task_directory(final_path)
     task_dir.mkdir(parents=True, exist_ok=True)
-    existing_cover = next((path for path in task_dir.glob("cover.*") if path.suffix.lower() in IMAGE_EXTENSIONS), None)
+    image_dir = task_dir / "images"
+    image_dir.mkdir(parents=True, exist_ok=True)
+    existing_cover = next((path for path in image_dir.glob("cover.*") if path.suffix.lower() in IMAGE_EXTENSIONS), None)
     if existing_cover:
         return final_path, existing_cover
 
     thumbnail_candidates = sorted(
         (
-            path for path in task_dir.iterdir()
+            path for directory in {task_dir, final_path.parent}
+            for path in directory.iterdir()
             if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
         ),
         key=lambda path: (path.stem != final_path.stem, -path.stat().st_mtime_ns),
     )
     if thumbnail_candidates:
         source = thumbnail_candidates[0]
-        cover_path = task_dir / f"cover{source.suffix.lower()}"
+        cover_path = image_dir / f"cover{source.suffix.lower()}"
         source.replace(cover_path)
         return final_path, cover_path
 
-    downloaded_cover = _download_fallback_thumbnail(task_dir, thumbnail_url, referrer)
+    downloaded_cover = _download_fallback_thumbnail(image_dir, thumbnail_url, referrer)
     if downloaded_cover:
         return final_path, downloaded_cover
-    return final_path, _generate_video_cover(final_path, ffmpeg_location)
+    generated_cover = _generate_video_cover(final_path, ffmpeg_location)
+    if not generated_cover:
+        return final_path, None
+    cover_path = image_dir / generated_cover.name
+    generated_cover.replace(cover_path)
+    return final_path, cover_path
 
 
 def human_size(value: float | None) -> str:
@@ -283,6 +356,13 @@ def download_urls(
     should_cancel: Callable[[], bool] | None = None,
     translate: TranslateCallback | None = None,
 ) -> tuple[int, int]:
+    settings.asset_type = str(settings.asset_type or "video").strip().lower()
+    if settings.asset_type not in {"video", "audio", "image", "subtitle"}:
+        raise ValueError("Unsupported asset type.")
+    if settings.asset_type == "image":
+        settings.output_dir.mkdir(parents=True, exist_ok=True)
+        return _download_image_asset(settings, progress)
+
     try:
         from yt_dlp import YoutubeDL
     except ImportError as exc:
@@ -296,16 +376,20 @@ def download_urls(
     archive_file = resolve_archive_file(settings.output_dir, settings.archive_file)
     ffmpeg_available = ensure_ffmpeg_available(settings.ffmpeg_location)
 
-    if not settings.audio_only and not ffmpeg_available:
+    if settings.asset_type == "audio":
+        settings.audio_only = True
+
+    if not settings.audio_only and settings.asset_type != "subtitle" and not ffmpeg_available:
         log(_text(translate, "warning_ffmpeg_missing"))
 
     download_stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")[:-3]
     task_folder = f"{download_stamp} - %(title).120B [%(id)s] [%(format_id)s]"
-    media_file = ("audio" if settings.audio_only else "video") + "-%(format_id)s.%(ext)s"
+    asset_directory = "audio" if settings.audio_only else "video"
+    media_file = asset_directory + "-%(format_id)s.%(ext)s"
     ydl_opts = {
         "paths": {"home": str(settings.output_dir)},
         "outtmpl": {
-            "default": f"{task_folder}/{media_file}",
+            "default": f"{task_folder}/{asset_directory}/{media_file}",
             "chapter": f"{task_folder}/chapters/%(section_number)02d - %(section_title).120B.%(ext)s",
         },
         "format": normalize_format_selector(settings.format_selector)
@@ -345,6 +429,26 @@ def download_urls(
                 "preferredquality": "320",
             }
         ]
+
+    if settings.asset_type == "subtitle":
+        language = str(settings.subtitle_language or "").strip()
+        if not language:
+            raise ValueError("Missing subtitle language.")
+        ydl_opts.update({
+            "skip_download": True,
+            "writesubtitles": not settings.subtitle_automatic,
+            "writeautomaticsub": settings.subtitle_automatic,
+            "subtitleslangs": [language],
+            "subtitlesformat": "srt/vtt/ttml/best",
+            "writethumbnail": False,
+            "outtmpl": {
+                "default": f"{task_folder}/subtitles/subtitle.%(ext)s",
+                "subtitle": f"{task_folder}/subtitles/subtitle.%(ext)s",
+            },
+        })
+        # Subtitles are a separate asset from the ordinary video archive.  Do
+        # not mutate or replace the existing video archive behavior.
+        ydl_opts.pop("download_archive", None)
 
     if settings.ffmpeg_location:
         ydl_opts["ffmpeg_location"] = str(settings.ffmpeg_location)
@@ -398,7 +502,7 @@ def download_urls(
                     "percent": percent,
                     "status": "downloading",
                     "filename": data.get("filename") or "",
-                    "task_dir": str(Path(data["filename"]).resolve().parent) if data.get("filename") else str(settings.output_dir.resolve()),
+                    "task_dir": str(_content_task_directory(Path(data["filename"]))) if data.get("filename") else str(settings.output_dir.resolve()),
                     "downloaded_bytes": downloaded_bytes,
                     "total_bytes": total_bytes,
                     "speed": data.get("speed"),
@@ -413,7 +517,7 @@ def download_urls(
                     "percent": 100.0,
                     "status": "processing",
                     "filename": data.get("filename") or "",
-                    "task_dir": str(Path(data["filename"]).resolve().parent) if data.get("filename") else str(settings.output_dir.resolve()),
+                    "task_dir": str(_content_task_directory(Path(data["filename"]))) if data.get("filename") else str(settings.output_dir.resolve()),
                     "downloaded_bytes": data.get("total_bytes") or data.get("downloaded_bytes") or 0,
                     "total_bytes": data.get("total_bytes") or data.get("downloaded_bytes") or 0,
                     "speed": data.get("speed"),
@@ -436,16 +540,34 @@ def download_urls(
             current_index = index
             current_url = url
             first_new_final_path = len(final_paths)
+            files_before = set(settings.output_dir.rglob("*")) if settings.asset_type == "subtitle" else set()
             result = ydl.download([url])
             if result == 0:
-                downloaded += 1
-                for final_filename in final_paths[first_new_final_path:]:
-                    final_path, cover_path = finalize_task_output(
-                        final_filename,
-                        normalize_thumbnail_url(settings.thumbnail_url),
-                        referrer,
-                        settings.ffmpeg_location,
+                if settings.asset_type == "subtitle":
+                    subtitle_extensions = {".srt", ".vtt", ".ttml", ".srv1", ".srv2", ".srv3", ".json3"}
+                    created = [
+                        str(path.resolve()) for path in settings.output_dir.rglob("*")
+                        if path.is_file() and path not in files_before and path.suffix.lower() in subtitle_extensions
+                    ]
+                    final_paths.extend(created)
+                new_paths = final_paths[first_new_final_path:]
+                if not new_paths:
+                    raise RuntimeError(
+                        f"The requested subtitle ({settings.subtitle_language}) was not returned by the media platform."
+                        if settings.asset_type == "subtitle"
+                        else "The downloader finished without producing a media file."
                     )
+                downloaded += 1
+                for final_filename in new_paths:
+                    if settings.asset_type == "subtitle":
+                        final_path, cover_path = Path(final_filename).resolve(), None
+                    else:
+                        final_path, cover_path = finalize_task_output(
+                            final_filename,
+                            normalize_thumbnail_url(settings.thumbnail_url),
+                            referrer,
+                            settings.ffmpeg_location,
+                        )
                     file_size = final_path.stat().st_size if final_path.exists() else 0
                     progress(
                         {
@@ -454,7 +576,7 @@ def download_urls(
                             "percent": 100.0,
                             "status": "completed",
                             "filename": str(final_path),
-                            "task_dir": str(final_path.parent),
+                            "task_dir": str(_content_task_directory(final_path)),
                             "thumbnail_filename": str(cover_path) if cover_path else "",
                             "downloaded_bytes": file_size,
                             "total_bytes": file_size,

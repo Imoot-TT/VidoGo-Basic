@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   getDefaultDownloadDir: () => ipcRenderer.invoke('app:get-default-download-dir'),
   getRuntimeInfo: () => ipcRenderer.invoke('app:get-runtime-info'),
   getLegacyInfo: () => ipcRenderer.invoke('app:get-legacy-info'),
+  getSystemNetworkSpeed: () => ipcRenderer.invoke('system:get-network-speed'),
   chooseDirectory: () => ipcRenderer.invoke('dialog:choose-directory'),
   chooseTextFile: () => ipcRenderer.invoke('dialog:choose-text-file'),
   getPlatforms: () => ipcRenderer.invoke('platforms:get'),
@@ -21,6 +22,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   openPath: (targetPath) => ipcRenderer.invoke('app:open-path', targetPath),
   showItemInFolder: (targetPath) => ipcRenderer.invoke('app:show-item-in-folder', targetPath),
   openDownloadedFile: (item) => ipcRenderer.invoke('download:open-file', item),
+  previewDownloadedFile: (item) => ipcRenderer.invoke('download:preview-file', item),
   openDownloadedFolder: (item) => ipcRenderer.invoke('download:open-folder', item),
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
@@ -72,7 +74,9 @@ contextBridge.exposeInMainWorld('mediaDeck', {
 });
 
 contextBridge.exposeInMainWorld('mediaDeckSmokeExpectedBackend', process.env.ELECTRON_SMOKE_EXPECT_BACKEND || '');
+contextBridge.exposeInMainWorld('mediaDeckSmokeTest', process.env.ELECTRON_SMOKE_TEST === '1');
 contextBridge.exposeInMainWorld('mediaDeckSmokeVisualAudit', process.env.ELECTRON_SMOKE_VISUAL_AUDIT === '1');
+contextBridge.exposeInMainWorld('mediaDeckSmokeVisualPreview', process.env.ELECTRON_SMOKE_VISUAL_PREVIEW || '');
 contextBridge.exposeInMainWorld('mediaDeckSmokeBrowserUrl', process.env.ELECTRON_SMOKE_BROWSER_URL || '');
 contextBridge.exposeInMainWorld('mediaDeckSmokeDownload', {
   real: process.env.ELECTRON_SMOKE_REAL_DOWNLOADS === '1',

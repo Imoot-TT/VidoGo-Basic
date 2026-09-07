@@ -26,6 +26,8 @@ async function main() {
   );
   assert.equal(downloadMediaFileName({ kind: 'video', qualityLabel: '1080p · H.264', videoCodec: 'avc1', extension: 'mp4' }), 'video-1080p-h264.mp4');
   assert.equal(downloadMediaFileName({ kind: 'audio', formatId: '140', mimeType: 'audio/mp4' }), 'audio-140.m4a');
+  assert.equal(downloadMediaFileName({ assetType: 'image', mimeType: 'image/jpeg' }), 'cover.jpg');
+  assert.equal(downloadMediaFileName({ assetType: 'subtitle', subtitleLanguage: 'zh-Hans', extension: 'vtt' }), 'subtitle-zh-hans.vtt');
 
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'vidogo-media-library-'));
   try {
@@ -38,12 +40,15 @@ async function main() {
       title: 'Sample',
       provider: 'tiktok',
       mediaId: '123',
+      sourceGroupId: 'tiktok:123',
       sourceUrl: 'https://www.tiktok.com/@demo/video/123',
       filePath: mediaPath,
       qualityLabel: '1080p',
     });
     assert.equal(first.status, 'available');
     assert.equal(first.fileSize, 10);
+    assert.equal(first.assetType, 'video');
+    assert.equal(first.sourceGroupId, 'tiktok:123');
 
     await store.addCompleted({ sourceTaskId: 'job-1', title: 'Updated title', provider: 'tiktok', filePath: mediaPath });
     await store.addCompleted({ sourceTaskId: 'job-2', title: 'Intentional duplicate', provider: 'tiktok', filePath: mediaPath });
@@ -55,7 +60,10 @@ async function main() {
     library = await store.list({ refresh: true });
     assert(library.items.every((item) => item.status === 'missing'), 'Refresh must retain records and mark externally deleted files as missing');
     const persisted = JSON.parse(await fs.readFile(store.filePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 1);
+    assert.equal(persisted.schemaVersion, 2);
+    const manifest = JSON.parse(await fs.readFile(path.join(path.dirname(mediaPath), 'metadata.json'), 'utf8'));
+    assert.equal(manifest.schemaVersion, 2);
+    assert.equal(manifest.assets[0].assetType, 'video');
   } finally {
     await fs.rm(temporaryRoot, { recursive: true, force: true });
   }

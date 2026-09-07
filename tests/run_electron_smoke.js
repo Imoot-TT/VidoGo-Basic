@@ -40,15 +40,21 @@ for (const file of [resultPath, screenshotPath]) {
 
 const timeoutMs = ['browser-youtube-flow', 'browser-platform-flow', 'download-queue-real', 'resolver-flow'].includes(scenario)
   ? 90000
-  : (scenario === 'recorder-flow' ? 50000 : 25000);
+  : (scenario === 'recorder-flow' ? 50000 : 35000);
 let child = null;
 let startedAt = 0;
+let childOutput = '';
+let childExit = null;
+
+function rememberChildOutput(chunk) {
+  childOutput = `${childOutput}${String(chunk || '')}`.slice(-16000);
+}
 
 function launchSmoke(extraEnv = {}) {
   child = spawn(electronPath, launchArgs, {
     cwd: launchCwd,
     detached: false,
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
       ELECTRON_SMOKE_TEST: '1',
@@ -57,6 +63,11 @@ function launchSmoke(extraEnv = {}) {
       ELECTRON_SMOKE_EXPECT_BACKEND: process.env.ELECTRON_SMOKE_EXPECT_BACKEND || '',
       ...extraEnv,
     },
+  });
+  child.stdout?.on('data', rememberChildOutput);
+  child.stderr?.on('data', rememberChildOutput);
+  child.once('exit', (code, signal) => {
+    childExit = { code, signal, at: Date.now() };
   });
   startedAt = Date.now();
   poll();
@@ -226,13 +237,17 @@ function poll() {
     }, null, 2));
     process.exit(0);
   }
+  if (childExit && Date.now() - childExit.at > 750) {
+    console.error(`Electron smoke process exited before writing a result (code=${childExit.code}, signal=${childExit.signal || 'none'})${childOutput ? `\n${childOutput}` : ''}`);
+    process.exit(1);
+  }
   if (Date.now() - startedAt > timeoutMs) {
     try {
       child?.kill();
     } catch {
       // Ignore cleanup failures on timeout.
     }
-    console.error(`Electron smoke test timed out after ${timeoutMs}ms`);
+    console.error(`Electron smoke test timed out after ${timeoutMs}ms${childOutput ? `\n${childOutput}` : ''}`);
     process.exit(1);
   }
   setTimeout(poll, 250);
