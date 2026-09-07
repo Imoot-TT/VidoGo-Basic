@@ -40,28 +40,52 @@ jobs:
         shell: pwsh
         run: |
           npm ci
+          if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
           python -m pip install -r requirements-build.txt
-          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
-            choco install ffmpeg -y --no-progress
-          }
+          if ($LASTEXITCODE -ne 0) { throw "Python dependency install failed" }
+          choco install ffmpeg -y --no-progress
+          if ($LASTEXITCODE -ne 0) { throw "FFmpeg install failed" }
+          $tools = Get-ChildItem -LiteralPath "$env:ChocolateyInstall\lib\ffmpeg\tools" -Filter ffmpeg.exe -Recurse |
+            Where-Object { $_.Length -gt 1MB } | Select-Object -First 1
+          if (-not $tools) { throw "Standalone FFmpeg executable was not found" }
+          "VIDOGO_MEDIA_TOOLS_DIR=$($tools.DirectoryName)" >> $env:GITHUB_ENV
 
       - name: Verify source
         shell: pwsh
         run: |
           npm run check
+          if ($LASTEXITCODE -ne 0) { throw "Source checks failed" }
           npm run check:backend
+          if ($LASTEXITCODE -ne 0) { throw "Backend checks failed" }
 
       - name: Build Windows installer
         shell: pwsh
-        run: npm run dist:win
+        run: npm run dist:win -- --publish never
+
+      - name: Verify packaged media tools and release files
+        shell: pwsh
+        run: |
+          python scripts/verify_release.py
+          if ($LASTEXITCODE -ne 0) { throw "Packaged release verification failed" }
+          $env:ELECTRON_SMOKE_EXECUTABLE = (Resolve-Path "dist/win-unpacked/VidoGo Basic.exe").Path
+          $env:ELECTRON_SMOKE_EXPECT_BACKEND = "bundled"
+          npm run smoke
+          if ($LASTEXITCODE -ne 0) { throw "Packaged application smoke test failed" }
 
       - name: Publish installer to GitHub Release
         shell: pwsh
         run: |
-          $asset = Get-ChildItem -LiteralPath dist -Filter "VidoGo-Basic-*-x64-Setup.exe" | Select-Object -First 1
-          if (-not $asset) { throw "Windows installer was not produced." }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -ne "basic-v$version") { throw "Release tag does not match package version" }
+          $installer = "dist/VidoGo-Basic-$version-x64-Setup.exe"
+          $assets = @($installer, "$installer.blockmap", "dist/latest.yml")
+          foreach ($asset in $assets) {
+            if (-not (Test-Path -LiteralPath $asset)) { throw "Missing release file: $asset" }
+          }
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -ne 0) {
             gh release create $env:RELEASE_TAG --target main --title "VidoGo Basic $($env:RELEASE_TAG -replace '^basic-v','')" --generate-notes
+            if ($LASTEXITCODE -ne 0) { throw "Release creation failed" }
           }
-          gh release upload $env:RELEASE_TAG $asset.FullName --clobber
+          gh release upload $env:RELEASE_TAG @assets --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Release upload failed" }

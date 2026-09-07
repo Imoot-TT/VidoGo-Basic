@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import sys
@@ -47,7 +48,17 @@ def copy_media_tools() -> None:
     bin_dir = VENDOR_DIR / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     for name in ("ffmpeg", "ffprobe"):
-        source = require_command(name)
+        configured_dir = os.environ.get("VIDOGO_MEDIA_TOOLS_DIR", "").strip()
+        source = Path(configured_dir) / f"{name}.exe" if configured_dir else require_command(name)
+        if not source.is_file():
+            raise RuntimeError(f"Media tool was not found: {source}")
+        # Chocolatey's PATH entries are launchers tied to the build machine.
+        # This package requires self-contained media executables, not those shims.
+        if source.stat().st_size < 1024 * 1024:
+            raise RuntimeError(
+                f"Media tool is too small to be a standalone binary: {source}. "
+                "Set VIDOGO_MEDIA_TOOLS_DIR to the actual FFmpeg bin directory."
+            )
         destination = bin_dir / f"{name}.exe"
         shutil.copy2(source, destination)
         print(f"Copied {source} -> {destination}")
