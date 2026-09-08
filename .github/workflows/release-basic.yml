@@ -43,11 +43,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
           python -m pip install -r requirements-build.txt
           if ($LASTEXITCODE -ne 0) { throw "Python dependency install failed" }
-          choco install ffmpeg -y --no-progress
-          if ($LASTEXITCODE -ne 0) { throw "FFmpeg install failed" }
-          $tools = Get-ChildItem -LiteralPath "$env:ChocolateyInstall\lib\ffmpeg\tools" -Filter ffmpeg.exe -Recurse |
-            Where-Object { $_.Length -gt 1MB } | Select-Object -First 1
-          if (-not $tools) { throw "Standalone FFmpeg executable was not found" }
+          $archive = Join-Path $env:RUNNER_TEMP "ffmpeg-release-full.7z"
+          $checksumFile = "$archive.sha256"
+          Invoke-WebRequest "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z" -OutFile $archive
+          Invoke-WebRequest "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z.sha256" -OutFile $checksumFile
+          $expected = ((Get-Content -LiteralPath $checksumFile -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) { throw "Full FFmpeg archive checksum mismatch" }
+          $extractDir = Join-Path $env:RUNNER_TEMP "ffmpeg-release-full"
+          & "C:\Program Files\7-Zip\7z.exe" x $archive "-o$extractDir" -y
+          if ($LASTEXITCODE -ne 0) { throw "Full FFmpeg extraction failed" }
+          $tools = Get-ChildItem -LiteralPath $extractDir -Filter ffmpeg.exe -Recurse | Select-Object -First 1
+          if (-not $tools) { throw "Full FFmpeg executable was not found" }
+          $buildInfo = & $tools.FullName -version 2>&1 | Out-String
+          foreach ($flag in @('--enable-libjxl', '--enable-libplacebo', '--enable-opencl', '--enable-vulkan', '--enable-whisper')) {
+            if (-not $buildInfo.Contains($flag)) { throw "Downloaded FFmpeg is not the Full Build; missing $flag" }
+          }
           "VIDOGO_MEDIA_TOOLS_DIR=$($tools.DirectoryName)" >> $env:GITHUB_ENV
 
       - name: Verify source
