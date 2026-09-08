@@ -37,6 +37,7 @@ const {
   downloadMediaFileName,
   downloadTaskFolderName,
   normalizeProviderId,
+  resolveMediaProjectDirectory,
 } = require('./media-library');
 const {
   builtinOwnerSessionToken,
@@ -137,6 +138,7 @@ app.setPath('sessionData', SESSION_DATA_PATH);
 let mainWindow = null;
 const activeDownloadJobs = new Map();
 const queuedDownloadJobs = [];
+const reservedProjectCovers = new Set();
 const nativeDownloadPermits = new Map();
 const programmaticBrowserDownloads = new Set();
 const programmaticBrowserDownloadSources = new Map();
@@ -2172,7 +2174,7 @@ function registerCompletedDownload(job, data = {}) {
     id: `asset-${crypto.randomUUID()}`,
     sourceTaskId: job.id,
     sourceGroupId: task.sourceGroupId,
-    title: task.title || path.basename(filePath),
+    title: task.projectTitle || task.title || path.basename(filePath),
     provider: task.provider,
     mediaId: task.mediaId,
     sourceUrl: task.pageUrl || task.referrer || job.requestUrl || '',
@@ -2218,9 +2220,44 @@ function registerCompletedDownload(job, data = {}) {
   })().catch(() => {});
 }
 
+function existingProjectCover(taskDir) {
+  const imageDir = path.join(String(taskDir || ''), 'images');
+  try {
+    const coverName = fsSync.readdirSync(imageDir).find((name) => /^cover\.(?:jpe?g|png|webp|gif|avif)$/i.test(name));
+    return coverName ? path.join(imageDir, coverName) : null;
+  } catch {
+    return null;
+  }
+}
+
+function configureProjectCoverDownload(task) {
+  const configured = { ...task };
+  if (!['video', 'audio'].includes(configured.assetType) || !configured.projectDir) {
+    configured.includeCover = configured.assetType !== 'subtitle';
+    return configured;
+  }
+  const key = process.platform === 'win32'
+    ? path.resolve(configured.projectDir).toLowerCase()
+    : path.resolve(configured.projectDir);
+  if (existingProjectCover(configured.projectDir) || reservedProjectCovers.has(key)) {
+    configured.includeCover = false;
+    return configured;
+  }
+  reservedProjectCovers.add(key);
+  configured.includeCover = true;
+  configured.coverReservationKey = key;
+  return configured;
+}
+
+function releaseProjectCoverReservation(job) {
+  const key = String(job?.task?.coverReservationKey || '');
+  if (key) reservedProjectCovers.delete(key);
+}
+
 function releaseDownloadJobCookie(job) {
   if (job.cookieReleased) return;
   job.cookieReleased = true;
+  releaseProjectCoverReservation(job);
   job.cookieGroup.remaining -= 1;
   if (job.cookieGroup.remaining <= 0) void fs.unlink(job.cookieGroup.path).catch(() => {});
 }
@@ -2317,25 +2354,30 @@ function isTrustedDirectMediaUrl(value) {
 async function reserveDirectDownloadPaths(outputDir, title, task = {}) {
   const root = path.resolve(String(outputDir || '').trim() || path.join(app.getPath('downloads'), APP_NAME));
   await fs.mkdir(root, { recursive: true });
-  const stem = downloadTaskFolderName({ ...task, title });
+  const taskDir = task.projectDir
+    ? path.resolve(String(task.projectDir))
+    : await resolveMediaProjectDirectory(root, { ...task, title });
+  await fs.mkdir(taskDir, { recursive: true });
   const mediaFileName = downloadMediaFileName(task);
   for (let index = 0; index < 1000; index += 1) {
     const suffix = index ? ' (' + (index + 1) + ')' : '';
-    const taskDir = path.join(root, stem + suffix);
-    try {
-      await fs.mkdir(taskDir);
-      const assetDir = path.join(taskDir, assetDirectoryName(task));
-      await fs.mkdir(assetDir, { recursive: true });
-      return {
-        taskDir,
-        finalPath: path.join(assetDir, mediaFileName),
-        temporaryPath: path.join(assetDir, `.${mediaFileName}.download`),
-      };
-    } catch (error) {
-      if (error?.code !== 'EEXIST') throw error;
-    }
+    const assetDir = path.join(taskDir, assetDirectoryName(task));
+    await fs.mkdir(assetDir, { recursive: true });
+    const extension = path.extname(mediaFileName);
+    const stem = path.basename(mediaFileName, extension);
+    const finalPath = path.join(assetDir, `${stem}${suffix}${extension}`);
+    const temporaryPath = path.join(assetDir, `.${stem}${suffix}${extension}.download`);
+    if (fsSync.existsSync(finalPath) || fsSync.existsSync(temporaryPath)) continue;
+    return { taskDir, assetDir, finalPath, temporaryPath };
   }
-  throw new Error('Could not reserve a download folder.');
+  throw new Error('Could not reserve a download file.');
+}
+
+async function cleanupReservedDownload(reserved) {
+  if (!reserved) return;
+  if (reserved.temporaryPath) await fs.unlink(reserved.temporaryPath).catch(() => {});
+  if (reserved.assetDir) await fs.rmdir(reserved.assetDir).catch(() => {});
+  if (reserved.taskDir) await fs.rmdir(reserved.taskDir).catch(() => {});
 }
 
 function openDirectMediaResponse(url, signal, headers = {}, timeoutMs = 20_000, onRedirect = null) {
@@ -2519,12 +2561,14 @@ function spawnDirectDownloadJob(job) {
       handle = null;
       if (!downloadedBytes) throw new Error('Direct media request returned no data.');
       await fs.rename(reserved.temporaryPath, reserved.finalPath);
-      const coverPath = await downloadDirectThumbnail(
-        reserved.taskDir,
-        job.task.thumbnailUrl,
-        job.task.referrer,
-        abortController.signal,
-      );
+      const coverPath = job.task.includeCover === false
+        ? existingProjectCover(reserved.taskDir)
+        : await downloadDirectThumbnail(
+          reserved.taskDir,
+          job.task.thumbnailUrl,
+          job.task.referrer,
+          abortController.signal,
+        );
       sendDownloadJobEvent(job, {
         type: 'progress',
         data: {
@@ -2544,8 +2588,7 @@ function spawnDirectDownloadJob(job) {
       sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
     } catch (error) {
       if (handle) await handle.close().catch(() => {});
-      await fs.unlink(reserved.temporaryPath).catch(() => {});
-      await fs.rm(reserved.taskDir, { recursive: true, force: true }).catch(() => {});
+      await cleanupReservedDownload(reserved);
       if (!job.cancelled) {
         sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
       }
@@ -2575,12 +2618,14 @@ async function finalizeWebviewDirectDownloadJob(job, outcome = {}) {
     if (outcome.success) {
       if (!stream?.downloadedBytes) throw new Error('Direct media request returned no data.');
       await fs.rename(stream.reserved.temporaryPath, stream.reserved.finalPath);
-      const coverPath = await downloadDirectThumbnail(
-        stream.reserved.taskDir,
-        job.task.thumbnailUrl,
-        job.task.referrer,
-        null,
-      );
+      const coverPath = job.task.includeCover === false
+        ? existingProjectCover(stream.reserved.taskDir)
+        : await downloadDirectThumbnail(
+          stream.reserved.taskDir,
+          job.task.thumbnailUrl,
+          job.task.referrer,
+          null,
+        );
       sendDownloadJobEvent(job, {
         type: 'progress',
         data: {
@@ -2599,15 +2644,13 @@ async function finalizeWebviewDirectDownloadJob(job, outcome = {}) {
       });
       sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
     } else {
-      if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
-      if (stream?.reserved?.taskDir) await fs.rm(stream.reserved.taskDir, { recursive: true, force: true }).catch(() => {});
+      await cleanupReservedDownload(stream?.reserved);
       if (!job.cancelled && outcome.error) {
         sendDownloadJobEvent(job, { type: 'error', message: outcome.error?.message || String(outcome.error) });
       }
     }
   } catch (error) {
-    if (stream?.reserved?.temporaryPath) await fs.unlink(stream.reserved.temporaryPath).catch(() => {});
-    if (stream?.reserved?.taskDir) await fs.rm(stream.reserved.taskDir, { recursive: true, force: true }).catch(() => {});
+    await cleanupReservedDownload(stream?.reserved);
     if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
   } finally {
     activeDownloadJobs.delete(job.id);
@@ -2650,7 +2693,7 @@ function spawnWebviewDirectDownloadJob(job) {
     job.temporaryPath = reserved.temporaryPath;
     job.taskDir = reserved.taskDir;
     if (job.cancelled || job.finalized) {
-      await fs.rm(reserved.taskDir, { recursive: true, force: true }).catch(() => {});
+      await cleanupReservedDownload(reserved);
       return;
     }
     const handle = await fs.open(reserved.temporaryPath, 'w');
@@ -2760,6 +2803,8 @@ function spawnBrowserDownloadJob(job) {
   sendDownloadQueueState();
   void (async () => {
     const reserved = await reserveDirectDownloadPaths(job.task.outputDir, job.task.title, job.task);
+    job.temporaryPath = reserved.temporaryPath;
+    job.taskDir = reserved.taskDir;
     const guestId = Number(job.task.webContentsId);
     let guest = null;
     try {
@@ -2883,8 +2928,7 @@ function spawnBrowserDownloadJob(job) {
     });
     sendDownloadJobEvent(job, { type: 'done', downloaded: 1, failed: 0 });
   })().catch(async (error) => {
-    if (job.temporaryPath) await fs.unlink(job.temporaryPath).catch(() => {});
-    if (job.taskDir) await fs.rm(job.taskDir, { recursive: true, force: true }).catch(() => {});
+    await cleanupReservedDownload({ temporaryPath: job.temporaryPath, taskDir: job.taskDir, assetDir: job.temporaryPath ? path.dirname(job.temporaryPath) : null });
     if (!job.cancelled) sendDownloadJobEvent(job, { type: 'error', message: error?.message || String(error) });
   }).finally(() => {
     programmaticMediaRequests.delete(job.url);
@@ -3979,19 +4023,43 @@ ipcMain.handle('download:start', async (_event, task) => {
     videoCodec: String(task.videoCodec || '').trim().slice(0, 80),
     audioCodec: String(task.audioCodec || '').trim().slice(0, 80),
     sizeBytes: Math.max(0, Number(task.sizeBytes || 0)),
+    projectTitle: String(task.projectTitle || task.title || task.fileName || 'Untitled').trim().slice(0, 300),
+    assetIndex: Math.max(0, Number(task.assetIndex || 0)),
     webContentsId: Number.isInteger(Number(task.webContentsId)) && Number(task.webContentsId) > 0
       ? Number(task.webContentsId)
       : null,
   };
-  const assetRequestKey = `${baseTask.assetType}:${baseTask.subtitleLanguage}:${baseTask.subtitleAutomatic ? 'auto' : 'manual'}`;
-  const requestedEntries = urls.map((url) => ({
-    url,
-    requestKey: downloadRequestKey(url, baseTask.formatId, assetRequestKey),
-    nativeBrowserDownload: baseTask.directDownload && (
-      consumeNativeDownloadPermit(url, baseTask.webContentsId)
-      || (baseTask.siteDownloadIntent && isAllowedSiteDownloadIntent(url, baseTask.referrer, baseTask.webContentsId))
-    ),
-  }));
+  if (urls.length === 1) {
+    baseTask.projectDir = await resolveMediaProjectDirectory(baseTask.outputDir, baseTask);
+    baseTask.projectFolder = path.basename(baseTask.projectDir);
+  }
+  const requestedEntries = urls.map((url) => {
+    const entryContext = urls.length > 1 ? classifyMediaPage(url) : sourceContext;
+    const entryProvider = urls.length > 1
+      ? normalizeProviderId(task.provider || entryContext?.provider, url)
+      : baseTask.provider;
+    const entryMediaId = urls.length > 1 ? String(entryContext?.mediaId || '').trim().slice(0, 300) : baseTask.mediaId;
+    const entryTask = urls.length > 1 ? {
+      ...baseTask,
+      outputDir: classifiedOutputDirectory(outputRoot, entryProvider),
+      provider: entryProvider,
+      mediaId: entryMediaId,
+      sourceGroupId: crypto.createHash('sha1').update(`${entryProvider}\u0000${entryMediaId || url}`).digest('hex'),
+      pageUrl: url,
+      projectDir: '',
+      projectFolder: '',
+    } : baseTask;
+    const assetRequestKey = `${entryTask.assetType}:${entryTask.subtitleLanguage}:${entryTask.subtitleAutomatic ? 'auto' : 'manual'}`;
+    return {
+      url,
+      task: entryTask,
+      requestKey: downloadRequestKey(url, entryTask.formatId, assetRequestKey),
+      nativeBrowserDownload: entryTask.directDownload && (
+        consumeNativeDownloadPermit(url, entryTask.webContentsId)
+        || (entryTask.siteDownloadIntent && isAllowedSiteDownloadIntent(url, entryTask.referrer, entryTask.webContentsId))
+      ),
+    };
+  });
   const existingByRequestKey = new Map([
     ...Array.from(activeDownloadJobs.values()),
     ...queuedDownloadJobs,
@@ -4105,16 +4173,19 @@ ipcMain.handle('download:start', async (_event, task) => {
   );
   await exportCookieJar(cookiePath);
   const cookieGroup = { path: cookiePath, remaining: newEntries.length };
-  const jobs = newEntries.map(({ url, requestKey, nativeBrowserDownload }) => ({
-    id: `download-job-${process.pid}-${++downloadJobCounter}`,
-    requestKey,
-    requestUrl: url,
-    url,
-    task: { ...baseTask, urls: [url], nativeBrowserDownload },
-    cookieGroup,
-    cookieReleased: false,
-    cancelled: false,
-  }));
+  const jobs = newEntries.map(({ url, requestKey, nativeBrowserDownload, task: entryTask }) => {
+    const jobTask = configureProjectCoverDownload({ ...entryTask, urls: [url], nativeBrowserDownload });
+    return {
+      id: `download-job-${process.pid}-${++downloadJobCounter}`,
+      requestKey,
+      requestUrl: url,
+      url,
+      task: jobTask,
+      cookieGroup,
+      cookieReleased: false,
+      cancelled: false,
+    };
+  });
   queuedDownloadJobs.push(...jobs);
   pumpDownloadQueue();
   const newJobsByRequestKey = new Map(jobs.map((job) => [job.requestKey, job]));

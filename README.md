@@ -4,7 +4,7 @@
   <p>A Windows desktop app for discovering, downloading, and recording online video.</p>
   <p><strong>English</strong> · <a href="README.zh-CN.md">中文</a></p>
   <p>
-    <img alt="Version" src="https://img.shields.io/badge/version-0.1.5-1688f0">
+    <img alt="Version" src="https://img.shields.io/badge/version-0.1.6-1688f0">
     <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20x64-0078d4">
     <img alt="License" src="https://img.shields.io/badge/license-MIT-22a06b">
   </p>
@@ -14,7 +14,7 @@
 
 ## Download
 
-[Download VidoGo Basic 0.1.5 for Windows x64](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.5)
+[Download VidoGo Basic 0.1.6 for Windows x64](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.6)
 
 ## Features
 
@@ -33,6 +33,21 @@ npm install
 python -m pip install -r requirements.txt
 npm start
 ```
+
+## Media organization
+
+All assets from one source share one media-project folder:
+
+```text
+VidoGo Basic/YouTube/Title [media ID]/
+├─ video/       Video quality variants
+├─ audio/       Extracted MP3 files
+├─ images/      One shared cover.* plus gallery images
+├─ subtitles/   Language-specific subtitles
+└─ metadata.json
+```
+
+Downloading the same source again reuses its project folder and existing cover.
 
 ## License
 

@@ -1546,6 +1546,12 @@ body[data-resolved-theme="dark"] .browser-thumb { background: linear-gradient(13
   font-weight: 700;
   letter-spacing: .04em;
 }
+.sniffer-resource-storage-hint {
+  margin-top: 2px;
+  color: var(--app-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
 .sniffer-resource-option-label:not(:first-child),
 .sniffer-resource-quick-assets + .sniffer-resource-option-label { margin-top: 6px; }
 .sniffer-resource-variant.is-asset {

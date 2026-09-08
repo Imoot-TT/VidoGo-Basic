@@ -655,9 +655,9 @@ const RECORDING_SETTING_TEXT = {
 };
 for (const [locale, copy] of Object.entries(RECORDING_SETTING_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const MEDIA_FILTER_TEXT = {
-  'zh-CN': { allResolutions: '全部分辨率', mediaPanel: '媒体资源', showVariants: '选择下载内容', hideVariants: '收起下载内容', downloadVideo: '下载视频', downloadImage: '下载图片', downloadAllImages: '下载全部图片 ({count})', imageNumber: '图片 {index}', quickDownload: '快捷下载', videoQuality: '视频画质', extractMp3: '提取 MP3', downloadCover: '下载封面', downloadSubtitle: '下载字幕', chooseSubtitle: '选择字幕', subtitleDetecting: '字幕检测中…', automaticSubtitle: '自动字幕', assetType: '类型', assetVideo: '视频', assetAudio: 'MP3', assetImage: '图片', assetSubtitle: '字幕', previewVideo: '播放视频', previewAudio: '试听 MP3', previewImage: '预览图片', openSubtitle: '打开字幕', mediaPreview: '媒体预览', previewLoading: '正在打开本地文件…', previewUnsupported: '当前内置播放器不支持此文件编码，可使用系统应用打开。', openWithSystem: '使用系统应用打开' },
-  'zh-TW': { allResolutions: '全部解析度', mediaPanel: '媒體資源', showVariants: '選擇下載內容', hideVariants: '收起下載內容', downloadVideo: '下載影片', downloadImage: '下載圖片', downloadAllImages: '下載全部圖片 ({count})', imageNumber: '圖片 {index}', quickDownload: '快速下載', videoQuality: '影片畫質', extractMp3: '擷取 MP3', downloadCover: '下載封面', downloadSubtitle: '下載字幕', chooseSubtitle: '選擇字幕', subtitleDetecting: '字幕偵測中…', automaticSubtitle: '自動字幕', assetType: '類型', assetVideo: '影片', assetAudio: 'MP3', assetImage: '圖片', assetSubtitle: '字幕', previewVideo: '播放影片', previewAudio: '試聽 MP3', previewImage: '預覽圖片', openSubtitle: '開啟字幕', mediaPreview: '媒體預覽', previewLoading: '正在開啟本機檔案…', previewUnsupported: '內建播放器不支援此檔案編碼，可使用系統應用程式開啟。', openWithSystem: '使用系統應用程式開啟' },
-  en: { allResolutions: 'All resolutions', mediaPanel: 'Media resources', showVariants: 'Choose download content', hideVariants: 'Hide download content', downloadVideo: 'Download video', downloadImage: 'Download image', downloadAllImages: 'Download all images ({count})', imageNumber: 'Image {index}', quickDownload: 'Quick downloads', videoQuality: 'Video quality', extractMp3: 'Extract MP3', downloadCover: 'Download cover', downloadSubtitle: 'Download subtitles', chooseSubtitle: 'Choose subtitles', subtitleDetecting: 'Detecting subtitles…', automaticSubtitle: 'Automatic captions', assetType: 'Type', assetVideo: 'Video', assetAudio: 'MP3', assetImage: 'Image', assetSubtitle: 'Subtitle', previewVideo: 'Play video', previewAudio: 'Play MP3', previewImage: 'Preview image', openSubtitle: 'Open subtitle', mediaPreview: 'Media preview', previewLoading: 'Opening the local file…', previewUnsupported: 'The built-in player does not support this file codec. Open it with a system app instead.', openWithSystem: 'Open with system app' },
+  'zh-CN': { allResolutions: '全部分辨率', mediaPanel: '媒体资源', showVariants: '选择下载内容', hideVariants: '收起下载内容', downloadVideo: '下载视频', downloadImage: '下载图片', downloadAllImages: '下载全部图片 ({count})', imageNumber: '图片 {index}', quickDownload: '配套素材', assetStorageHint: '视频、MP3、封面和字幕保存到同一素材项目', videoQuality: '视频画质', extractMp3: '提取 MP3', downloadCover: '下载封面', downloadSubtitle: '下载字幕', chooseSubtitle: '选择字幕', subtitleDetecting: '字幕检测中…', automaticSubtitle: '自动字幕', assetType: '类型', assetVideo: '视频', assetAudio: 'MP3', assetImage: '图片', assetSubtitle: '字幕', previewVideo: '播放视频', previewAudio: '试听 MP3', previewImage: '预览图片', openSubtitle: '打开字幕', mediaPreview: '媒体预览', previewLoading: '正在打开本地文件…', previewUnsupported: '当前内置播放器不支持此文件编码，可使用系统应用打开。', openWithSystem: '使用系统应用打开' },
+  'zh-TW': { allResolutions: '全部解析度', mediaPanel: '媒體資源', showVariants: '選擇下載內容', hideVariants: '收起下載內容', downloadVideo: '下載影片', downloadImage: '下載圖片', downloadAllImages: '下載全部圖片 ({count})', imageNumber: '圖片 {index}', quickDownload: '配套素材', assetStorageHint: '影片、MP3、封面和字幕會儲存到同一素材專案', videoQuality: '影片畫質', extractMp3: '擷取 MP3', downloadCover: '下載封面', downloadSubtitle: '下載字幕', chooseSubtitle: '選擇字幕', subtitleDetecting: '字幕偵測中…', automaticSubtitle: '自動字幕', assetType: '類型', assetVideo: '影片', assetAudio: 'MP3', assetImage: '圖片', assetSubtitle: '字幕', previewVideo: '播放影片', previewAudio: '試聽 MP3', previewImage: '預覽圖片', openSubtitle: '開啟字幕', mediaPreview: '媒體預覽', previewLoading: '正在開啟本機檔案…', previewUnsupported: '內建播放器不支援此檔案編碼，可使用系統應用程式開啟。', openWithSystem: '使用系統應用程式開啟' },
+  en: { allResolutions: 'All resolutions', mediaPanel: 'Media resources', showVariants: 'Choose download content', hideVariants: 'Hide download content', downloadVideo: 'Download video', downloadImage: 'Download image', downloadAllImages: 'Download all images ({count})', imageNumber: 'Image {index}', quickDownload: 'Related assets', assetStorageHint: 'Video, MP3, cover, and subtitles share one media project', videoQuality: 'Video quality', extractMp3: 'Extract MP3', downloadCover: 'Download cover', downloadSubtitle: 'Download subtitles', chooseSubtitle: 'Choose subtitles', subtitleDetecting: 'Detecting subtitles…', automaticSubtitle: 'Automatic captions', assetType: 'Type', assetVideo: 'Video', assetAudio: 'MP3', assetImage: 'Image', assetSubtitle: 'Subtitle', previewVideo: 'Play video', previewAudio: 'Play MP3', previewImage: 'Preview image', openSubtitle: 'Open subtitle', mediaPreview: 'Media preview', previewLoading: 'Opening the local file…', previewUnsupported: 'The built-in player does not support this file codec. Open it with a system app instead.', openWithSystem: 'Open with system app' },
   ru: { allResolutions: 'Все разрешения' },
   pt: { allResolutions: 'Todas as resoluções' },
   vi: { allResolutions: 'Tất cả độ phân giải' },
@@ -4407,7 +4407,10 @@ function renderCandidateQuickAssets(candidate, assets) {
     : candidateSubtitleAssetKey(subtitleAssets[0]?.asset, subtitleAssets[0]?.index);
   return `
     <section class="sniffer-resource-quick-assets" aria-label="${escapeHtml(text('quickDownload'))}">
-      <div class="sniffer-resource-option-label">${escapeHtml(text('quickDownload'))}</div>
+      <div class="sniffer-resource-option-heading">
+        <div class="sniffer-resource-option-label">${escapeHtml(text('quickDownload'))}</div>
+        <div class="sniffer-resource-storage-hint">${escapeHtml(text('assetStorageHint'))}</div>
+      </div>
       ${candidate.subtitleDiscoveryPending === true ? `<div class="sniffer-resource-subtitle-status" role="status"><span aria-hidden="true"></span>${escapeHtml(text('subtitleDetecting'))}</div>` : ''}
       ${directAssets.length ? `<div class="sniffer-resource-quick-grid">${directAssets.map(({ asset, index }) => renderCandidateAsset(candidate, asset, index)).join('')}</div>` : ''}
       ${subtitleAssets.length ? `<div class="sniffer-resource-subtitle-picker">
@@ -4673,6 +4676,7 @@ async function startCandidateAssetDownload(candidate, asset, options = {}) {
     sourceGroupId: candidateSourceGroupId(candidate),
     assetType: asset.assetType,
     assetRole: asset.assetRole,
+    projectTitle: candidate.title || candidate.fileName,
     entitlementPreflightPassed: options.entitlementPreflightPassed === true,
     suppressToast: options.suppressToast === true,
   };
@@ -4703,6 +4707,7 @@ async function startCandidateAssetDownload(candidate, asset, options = {}) {
       formatId: null,
       thumbnailUrl: asset.url || candidate.thumbnailUrl,
       qualityLabel: asset.assetRole === 'gallery' ? assetName : text('downloadCover'),
+      assetIndex: asset.assetRole === 'gallery' ? assetIndex + 1 : 0,
       audioOnly: false,
     });
   }

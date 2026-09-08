@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const MEDIA_LIBRARY_SCHEMA_VERSION = 2;
+const MEDIA_LIBRARY_SCHEMA_VERSION = 3;
 
 const PROVIDER_ALIASES = Object.freeze({
   x: 'twitter',
@@ -111,10 +111,50 @@ function localDateStamp(value = new Date()) {
     .join('');
 }
 
-function downloadTaskFolderName(task = {}, value = new Date()) {
-  const title = safePathSegment(task.title || task.fileName, 'Untitled', 120);
+function mediaProjectIdentity(task = {}) {
   const mediaId = safePathSegment(task.mediaId, '', 72);
-  return `${localDateStamp(value)} - ${title}${mediaId ? ` [${mediaId}]` : ''}`;
+  if (mediaId) return mediaId;
+  const sourceIdentity = String(task.sourceGroupId || task.sourceUrl || task.pageUrl || task.mediaUrl || '').trim();
+  return sourceIdentity ? crypto.createHash('sha1').update(sourceIdentity).digest('hex').slice(0, 12) : '';
+}
+
+function downloadTaskFolderName(task = {}) {
+  const title = safePathSegment(task.projectTitle || task.title || task.fileName, 'Untitled', 120);
+  const identity = mediaProjectIdentity(task);
+  return `${title}${identity ? ` [${identity}]` : ''}`;
+}
+
+async function resolveMediaProjectDirectory(outputDir, task = {}) {
+  const root = path.resolve(String(outputDir || '').trim());
+  await fs.mkdir(root, { recursive: true });
+  const preferred = path.join(root, downloadTaskFolderName(task));
+  const preferredStat = await fs.stat(preferred).catch(() => null);
+  if (preferredStat?.isDirectory()) return preferred;
+
+  const identity = mediaProjectIdentity(task);
+  if (identity) {
+    const identityToken = `[${identity}]`.toLowerCase();
+    const entries = await fs.readdir(root, { withFileTypes: true }).catch(() => []);
+    const matching = entries.filter((entry) => entry.isDirectory() && entry.name.toLowerCase().includes(identityToken));
+    if (matching.length) {
+      const ranked = await Promise.all(matching.map(async (entry) => {
+        const candidate = path.join(root, entry.name);
+        const typedCounts = await Promise.all(['video', 'audio', 'images', 'subtitles'].map(async (folder) => {
+          const children = await fs.readdir(path.join(candidate, folder), { withFileTypes: true }).catch(() => []);
+          return children.filter((child) => child.isFile()).length;
+        }));
+        return {
+          candidate,
+          score: (typedCounts[0] > 0 ? 1000 : 0) + typedCounts.reduce((sum, count) => sum + count, 0),
+        };
+      }));
+      ranked.sort((left, right) => right.score - left.score || left.candidate.localeCompare(right.candidate));
+      return ranked[0].candidate;
+    }
+  }
+
+  await fs.mkdir(preferred, { recursive: true });
+  return preferred;
 }
 
 function mediaExtension(task = {}) {
@@ -266,10 +306,23 @@ function createMediaLibraryStore(filePath) {
       normalized.fileSize = fileStat.size;
       normalized.status = 'available';
       const document = await load();
-      const existingIndex = normalized.sourceTaskId
+      const existingTaskIndex = normalized.sourceTaskId
         ? document.items.findIndex((entry) => entry.sourceTaskId === normalized.sourceTaskId)
         : -1;
-      if (existingIndex >= 0) document.items[existingIndex] = { ...document.items[existingIndex], ...normalized };
+      const existingPathIndex = document.items.findIndex((entry) => path.resolve(entry.filePath) === normalized.filePath);
+      const existingIndex = existingTaskIndex >= 0 ? existingTaskIndex : existingPathIndex;
+      if (existingIndex >= 0) {
+        const existing = document.items[existingIndex];
+        document.items[existingIndex] = existingTaskIndex >= 0
+          ? { ...existing, ...normalized, id: existing.id }
+          : {
+            ...normalized,
+            id: existing.id,
+            sourceTaskId: existing.sourceTaskId,
+            title: existing.title,
+            downloadedAt: existing.downloadedAt,
+          };
+      }
       else document.items.unshift(normalized);
       await save(document);
       const manifestPath = path.join(normalized.folderPath, 'metadata.json');
@@ -282,6 +335,7 @@ function createMediaLibraryStore(filePath) {
           language: entry.language || null,
           automatic: entry.automatic === true,
           fileName: path.basename(entry.filePath),
+          relativePath: path.relative(normalized.folderPath, entry.filePath).split(path.sep).join('/'),
           fileSize: entry.fileSize,
           mimeType: entry.mimeType || null,
         }));
@@ -330,5 +384,6 @@ module.exports = {
   normalizeMediaLibrary,
   normalizeProviderId,
   providerFolderName,
+  resolveMediaProjectDirectory,
   safePathSegment,
 };

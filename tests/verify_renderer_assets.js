@@ -275,7 +275,7 @@ assert(main.includes("ipcMain.handle('download:preview-file'") && main.includes(
 assert(html.includes('id="media-preview-overlay"') && app.includes('showMediaPreview') && app.includes('closeMediaPreview'), 'Built-in video, audio, image, and subtitle preview UI is incomplete');
 assert(css.includes('.media-preview-dialog[data-preview-type="audio"]') && css.includes('height: 250px'), 'Audio preview must use a compact layout instead of the video canvas');
 assert(main.includes("ipcMain.handle('download:open-folder'") && preload.includes('openDownloadedFolder'), 'Download folder action must open the task folder');
-assert(downloaderCore.includes('"writethumbnail": True') && downloaderCore.includes('thumbnail_filename') && downloaderCore.includes('task_dir'), 'Each download task must retain its source cover beside the final media file');
+assert(downloaderCore.includes('"writethumbnail": settings.include_cover') && downloaderCore.includes('thumbnail_filename') && downloaderCore.includes('task_dir'), 'Each media project must retain one reusable source cover beside its assets');
 assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.includes('downloadTaskFolderName') && main.includes('downloadMediaFileName'), 'New downloads must use platform classification and descriptive names');
 assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be prepared for the future media library');
 assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The future media-library read bridge is incomplete');

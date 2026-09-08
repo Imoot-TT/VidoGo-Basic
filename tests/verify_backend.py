@@ -245,8 +245,8 @@ def verify_runtime_progress_hook() -> None:
     if "/audio/audio-%(format_id)s.%(ext)s" not in captured_options[0]["outtmpl"]["default"].replace("\\", "/"):
         raise AssertionError("audio downloads must use the typed asset folder and descriptive file name")
     assert_equal("download_archive" in captured_options[0], True, "ordinary downloads should retain archive protection")
-    if not captured_options[0]["outtmpl"]["default"][:19].replace("-", "").isdigit():
-        raise AssertionError("download task folders must begin with a sortable millisecond timestamp")
+    if captured_options[0]["outtmpl"]["default"].startswith("20"):
+        raise AssertionError("media project folders must not change with each click timestamp")
 
     format_events: list[dict] = []
     with tempfile.TemporaryDirectory() as output_dir:
@@ -262,7 +262,7 @@ def verify_runtime_progress_hook() -> None:
     if "/video/video-%(format_id)s.%(ext)s" not in explicit_options["outtmpl"]["default"].replace("\\", "/"):
         raise AssertionError("video downloads must use the typed asset folder and descriptive file name")
     assert_equal("download_archive" in explicit_options, False, "format-specific downloads must not suppress later resolutions")
-    if "[%(format_id)s]" not in explicit_options["outtmpl"]["default"]:
+    if "video-%(format_id)s" not in explicit_options["outtmpl"]["default"]:
         raise AssertionError("format-specific downloads need unique output filenames")
 
 
@@ -291,6 +291,7 @@ def verify_image_asset_download() -> None:
                     thumbnail_url="https://cdn.example.com/cover.png",
                     title="Sample cover",
                     media_id="123",
+                    project_folder="Sample [123]",
                 ),
                 lambda _message: None,
                 events.append,
@@ -300,6 +301,23 @@ def verify_image_asset_download() -> None:
         assert_equal(Path(events[-1]["filename"]).name, "cover.png", "cover asset file name")
         assert_equal(Path(events[-1]["filename"]).read_bytes(), b"png-data", "cover asset contents")
         assert_equal(Path(events[-1]["filename"]).parent.name, "images", "cover asset typed folder")
+        reused_events: list[dict] = []
+        with patch("downloader_core.urlopen", side_effect=AssertionError("existing cover must not be downloaded again")):
+            reused = download_urls(
+                ["https://example.com/watch/123"],
+                DownloadSettings(
+                    output_dir=Path(output_dir),
+                    asset_type="image",
+                    thumbnail_url="https://cdn.example.com/cover.png",
+                    title="Sample cover",
+                    media_id="123",
+                    project_folder="Sample [123]",
+                ),
+                lambda _message: None,
+                reused_events.append,
+            )
+        assert_equal(reused, (1, 0), "existing cover reuse accounting")
+        assert_equal(Path(reused_events[-1]["filename"]), Path(events[-1]["filename"]), "existing cover path reuse")
 
     gallery_events: list[dict] = []
     with tempfile.TemporaryDirectory() as output_dir:
@@ -313,12 +331,14 @@ def verify_image_asset_download() -> None:
                     thumbnail_url="https://cdn.example.com/gallery-1.png",
                     title="Sample note - Image 1",
                     media_id="note-123",
+                    project_folder="Sample note [note-123]",
+                    asset_index=1,
                 ),
                 lambda _message: None,
                 gallery_events.append,
             )
         assert_equal(result, (1, 0), "gallery image accounting")
-        assert_equal(Path(gallery_events[-1]["filename"]).name, "image.png", "gallery image file name")
+        assert_equal(Path(gallery_events[-1]["filename"]).name, "image-01.png", "gallery image file name")
 
 
 def verify_subtitle_asset_download() -> None:
@@ -459,6 +479,24 @@ def verify_generated_video_cover() -> None:
         assert_equal(cover_path is not None and cover_path.stat().st_size > 0, True, "generated fallback cover contents")
 
 
+def verify_project_cover_deduplication() -> None:
+    with tempfile.TemporaryDirectory() as output_dir:
+        project_dir = Path(output_dir) / "Sample [123]"
+        video_dir = project_dir / "video"
+        image_dir = project_dir / "images"
+        video_dir.mkdir(parents=True)
+        image_dir.mkdir(parents=True)
+        video_path = video_dir / "video-137+140.mp4"
+        loose_cover = video_dir / "video-137+140.webp"
+        shared_cover = image_dir / "cover.webp"
+        video_path.write_bytes(b"video")
+        loose_cover.write_bytes(b"same-cover")
+        shared_cover.write_bytes(b"same-cover")
+        _, resolved_cover = finalize_task_output(video_path, None, None, allow_create_cover=False)
+        assert_equal(resolved_cover.samefile(shared_cover), True, "shared project cover must be reused")
+        assert_equal(loose_cover.exists(), False, "per-asset thumbnail duplicate must be removed")
+
+
 def main() -> int:
     verify_core_helpers()
     verify_metadata_planning()
@@ -466,6 +504,7 @@ def main() -> int:
     verify_image_asset_download()
     verify_subtitle_asset_download()
     verify_generated_video_cover()
+    verify_project_cover_deduplication()
     verify_worker_rejects_empty_payload()
     verify_worker_rejects_invalid_payloads()
     verify_unified_worker_dispatch()

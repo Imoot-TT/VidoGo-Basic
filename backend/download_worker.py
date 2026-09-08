@@ -70,6 +70,9 @@ def main() -> int:
             subtitle_automatic=bool(task.get("subtitleAutomatic")),
             title=str(task.get("title") or task.get("fileName") or "Untitled"),
             media_id=str(task.get("mediaId") or ""),
+            project_folder=str(task.get("projectFolder") or "").strip(),
+            asset_index=max(0, int(task.get("assetIndex") or 0)),
+            include_cover=task.get("includeCover") is not False,
         )
     except (TypeError, ValueError) as exc:
         emit({"type": "error", "message": str(exc)})

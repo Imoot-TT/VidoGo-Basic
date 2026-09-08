@@ -11,6 +11,7 @@ const {
   downloadTaskFolderName,
   normalizeProviderId,
   providerFolderName,
+  resolveMediaProjectDirectory,
   safePathSegment,
 } = require('../src/media-library');
 
@@ -22,7 +23,7 @@ async function main() {
   assert.equal(safePathSegment('A:B/C*D?'), 'A B C D');
   assert.equal(
     downloadTaskFolderName({ title: 'Sample: video', mediaId: '12345' }, new Date(2026, 8, 6)),
-    '20260906 - Sample video [12345]',
+    'Sample video [12345]',
   );
   assert.equal(downloadMediaFileName({ kind: 'video', qualityLabel: '1080p · H.264', videoCodec: 'avc1', extension: 'mp4' }), 'video-1080p-h264.mp4');
   assert.equal(downloadMediaFileName({ kind: 'audio', formatId: '140', mimeType: 'audio/mp4' }), 'audio-140.m4a');
@@ -35,6 +36,17 @@ async function main() {
     await fs.mkdir(path.dirname(mediaPath), { recursive: true });
     await fs.writeFile(mediaPath, Buffer.from('test-media'));
     const store = createMediaLibraryStore(path.join(temporaryRoot, 'media-library.json'));
+    const legacyVideoFolder = path.join(temporaryRoot, 'YouTube', '20260907-231211 - Old title [same-id] [401+140]');
+    const legacyAudioFolder = path.join(temporaryRoot, 'YouTube', '20260907-231438 - New title [same-id] [251]');
+    await fs.mkdir(path.join(legacyVideoFolder, 'video'), { recursive: true });
+    await fs.mkdir(path.join(legacyAudioFolder, 'audio'), { recursive: true });
+    await fs.writeFile(path.join(legacyVideoFolder, 'video', 'video.mp4'), Buffer.from('video'));
+    await fs.writeFile(path.join(legacyAudioFolder, 'audio', 'audio.mp3'), Buffer.from('audio'));
+    assert.equal(
+      await resolveMediaProjectDirectory(path.join(temporaryRoot, 'YouTube'), { title: 'Changed title', mediaId: 'same-id' }),
+      legacyVideoFolder,
+      'Existing projects with the same media id must be reused, preferring the folder that owns the video',
+    );
     const first = await store.addCompleted({
       sourceTaskId: 'job-1',
       title: 'Sample',
@@ -53,17 +65,18 @@ async function main() {
     await store.addCompleted({ sourceTaskId: 'job-1', title: 'Updated title', provider: 'tiktok', filePath: mediaPath });
     await store.addCompleted({ sourceTaskId: 'job-2', title: 'Intentional duplicate', provider: 'tiktok', filePath: mediaPath });
     let library = await store.list();
-    assert.equal(library.items.length, 2, 'Separate download tasks must remain separate library records');
+    assert.equal(library.items.length, 1, 'The same physical asset must remain one library record across repeated tasks');
     assert.equal(library.items.find((item) => item.sourceTaskId === 'job-1').title, 'Updated title');
 
     await fs.unlink(mediaPath);
     library = await store.list({ refresh: true });
     assert(library.items.every((item) => item.status === 'missing'), 'Refresh must retain records and mark externally deleted files as missing');
     const persisted = JSON.parse(await fs.readFile(store.filePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 2);
+    assert.equal(persisted.schemaVersion, 3);
     const manifest = JSON.parse(await fs.readFile(path.join(path.dirname(mediaPath), 'metadata.json'), 'utf8'));
-    assert.equal(manifest.schemaVersion, 2);
+    assert.equal(manifest.schemaVersion, 3);
     assert.equal(manifest.assets[0].assetType, 'video');
+    assert.equal(manifest.assets[0].relativePath, 'video-1080p-h264.mp4');
   } finally {
     await fs.rm(temporaryRoot, { recursive: true, force: true });
   }
