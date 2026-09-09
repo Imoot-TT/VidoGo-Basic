@@ -9,6 +9,7 @@ const css = fs.readFileSync(path.join(root, 'src', 'renderer', 'style.css'), 'ut
 const icons = fs.readFileSync(path.join(root, 'src', 'renderer', 'icons.js'), 'utf8');
 const locales = fs.readFileSync(path.join(root, 'src', 'renderer', 'locales.js'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+const editorIntegration = fs.readFileSync(path.join(root, 'src', 'editor-integration.js'), 'utf8');
 const preload = fs.readFileSync(path.join(root, 'src', 'preload.js'), 'utf8');
 const webviewPreload = fs.readFileSync(path.join(root, 'src', 'webview-preload.js'), 'utf8');
 const recorder = fs.readFileSync(path.join(root, 'src', 'recorder-toolbar.js'), 'utf8');
@@ -58,7 +59,7 @@ assert(!app.includes('downloads-empty-icon') && !app.includes('history-empty-ico
 assert((app.match(/class="[^"]*menu-empty-state[^"]*"/g) || []).length === 3, 'Download, history, and favorites pages must share one aligned empty-state layout');
 assert(!/menu-empty-state[^`]*<p>/.test(app), 'Main menu empty states must not render redundant empty-copy labels');
 
-const requiredCopy = ['浏览器', '主页', '下载', '历史', '收藏', '一键下载 · 畅享精彩', '搜索或输入网址', '套餐购买'];
+const requiredCopy = ['浏览器', '主页', '下载', '素材库', '历史', '收藏', '一键下载 · 畅享精彩', '搜索或输入网址', '套餐购买'];
 for (const copy of requiredCopy) {
   assert(html.includes(copy) || app.includes(copy), `Required Chinese copy missing: ${copy}`);
 }
@@ -272,14 +273,34 @@ assert(app.includes('downloadRequestKey') && main.includes('downloadRequestKey')
 assert(app.includes("!/^\\[download\\]/i.test(message)") && downloaderCore.includes('"noprogress": True'), 'yt-dlp textual progress must not flood the notification area');
 assert(main.includes("ipcMain.handle('download:open-file'") && main.includes('resolveDownloadedFile') && preload.includes('openDownloadedFile'), 'Completed downloads must resolve and open the final media file');
 assert(main.includes("ipcMain.handle('download:preview-file'") && main.includes('pathToFileURL') && preload.includes('previewDownloadedFile'), 'Built-in local media preview bridge is incomplete');
+assert(main.includes("ipcMain.handle('editor:scan'") && main.includes("ipcMain.handle('editor:choose-executable'") && main.includes("ipcMain.handle('editor:import-files'") && preload.includes('scanEditors') && preload.includes('chooseEditorExecutable') && preload.includes('importManyIntoEditor'), 'Editing-app discovery, manual configuration, and project import bridge is incomplete');
+assert(main.includes("ipcMain.handle('editor:import-file'") && editorIntegration.includes("importMode = 'import-dialog'") && editorIntegration.includes("importMode = 'open-file'") && editorIntegration.includes("importMode = 'open-media'") && editorIntegration.includes('DIALOG_IMPORT_SCRIPT') && editorIntegration.includes('Clipboard') && editorIntegration.includes('`-open-file=${mediaPath}`') && editorIntegration.includes("['/OPEN', mediaPath]"), 'Editor imports must use per-application adapters instead of one shared launch argument');
+assert(app.includes('data-library-asset-action="import-editor"') && app.includes("libraryImportEditor: '导入 {editor}'"), 'Every media-library asset view must expose a dynamically named editor-import action');
+assert(html.includes('id="settings-search-engine-control"') && html.includes('id="settings-editor-control"') && html.includes('data-settings-panel="preferences"') && !html.includes('data-settings-panel="editors"') && !html.includes('class="settings-header"'), 'Settings must restore search-engine selection, merge editor management into Preferences, and omit redundant panel titles');
 assert(html.includes('id="media-preview-overlay"') && app.includes('showMediaPreview') && app.includes('closeMediaPreview'), 'Built-in video, audio, image, and subtitle preview UI is incomplete');
 assert(css.includes('.media-preview-dialog[data-preview-type="audio"]') && css.includes('height: 250px'), 'Audio preview must use a compact layout instead of the video canvas');
+assert(css.includes('.media-preview-dialog[data-preview-type="image"] .media-preview-body') && css.includes('overflow: hidden'), 'Image preview must contain portrait images without an internal scrollbar');
+assert(app.includes('guardOverlayWheel') || app.includes('function guardOverlayWheel') || app.includes('function blockOverlayWheel') || app.includes('function containOverlayWheel'), 'Modal and drawer wheel events must not scroll the obscured page');
 assert(main.includes("ipcMain.handle('download:open-folder'") && preload.includes('openDownloadedFolder'), 'Download folder action must open the task folder');
 assert(downloaderCore.includes('"writethumbnail": settings.include_cover') && downloaderCore.includes('thumbnail_filename') && downloaderCore.includes('task_dir'), 'Each media project must retain one reusable source cover beside its assets');
 assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.includes('downloadTaskFolderName') && main.includes('downloadMediaFileName'), 'New downloads must use platform classification and descriptive names');
-assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be prepared for the future media library');
-assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The future media-library read bridge is incomplete');
+assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be stored in the media library');
+assert(main.includes("mainWindow.webContents.send('library:changed')") && preload.includes('onMediaLibraryChanged'), 'Completed downloads must refresh the visible media library automatically');
+assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The media-library read bridge is incomplete');
+assert(html.includes('id="page-library"') && html.includes('data-section="library"'), 'The media library sidebar entry or page is missing');
+for (const token of ['loadMediaLibrary', 'renderLibrary', 'filteredLibraryProjects', 'filteredLibraryAssets', 'renderLibraryDetail', 'data-library-project-action', 'data-library-project-import', 'data-library-asset-action']) {
+  assert(app.includes(token), `Media library interaction is incomplete: ${token}`);
+}
+assert(app.includes('state.platformConfig.platforms') && app.includes('platform.enabled !== false'), 'Media-library platform filters must come from the managed Home platform catalog');
+assert(css.includes('.media-preview-dialog[data-preview-type="video"] .media-preview-video') && css.includes('position: absolute') && css.includes('object-fit: contain'), 'Image and video previews must fit their fixed canvas without cropping');
+for (const token of ['library-provider-filter', 'library-type-filter', 'library-time-filter', 'library-search', 'library-detail-overlay', '.library-project-card', '.library-asset-card']) {
+  assert(html.includes(token) || css.includes(token), `Media library UI token is missing: ${token}`);
+}
 assert(html.includes('id="browser-login-button"') && html.includes('id="external-login-overlay"'), 'External YouTube login entry and modal are missing');
+assert(!html.includes('class="library-header"') && !html.includes('id="library-subtitle"'), 'Media library must not repeat a title and explanatory subtitle above the toolbar');
+assert(app.includes('openUrl(project.sourceUrl') && !app.includes('openExternal(project.sourceUrl'), 'Media library source links must open in the embedded browser');
+assert(!app.includes('data-library-asset-action="system"'), 'Media library must not render a duplicate system-open action');
+assert(app.includes('class="library-detail-meta-item') && app.includes('downloadAssetPresentation(asset.assetType).openLabel'), 'Media library compact metadata and type-specific open actions are missing');
 assert(preload.includes('startExternalYouTubeLogin') && preload.includes('syncExternalBrowserLogin') && preload.includes('onExternalLoginRequest'), 'External browser login preload bridge is incomplete');
 assert(main.includes("ipcMain.handle('browser:start-external-login'") && main.includes("ipcMain.handle('browser:sync-external-login'"), 'External browser login IPC handlers are missing');
 assert(main.includes('startManagedExternalLogin') && main.includes('isGoogleLoginFromYouTube'), 'Embedded Google login is not redirected to an external Chrome/Edge login window');

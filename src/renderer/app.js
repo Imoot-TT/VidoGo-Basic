@@ -665,6 +665,69 @@ const MEDIA_FILTER_TEXT = {
   ar: { allResolutions: 'كل درجات الدقة' },
 };
 for (const [locale, copy] of Object.entries(MEDIA_FILTER_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
+const LIBRARY_TEXT = {
+  'zh-CN': {
+    library: '素材库', libraryTitle: '素材库', libraryDescription: '视频、MP3、封面和字幕按来源归入同一个媒体项目。',
+    libraryProjects: '媒体项目', libraryAllAssets: '全部素材', libraryRefresh: '刷新', libraryRefreshing: '正在刷新…',
+    librarySearch: '搜索素材库', librarySearchPlaceholder: '搜索标题、平台或媒体 ID', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部类型',
+    librarySortRecent: '最近下载', librarySortTitle: '按标题', librarySortSize: '按大小', libraryGridView: '网格视图', libraryListView: '列表视图',
+    libraryLoading: '正在读取素材库…', libraryLoadFailed: '素材库读取失败：{message}', libraryEmptyTitle: '素材库还是空的',
+    libraryEmptyBody: '下载视频、MP3、封面或字幕后，会自动整理到这里。', libraryNoResultsTitle: '没有匹配的素材', libraryNoResultsBody: '试试清空搜索或更换筛选条件。', libraryBrowse: '去浏览下载',
+    libraryProjectSummary: '共 {count} 个媒体项目', libraryAssetSummary: '共 {count} 个素材', libraryProjectAssets: '{count} 个素材 · {size}',
+    libraryOpenProject: '查看项目', libraryOpenFolder: '打开项目文件夹', libraryOpenSource: '打开来源网页', libraryPreview: '预览', libraryOpenSystem: '系统打开', libraryReveal: '定位文件',
+    libraryImportEditor: '导入 {editor}', libraryImportProject: '导入全部素材到 {editor}', libraryImportEditorDone: '已导入 {editor}', libraryImportProjectDone: '已向 {editor} 导入 {count} 个素材', libraryImportEditorMissing: '请先在偏好设置中扫描或选择剪辑软件。', libraryImportEditorNotReady: '未能打开 {editor} 的导入窗口，请确认软件处于编辑界面后重试。', libraryImportEditorBackgroundUnsupported: '当前版本尚未完成 {editor} 的导入适配。', libraryImportEditorFailed: '无法导入 {editor}', libraryEditorGeneric: '剪辑软件',
+    libraryProvider: '平台', libraryMediaId: '媒体 ID', libraryDownloadedAt: '下载时间', libraryFolder: '项目文件夹', librarySize: '大小',
+    libraryStatusAvailable: '完整', libraryStatusPartial: '部分文件缺失', libraryStatusMissing: '文件缺失', libraryMissing: '缺失', libraryUnknownProvider: '其他平台',
+    libraryVideo: '视频', libraryAudio: 'MP3', libraryImage: '图片', librarySubtitle: '字幕', librarySharedCover: '共享封面', libraryRefreshDone: '素材库已刷新',
+  },
+  'zh-TW': {
+    library: '素材庫', libraryTitle: '素材庫', libraryDescription: '影片、MP3、封面與字幕會依來源歸入同一個媒體專案。',
+    libraryProjects: '媒體專案', libraryAllAssets: '全部素材', libraryRefresh: '重新整理', libraryRefreshing: '正在重新整理…',
+    librarySearch: '搜尋素材庫', librarySearchPlaceholder: '搜尋標題、平台或媒體 ID', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部類型',
+    librarySortRecent: '最近下載', librarySortTitle: '依標題', librarySortSize: '依大小', libraryGridView: '網格檢視', libraryListView: '清單檢視',
+    libraryLoading: '正在讀取素材庫…', libraryLoadFailed: '素材庫讀取失敗：{message}', libraryEmptyTitle: '素材庫還是空的',
+    libraryEmptyBody: '下載影片、MP3、封面或字幕後，會自動整理到這裡。', libraryNoResultsTitle: '沒有符合的素材', libraryNoResultsBody: '請清除搜尋或更換篩選條件。', libraryBrowse: '前往瀏覽下載',
+    libraryProjectSummary: '共 {count} 個媒體專案', libraryAssetSummary: '共 {count} 個素材', libraryProjectAssets: '{count} 個素材 · {size}',
+    libraryOpenProject: '查看專案', libraryOpenFolder: '開啟專案資料夾', libraryOpenSource: '開啟來源網頁', libraryPreview: '預覽', libraryOpenSystem: '系統開啟', libraryReveal: '顯示檔案位置',
+    libraryImportEditor: '匯入 {editor}', libraryImportProject: '將全部素材匯入 {editor}', libraryImportEditorDone: '已匯入 {editor}', libraryImportProjectDone: '已向 {editor} 匯入 {count} 個素材', libraryImportEditorMissing: '請先在偏好設定中掃描或選擇剪輯軟體。', libraryImportEditorNotReady: '無法開啟 {editor} 的匯入視窗，請確認軟體位於編輯介面後重試。', libraryImportEditorBackgroundUnsupported: '目前版本尚未完成 {editor} 的匯入適配。', libraryImportEditorFailed: '無法匯入 {editor}', libraryEditorGeneric: '剪輯軟體',
+    libraryProvider: '平台', libraryMediaId: '媒體 ID', libraryDownloadedAt: '下載時間', libraryFolder: '專案資料夾', librarySize: '大小',
+    libraryStatusAvailable: '完整', libraryStatusPartial: '部分檔案遺失', libraryStatusMissing: '檔案遺失', libraryMissing: '遺失', libraryUnknownProvider: '其他平台',
+    libraryVideo: '影片', libraryAudio: 'MP3', libraryImage: '圖片', librarySubtitle: '字幕', librarySharedCover: '共用封面', libraryRefreshDone: '素材庫已重新整理',
+  },
+  en: {
+    library: 'Library', libraryTitle: 'Media library', libraryDescription: 'Video, MP3, covers and subtitles are grouped into one source project.',
+    libraryProjects: 'Media projects', libraryAllAssets: 'All assets', libraryRefresh: 'Refresh', libraryRefreshing: 'Refreshing…',
+    librarySearch: 'Search library', librarySearchPlaceholder: 'Search title, platform, or media ID', libraryAllPlatforms: 'All platforms', libraryAllTypes: 'All types',
+    librarySortRecent: 'Most recent', librarySortTitle: 'By title', librarySortSize: 'By size', libraryGridView: 'Grid view', libraryListView: 'List view',
+    libraryLoading: 'Loading the media library…', libraryLoadFailed: 'Could not load the media library: {message}', libraryEmptyTitle: 'Your library is empty',
+    libraryEmptyBody: 'Downloaded video, MP3, covers, and subtitles will be organized here automatically.', libraryNoResultsTitle: 'No matching assets', libraryNoResultsBody: 'Clear the search or change a filter.', libraryBrowse: 'Browse and download',
+    libraryProjectSummary: '{count} media projects', libraryAssetSummary: '{count} assets', libraryProjectAssets: '{count} assets · {size}',
+    libraryOpenProject: 'View project', libraryOpenFolder: 'Open project folder', libraryOpenSource: 'Open source page', libraryPreview: 'Preview', libraryOpenSystem: 'Open in system', libraryReveal: 'Show in folder',
+    libraryImportEditor: 'Import into {editor}', libraryImportProject: 'Import all assets into {editor}', libraryImportEditorDone: 'Imported into {editor}', libraryImportProjectDone: 'Imported {count} assets into {editor}', libraryImportEditorMissing: 'Scan for or choose an editing app in Preferences first.', libraryImportEditorNotReady: 'Could not open the {editor} import window. Keep the app in its editing workspace and try again.', libraryImportEditorBackgroundUnsupported: 'Import support for {editor} is not available in this version.', libraryImportEditorFailed: 'Could not import into {editor}', libraryEditorGeneric: 'editing app',
+    libraryProvider: 'Platform', libraryMediaId: 'Media ID', libraryDownloadedAt: 'Downloaded', libraryFolder: 'Project folder', librarySize: 'Size',
+    libraryStatusAvailable: 'Complete', libraryStatusPartial: 'Some files are missing', libraryStatusMissing: 'Files missing', libraryMissing: 'Missing', libraryUnknownProvider: 'Other',
+    libraryVideo: 'Video', libraryAudio: 'MP3', libraryImage: 'Image', librarySubtitle: 'Subtitle', librarySharedCover: 'Shared cover', libraryRefreshDone: 'Media library refreshed',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], LIBRARY_TEXT[locale] || LIBRARY_TEXT.en);
+const EDITOR_SETTINGS_TEXT = {
+  'zh-CN': {
+    settingsEditors: '剪辑软件', settingsEditorTitle: '默认剪辑软件', settingsEditorDescription: '根据所选软件使用对应导入方式，支持视频、音频、图片和字幕。',
+    settingsEditorNone: '未检测到剪辑软件', settingsEditorScan: '扫描软件', settingsEditorScanning: '正在扫描…', settingsEditorChoose: '手动选择',
+    settingsEditorScanDone: '已找到 {count} 个剪辑软件', settingsEditorSaved: '默认剪辑软件已设为 {editor}', settingsEditorChooseFailed: '选择的程序不可用',
+  },
+  'zh-TW': {
+    settingsEditors: '剪輯軟體', settingsEditorTitle: '預設剪輯軟體', settingsEditorDescription: '依所選軟體使用對應匯入方式，支援影片、音訊、圖片與字幕。',
+    settingsEditorNone: '未偵測到剪輯軟體', settingsEditorScan: '掃描軟體', settingsEditorScanning: '正在掃描…', settingsEditorChoose: '手動選擇',
+    settingsEditorScanDone: '已找到 {count} 個剪輯軟體', settingsEditorSaved: '預設剪輯軟體已設為 {editor}', settingsEditorChooseFailed: '選擇的程式無法使用',
+  },
+  en: {
+    settingsEditors: 'Editing apps', settingsEditorTitle: 'Default editing app', settingsEditorDescription: 'Uses the import adapter for the selected app and supports video, audio, images, and subtitles.',
+    settingsEditorNone: 'No editing app detected', settingsEditorScan: 'Scan apps', settingsEditorScanning: 'Scanning…', settingsEditorChoose: 'Choose manually',
+    settingsEditorScanDone: 'Found {count} editing apps', settingsEditorSaved: 'Default editing app set to {editor}', settingsEditorChooseFailed: 'The selected program is unavailable',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], EDITOR_SETTINGS_TEXT[locale] || EDITOR_SETTINGS_TEXT.en);
 const DOWNLOAD_OPEN_TEXT = {
   'zh-CN': { openFileFailed: '找不到下载完成的视频文件。', openFolderFailed: '找不到该下载任务的文件夹。' },
   'zh-TW': { openFileFailed: '找不到下載完成的影片檔案。', openFolderFailed: '找不到此下載工作的資料夾。' },
@@ -935,6 +998,30 @@ const els = {
   clearFinished: document.getElementById('clear-finished'),
   retryFailedDownloads: document.getElementById('retry-failed-downloads'),
   downloadFilters: document.getElementById('download-filters'),
+  libraryRefresh: document.getElementById('library-refresh'),
+  libraryRefreshLabel: document.getElementById('library-refresh-label'),
+  libraryTabs: document.getElementById('library-tabs'),
+  libraryProjectCount: document.getElementById('library-project-count'),
+  libraryAssetCount: document.getElementById('library-asset-count'),
+  libraryProjectsLabel: document.getElementById('library-projects-label'),
+  libraryAssetsLabel: document.getElementById('library-assets-label'),
+  librarySearch: document.getElementById('library-search'),
+  librarySearchLabel: document.getElementById('library-search-label'),
+  libraryProviderFilter: document.getElementById('library-provider-filter'),
+  libraryTypeFilter: document.getElementById('library-type-filter'),
+  libraryTimeFilter: document.getElementById('library-time-filter'),
+  librarySort: document.getElementById('library-sort'),
+  libraryGridView: document.getElementById('library-grid-view'),
+  libraryListView: document.getElementById('library-list-view'),
+  librarySummary: document.getElementById('library-summary'),
+  libraryContent: document.getElementById('library-content'),
+  libraryDetailOverlay: document.getElementById('library-detail-overlay'),
+  libraryDetailScrim: document.getElementById('library-detail-scrim'),
+  libraryDetailCover: document.getElementById('library-detail-cover'),
+  libraryDetailTitle: document.getElementById('library-detail-title'),
+  libraryDetailEyebrow: document.getElementById('library-detail-eyebrow'),
+  libraryDetailClose: document.getElementById('library-detail-close'),
+  libraryDetailBody: document.getElementById('library-detail-body'),
   historyList: document.getElementById('history-list'),
   historyRange: document.getElementById('history-range'),
   historyClear: document.getElementById('history-clear'),
@@ -981,6 +1068,7 @@ const els = {
   settingsPanels: Array.from(document.querySelectorAll('[data-settings-panel]')),
   settingsTheme: document.getElementById('settings-theme-control'),
   settingsLanguage: document.getElementById('settings-language-control'),
+  settingsSearchEngine: document.getElementById('settings-search-engine-control'),
   settingsAdBlock: document.getElementById('settings-adblock-control'),
   settingsAdBlockState: document.getElementById('settings-adblock-state'),
   settingsOutputDir: document.getElementById('settings-output-dir'),
@@ -993,6 +1081,12 @@ const els = {
   settingsConcurrencyPlans: document.getElementById('settings-concurrency-plans'),
   settingsRecording: document.getElementById('settings-recording-control'),
   settingsRecordingState: document.getElementById('settings-recording-state'),
+  settingsEditor: document.getElementById('settings-editor-control'),
+  settingsEditorPath: document.getElementById('settings-editor-path'),
+  settingsEditorScan: document.getElementById('settings-editor-scan'),
+  settingsEditorScanLabel: document.getElementById('settings-editor-scan-label'),
+  settingsEditorChoose: document.getElementById('settings-editor-choose'),
+  settingsEditorChooseLabel: document.getElementById('settings-editor-choose-label'),
   settingsCheckUpdate: document.getElementById('settings-check-update'),
   settingsVersion: document.getElementById('settings-version'),
   settingsLatestVersion: document.getElementById('settings-latest-version'),
@@ -1090,6 +1184,23 @@ const state = {
   externalLoginBusy: false,
   externalLoginCanSync: false,
   previewItem: null,
+  editor: { selected: null, editors: [], scanning: false },
+  library: {
+    loaded: false,
+    loading: false,
+    error: '',
+    items: [],
+    projects: [],
+    tab: 'projects',
+    query: '',
+    provider: 'all',
+    assetType: 'all',
+    timeRange: 'all',
+    sort: 'recent',
+    view: 'grid',
+    selectedProjectId: null,
+    previewUrls: new Map(),
+  },
   systemNetworkSpeed: {
     available: false,
     receivedBytesPerSecond: 0,
@@ -1286,6 +1397,7 @@ function applyLocale() {
   renderQualitySelect(els.downloadQuality);
   renderRangeSelect(els.downloadRange, state.downloadRange);
   renderRangeSelect(els.historyRange, state.historyRange);
+  updateLibraryCopy();
   els.sidebar.forEach((button) => {
     const label = text(button.dataset.section);
     button.removeAttribute('title');
@@ -1311,10 +1423,6 @@ function updateSettingsCopy() {
   document.getElementById('settings-nav-downloads').textContent = text('downloads');
   document.getElementById('settings-nav-preferences').textContent = text('settingsPreferences');
   document.getElementById('settings-nav-about').textContent = text('settingsAbout');
-  document.getElementById('settings-interface-title').textContent = text('settingsInterface');
-  document.getElementById('settings-downloads-title').textContent = text('downloads');
-  document.getElementById('settings-preferences-title').textContent = text('settingsPreferences');
-  document.getElementById('settings-about-title').textContent = text('settingsAbout');
   document.getElementById('settings-theme-title').textContent = text('theme');
   document.getElementById('settings-theme-description').textContent = text('settingsThemeDescription');
   els.settingsTheme.querySelector('option[value="light"]').textContent = text('light');
@@ -1338,6 +1446,12 @@ function updateSettingsCopy() {
   els.settingsConcurrencyPlans.textContent = text('viewPlans');
   document.getElementById('settings-recording-title').textContent = text('recordingFeature');
   document.getElementById('settings-recording-description').textContent = text('recordingFeatureDescription');
+  document.getElementById('settings-search-engine-title').textContent = text('defaultSearchEngine');
+  document.getElementById('settings-search-engine-description').textContent = text('defaultSearchEngineDescription');
+  document.getElementById('settings-editor-title').textContent = text('settingsEditorTitle');
+  document.getElementById('settings-editor-description').textContent = text('settingsEditorDescription');
+  els.settingsEditorScanLabel.textContent = text(state.editor.scanning ? 'settingsEditorScanning' : 'settingsEditorScan');
+  els.settingsEditorChooseLabel.textContent = text('settingsEditorChoose');
   document.getElementById('settings-adblock-title').textContent = text('adBlocker');
   document.getElementById('settings-adblock-description-copy').textContent = text('adBlockerDescription');
   document.getElementById('settings-adblock-notice').textContent = text('adBlockerNotice');
@@ -1463,10 +1577,12 @@ function syncSettingsControls() {
   els.settingsConcurrencyIncrease.setAttribute('aria-label', increaseLabel);
   els.settingsTheme.value = state.theme;
   els.settingsLanguage.value = state.locale;
+  els.settingsSearchEngine.value = SEARCH_ENGINES[state.settings.searchEngine] ? state.settings.searchEngine : 'google';
   els.settingsAdBlock.checked = state.settings.adBlocker !== false;
   els.settingsAdBlockState.textContent = text(els.settingsAdBlock.checked ? 'on' : 'off');
   els.settingsRecording.checked = state.settings.recordingEnabled === true;
   els.settingsRecordingState.textContent = text(els.settingsRecording.checked ? 'on' : 'off');
+  renderEditorSettings();
   updateBrowserStatusBar();
   els.settingsVersion.textContent = `${state.runtimeInfo?.appName || text('title')} ${state.runtimeInfo?.version || '-'}`;
   if (els.settingsLatestVersion.textContent === '-') {
@@ -1746,6 +1862,8 @@ function setSection(section) {
   }
   if (section === 'plans') renderPlans();
   if (section === 'account') renderAccount();
+  if (section === 'library' && !state.library.loaded && !state.library.loading) void loadMediaLibrary();
+  if (section !== 'library' && !els.libraryDetailOverlay.hidden) closeLibraryDetail();
   renderTabs();
   setVisibleWebviews();
   syncMediaPanelVisibility();
@@ -2440,6 +2558,7 @@ async function persistPlatformConfiguration(successMessage = 'platformSaved') {
     }
     renderQuickSites();
     renderPlatformManager();
+    if (state.library.loaded) renderLibraryFilters();
     toast(text(successMessage), 'success');
     return true;
   } catch (error) {
@@ -2551,6 +2670,7 @@ function bindPlatformManagerEvents() {
       closePlatformEditors();
       renderQuickSites();
       renderPlatformManager();
+      if (state.library.loaded) renderLibraryFilters();
       toast(text('platformReset'), 'success');
     } catch (error) { toast(error?.message || text('platformInvalidUrl'), 'error'); }
   });
@@ -2677,6 +2797,477 @@ function isInRange(time, range) {
   if (range === 'last7') return dateStart >= todayStart - 6 * dayMs;
   if (range === 'last30') return dateStart >= todayStart - 29 * dayMs;
   return true;
+}
+
+function selectedEditorName() {
+  return state.editor.selected?.name || text('libraryEditorGeneric');
+}
+
+function applyEditorConfiguration(configuration) {
+  state.editor.editors = Array.isArray(configuration?.editors) ? configuration.editors : [];
+  state.editor.selected = configuration?.selected || null;
+  renderEditorSettings();
+  if (state.section === 'library') {
+    renderLibrary();
+    if (!els.libraryDetailOverlay.hidden) renderLibraryDetail();
+  }
+}
+
+function renderEditorSettings() {
+  if (!els.settingsEditor) return;
+  const options = state.editor.editors.length
+    ? state.editor.editors.map((editor) => `<option value="${escapeHtml(editor.id)}">${escapeHtml(editor.name)}</option>`).join('')
+    : `<option value="">${escapeHtml(text('settingsEditorNone'))}</option>`;
+  els.settingsEditor.innerHTML = options;
+  els.settingsEditor.value = state.editor.selected?.id || '';
+  els.settingsEditor.disabled = !state.editor.editors.length || state.editor.scanning;
+  els.settingsEditorPath.value = state.editor.selected?.executable || '';
+  els.settingsEditorScan.disabled = state.editor.scanning;
+  els.settingsEditorScanLabel.textContent = text(state.editor.scanning ? 'settingsEditorScanning' : 'settingsEditorScan');
+  els.settingsEditorChooseLabel.textContent = text('settingsEditorChoose');
+}
+
+async function scanEditingApps() {
+  if (state.editor.scanning) return;
+  state.editor.scanning = true;
+  renderEditorSettings();
+  try {
+    const configuration = await window.mediaDeck.scanEditors();
+    applyEditorConfiguration(configuration);
+    toast(text('settingsEditorScanDone', { count: state.editor.editors.length }), 'success');
+  } catch {
+    toast(text('settingsEditorChooseFailed'), 'error');
+  } finally {
+    state.editor.scanning = false;
+    renderEditorSettings();
+  }
+}
+
+async function chooseEditingApp() {
+  const configuration = await window.mediaDeck.chooseEditorExecutable().catch(() => null);
+  if (!configuration) return;
+  if (!configuration.ok) return toast(text('settingsEditorChooseFailed'), 'error');
+  applyEditorConfiguration(configuration);
+  toast(text('settingsEditorSaved', { editor: selectedEditorName() }), 'success');
+}
+
+async function changeDefaultEditingApp() {
+  const configuration = await window.mediaDeck.setDefaultEditor(els.settingsEditor.value).catch(() => null);
+  if (!configuration?.ok) return toast(text('settingsEditorChooseFailed'), 'error');
+  applyEditorConfiguration(configuration);
+  toast(text('settingsEditorSaved', { editor: selectedEditorName() }), 'success');
+}
+
+function libraryAssetBridgeItem(asset = {}) {
+  return {
+    ...asset,
+    path: asset.filePath || asset.path || '',
+    savePath: asset.folderPath || asset.savePath || '',
+    fileName: getFileName(asset.filePath || asset.path || asset.title),
+  };
+}
+
+function libraryAssetPresentation(assetType) {
+  const presentations = {
+    video: { label: text('libraryVideo'), icon: 'video-play', color: '#4c9fff' },
+    audio: { label: text('libraryAudio'), icon: 'headset', color: '#a78bfa' },
+    image: { label: text('libraryImage'), icon: 'view', color: '#34d399' },
+    subtitle: { label: text('librarySubtitle'), icon: 'document', color: '#f59e0b' },
+  };
+  return presentations[assetType] || presentations.video;
+}
+
+function libraryProviderLabel(provider) {
+  const key = libraryProviderKey(provider);
+  const configured = state.platformConfig.platforms.find((platform) => libraryProviderKey(platform.id) === key);
+  if (configured?.name) return configured.name;
+  const labels = {
+    youtube: 'YouTube', tiktok: 'TikTok', douyin: 'Douyin', agedm: 'AGE', vimeo: 'Vimeo',
+    dailymotion: 'Dailymotion', instagram: 'Instagram', facebook: 'Facebook', twitter: 'X',
+    reddit: 'Reddit', twitch: 'Twitch', pexels: 'Pexels', pixabay: 'Pixabay', web: text('libraryUnknownProvider'),
+  };
+  return labels[key] || key.replace(/[-_]+/g, ' ').replace(/\b\w/g, (value) => value.toUpperCase());
+}
+
+function libraryProviderKey(provider) {
+  const key = String(provider || 'web').trim().toLowerCase();
+  if (['twitter', 'x-twitter', 'x/twitter'].includes(key)) return 'x';
+  return key;
+}
+
+function libraryFilterPlatforms() {
+  const enabledCategories = new Set(state.platformConfig.categories
+    .filter((category) => category.enabled !== false)
+    .map((category) => category.id));
+  return state.platformConfig.platforms.filter((platform) => platform.enabled !== false && enabledCategories.has(platform.categoryId));
+}
+
+function libraryStatusPresentation(status) {
+  if (status === 'missing') return { label: text('libraryStatusMissing'), className: 'is-missing' };
+  if (status === 'partial') return { label: text('libraryStatusPartial'), className: 'is-partial' };
+  return { label: text('libraryStatusAvailable'), className: 'is-available' };
+}
+
+function logicalLibraryAssets() {
+  return state.library.projects.flatMap((project) => Array.isArray(project.assets) ? project.assets : []);
+}
+
+function libraryProjectForId(projectId) {
+  return state.library.projects.find((project) => project.id === projectId) || null;
+}
+
+function libraryAssetForId(assetId) {
+  return logicalLibraryAssets().find((asset) => asset.id === assetId) || null;
+}
+
+function libraryProjectForAsset(assetId) {
+  return state.library.projects.find((project) => project.assets?.some((asset) => asset.id === assetId)) || null;
+}
+
+function librarySearchText(project) {
+  return [project.title, project.provider, project.mediaId, project.sourceUrl, project.folderPath]
+    .concat((project.assets || []).flatMap((asset) => [asset.title, asset.filePath, asset.language]))
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase(state.locale);
+}
+
+function filteredLibraryProjects() {
+  const query = state.library.query.trim().toLocaleLowerCase(state.locale);
+  const projects = state.library.projects.filter((project) => {
+    if (state.library.provider !== 'all' && libraryProviderKey(project.provider) !== state.library.provider) return false;
+    if (state.library.assetType !== 'all' && !(project.assets || []).some((asset) => asset.assetType === state.library.assetType)) return false;
+    if (!isInRange(project.updatedAt || project.downloadedAt, state.library.timeRange)) return false;
+    return !query || librarySearchText(project).includes(query);
+  });
+  if (state.library.sort === 'title') return projects.sort((left, right) => String(left.title).localeCompare(String(right.title), state.locale));
+  if (state.library.sort === 'size') return projects.sort((left, right) => Number(right.totalSize || 0) - Number(left.totalSize || 0));
+  return projects.sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0));
+}
+
+function filteredLibraryAssets() {
+  const query = state.library.query.trim().toLocaleLowerCase(state.locale);
+  const assets = [];
+  for (const project of state.library.projects) {
+    if (state.library.provider !== 'all' && libraryProviderKey(project.provider) !== state.library.provider) continue;
+    for (const asset of project.assets || []) {
+      if (state.library.assetType !== 'all' && asset.assetType !== state.library.assetType) continue;
+      if (!isInRange(asset.downloadedAt, state.library.timeRange)) continue;
+      const searchable = [project.title, project.provider, project.mediaId, asset.title, asset.filePath, asset.language]
+        .filter(Boolean).join(' ').toLocaleLowerCase(state.locale);
+      if (query && !searchable.includes(query)) continue;
+      assets.push({ asset, project });
+    }
+  }
+  if (state.library.sort === 'title') return assets.sort((left, right) => getFileName(left.asset.filePath).localeCompare(getFileName(right.asset.filePath), state.locale));
+  if (state.library.sort === 'size') return assets.sort((left, right) => Number(right.asset.fileSize || 0) - Number(left.asset.fileSize || 0));
+  return assets.sort((left, right) => Date.parse(right.asset.downloadedAt || 0) - Date.parse(left.asset.downloadedAt || 0));
+}
+
+function renderLibraryFilters() {
+  if (!els.libraryProviderFilter) return;
+  const providers = libraryFilterPlatforms()
+    .map((platform) => ({ value: libraryProviderKey(platform.id), label: platform.name }))
+    .filter((platform, index, items) => platform.value && items.findIndex((item) => item.value === platform.value) === index);
+  els.libraryProviderFilter.innerHTML = [
+    `<option value="all">${escapeHtml(text('libraryAllPlatforms'))}</option>`,
+    ...providers.map((provider) => `<option value="${escapeHtml(provider.value)}">${escapeHtml(provider.label)}</option>`),
+  ].join('');
+  if (!providers.some((provider) => provider.value === state.library.provider)) state.library.provider = 'all';
+  els.libraryProviderFilter.value = state.library.provider;
+  els.libraryTypeFilter.innerHTML = [
+    ['all', text('libraryAllTypes')], ['video', text('libraryVideo')], ['audio', text('libraryAudio')],
+    ['image', text('libraryImage')], ['subtitle', text('librarySubtitle')],
+  ].map(([value, label]) => `<option value="${value}">${escapeHtml(label)}</option>`).join('');
+  els.libraryTypeFilter.value = state.library.assetType;
+  renderRangeSelect(els.libraryTimeFilter, state.library.timeRange);
+  els.librarySort.innerHTML = [
+    ['recent', text('librarySortRecent')], ['title', text('librarySortTitle')], ['size', text('librarySortSize')],
+  ].map(([value, label]) => `<option value="${value}">${escapeHtml(label)}</option>`).join('');
+  els.librarySort.value = state.library.sort;
+}
+
+function libraryCountChips(project) {
+  return ['video', 'audio', 'image', 'subtitle'].map((assetType) => {
+    const count = Number(project.assetCounts?.[assetType] || 0);
+    if (!count) return '';
+    const presentation = libraryAssetPresentation(assetType);
+    return `<span style="--asset-color:${presentation.color}" title="${escapeHtml(presentation.label)}">${iconSvg(presentation.icon)}${count}</span>`;
+  }).join('');
+}
+
+function libraryProjectCard(project) {
+  const status = libraryStatusPresentation(project.status);
+  const statusBadge = project.status === 'available' ? '' : `<span class="library-status-badge ${status.className}">${escapeHtml(status.label)}</span>`;
+  const cover = project.coverPath ? `data-library-cover-path="${escapeHtml(project.coverPath)}"` : '';
+  if (state.library.view === 'list') {
+    return `<article class="library-project-row-shell">
+      <button class="library-project-row" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
+        <span class="library-row-cover" ${cover}>${iconSvg('folder-opened')}</span>
+        <span class="library-row-primary"><b>${escapeHtml(project.title)}</b><span>${escapeHtml(project.mediaId || project.sourceGroupId || '')}</span></span>
+        <span class="library-row-secondary">${escapeHtml(libraryProviderLabel(project.provider))}</span>
+        <span class="library-project-counts">${libraryCountChips(project)}</span>
+        <span class="library-row-secondary">${escapeHtml(formatBytes(project.totalSize))}</span>
+      </button>
+      <button class="library-project-import" type="button" data-library-project-import="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}" aria-label="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}">${iconSvg('monitor')}</button>
+    </article>`;
+  }
+  return `<button class="library-project-card" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
+    <span class="library-project-cover" ${cover}>${iconSvg('folder-opened')}<span class="library-provider-badge">${escapeHtml(libraryProviderLabel(project.provider))}</span>${statusBadge}</span>
+    <span class="library-project-body">
+      <span class="library-project-title">${escapeHtml(project.title)}</span>
+      <span class="library-project-meta">${escapeHtml(text('libraryProjectAssets', { count: project.assetCount, size: formatBytes(project.totalSize) }))}</span>
+      <span class="library-project-counts">${libraryCountChips(project)}<span class="library-project-size">${escapeHtml(formatTime(project.updatedAt))}</span></span>
+    </span>
+  </button>`;
+}
+
+function libraryAssetActions(asset, compact = false) {
+  const disabled = asset.status === 'missing' ? ' disabled' : '';
+  const missingClass = asset.status === 'missing' ? ' is-disabled' : '';
+  const presentation = libraryAssetPresentation(asset.assetType);
+  const openLabel = escapeHtml(downloadAssetPresentation(asset.assetType).openLabel);
+  const revealLabel = escapeHtml(text('libraryReveal'));
+  const importLabel = escapeHtml(text('libraryImportEditor', { editor: selectedEditorName() }));
+  const importAction = `<button class="library-asset-action is-editor-action${missingClass}" type="button" data-library-asset-action="import-editor" data-library-asset-id="${escapeHtml(asset.id)}" title="${importLabel}" aria-label="${importLabel}"${disabled}>${iconSvg('monitor')}</button>`;
+  return `<span class="${compact ? 'library-detail-asset-actions' : 'library-asset-actions'}">
+    <button class="library-asset-action is-type-action${missingClass}" style="--asset-color:${presentation.color}" type="button" data-library-asset-action="preview" data-library-asset-id="${escapeHtml(asset.id)}" title="${openLabel}" aria-label="${openLabel}"${disabled}>${iconSvg(presentation.icon)}</button>
+    ${importAction}
+    <button class="library-asset-action${missingClass}" type="button" data-library-asset-action="reveal" data-library-asset-id="${escapeHtml(asset.id)}" title="${revealLabel}" aria-label="${revealLabel}"${disabled}>${iconSvg('folder-opened')}</button>
+  </span>`;
+}
+
+function libraryAssetCard(entry) {
+  const { asset, project } = entry;
+  const presentation = libraryAssetPresentation(asset.assetType);
+  const coverPath = asset.assetType === 'image' ? asset.filePath : '';
+  const cover = coverPath ? `data-library-cover-path="${escapeHtml(coverPath)}"` : '';
+  const fileName = getFileName(asset.filePath);
+  const typeLabel = asset.assetRole === 'cover' ? text('librarySharedCover') : presentation.label;
+  if (state.library.view === 'list') {
+    return `<article class="library-asset-row">
+      <span class="library-row-cover is-asset" ${cover}>${iconSvg(presentation.icon)}</span>
+      <span class="library-row-primary"><b>${escapeHtml(fileName)}</b><span>${escapeHtml(project.title)}</span></span>
+      <span class="library-row-secondary">${escapeHtml(typeLabel)}</span>
+      <span class="library-row-secondary">${escapeHtml(libraryProviderLabel(project.provider))}</span>
+      <span class="library-row-secondary">${asset.status === 'missing' ? escapeHtml(text('libraryMissing')) : escapeHtml(formatBytes(asset.fileSize))}</span>
+      ${libraryAssetActions(asset)}
+    </article>`;
+  }
+  return `<article class="library-asset-card" style="--asset-color:${presentation.color}">
+    <div class="library-asset-cover" ${cover}>${iconSvg(presentation.icon)}<span class="library-asset-type-badge">${escapeHtml(typeLabel)}</span></div>
+    <div class="library-project-body">
+      <div class="library-asset-title">${escapeHtml(fileName)}</div>
+      <div class="library-asset-meta">${escapeHtml(project.title)}</div>
+      <div class="library-asset-footer"><span>${asset.status === 'missing' ? escapeHtml(text('libraryMissing')) : escapeHtml(formatBytes(asset.fileSize))}</span>${libraryAssetActions(asset)}</div>
+    </div>
+  </article>`;
+}
+
+function libraryEmptyState(filtered) {
+  const hasLibrary = state.library.projects.length > 0;
+  const title = hasLibrary && filtered ? text('libraryNoResultsTitle') : text('libraryEmptyTitle');
+  const body = hasLibrary && filtered ? text('libraryNoResultsBody') : text('libraryEmptyBody');
+  const action = hasLibrary && filtered ? '' : `<div class="library-empty-actions"><button class="is-primary" type="button" data-library-browse>${escapeHtml(text('libraryBrowse'))}</button></div>`;
+  return `<div class="library-empty"><div class="library-empty-inner"><img class="app-empty-image" src="./assets/vidogo-empty.png" alt="" /><h3>${escapeHtml(title)}</h3><p>${escapeHtml(body)}</p>${action}</div></div>`;
+}
+
+function renderLibrary() {
+  if (!els.libraryContent) return;
+  els.libraryProjectCount.textContent = String(state.library.projects.length);
+  els.libraryAssetCount.textContent = String(logicalLibraryAssets().length);
+  els.libraryTabs.querySelectorAll('[data-library-tab]').forEach((button) => {
+    const active = button.dataset.libraryTab === state.library.tab;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+  els.libraryGridView.classList.toggle('is-active', state.library.view === 'grid');
+  els.libraryListView.classList.toggle('is-active', state.library.view === 'list');
+  els.libraryRefresh.classList.toggle('is-loading', state.library.loading);
+  els.libraryRefresh.disabled = state.library.loading;
+  els.libraryRefreshLabel.textContent = text(state.library.loading ? 'libraryRefreshing' : 'libraryRefresh');
+  if (state.library.loading && !state.library.loaded) {
+    els.libraryContent.innerHTML = `<div class="library-loading"><span>${iconSvg('refresh')}${escapeHtml(text('libraryLoading'))}</span></div>`;
+    return;
+  }
+  if (state.library.error) {
+    els.libraryContent.innerHTML = `<div class="library-error">${escapeHtml(text('libraryLoadFailed', { message: state.library.error }))}</div>`;
+    return;
+  }
+  const isProjects = state.library.tab === 'projects';
+  const entries = isProjects ? filteredLibraryProjects() : filteredLibraryAssets();
+  const summary = text(isProjects ? 'libraryProjectSummary' : 'libraryAssetSummary', { count: entries.length });
+  els.librarySummary.textContent = summary;
+  if (!entries.length) {
+    const filtered = Boolean(state.library.query || state.library.provider !== 'all' || state.library.assetType !== 'all' || state.library.timeRange !== 'all');
+    els.libraryContent.innerHTML = libraryEmptyState(filtered);
+    return;
+  }
+  const body = isProjects
+    ? entries.map(libraryProjectCard).join('')
+    : entries.map(libraryAssetCard).join('');
+  els.libraryContent.innerHTML = `<div class="library-${state.library.view === 'grid' ? 'grid' : 'list'}">${body}</div>`;
+  void renderLibraryCoverPreviews(els.libraryContent);
+}
+
+async function renderLibraryCoverPreviews(root) {
+  const targets = Array.from(root?.querySelectorAll?.('[data-library-cover-path]') || []);
+  await Promise.all(targets.map(async (target) => {
+    const coverPath = target.dataset.libraryCoverPath;
+    if (!coverPath) return;
+    let url = state.library.previewUrls.get(coverPath);
+    if (!url) {
+      const result = await window.mediaDeck.previewDownloadedFile({ path: coverPath, fileName: getFileName(coverPath), assetType: 'image' }).catch(() => null);
+      if (!result?.ok || !result.url) return;
+      url = result.url;
+      state.library.previewUrls.set(coverPath, url);
+    }
+    if (!target.isConnected || target.dataset.libraryCoverPath !== coverPath || target.querySelector('img')) return;
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = '';
+    target.appendChild(image);
+  }));
+}
+
+function renderLibraryDetail() {
+  const project = libraryProjectForId(state.library.selectedProjectId);
+  if (!project) return closeLibraryDetail();
+  els.libraryDetailEyebrow.textContent = `${libraryProviderLabel(project.provider)} · ${project.mediaId || text('libraryProjects')}`;
+  els.libraryDetailTitle.textContent = project.title;
+  els.libraryDetailCover.innerHTML = iconSvg('folder-opened');
+  if (project.coverPath) {
+    els.libraryDetailCover.dataset.libraryCoverPath = project.coverPath;
+    void renderLibraryCoverPreviews(els.libraryDetailCover.parentElement);
+  } else delete els.libraryDetailCover.dataset.libraryCoverPath;
+  const actions = [
+    `<button class="library-detail-action" type="button" data-library-project-action="folder">${iconSvg('folder-opened')}<span>${escapeHtml(text('libraryOpenFolder'))}</span></button>`,
+    project.sourceUrl ? `<button class="library-detail-action" type="button" data-library-project-action="source">${iconSvg('view')}<span>${escapeHtml(text('libraryOpenSource'))}</span></button>` : '',
+  ].join('');
+  const fields = [
+    [text('libraryProvider'), libraryProviderLabel(project.provider), false], [text('libraryMediaId'), project.mediaId || '-', false],
+    [text('libraryDownloadedAt'), formatTime(project.updatedAt), false], [text('librarySize'), formatBytes(project.totalSize), false],
+    [text('libraryFolder'), project.folderPath || '-', true],
+  ];
+  const groups = ['video', 'audio', 'image', 'subtitle'].map((assetType) => {
+    const assets = (project.assets || []).filter((asset) => asset.assetType === assetType);
+    if (!assets.length) return '';
+    const presentation = libraryAssetPresentation(assetType);
+    const rows = assets.map((asset) => `<div class="library-detail-asset">
+      <span class="library-asset-kind" style="--asset-color:${presentation.color}">${iconSvg(presentation.icon)}</span>
+      <span class="library-detail-asset-copy"><b>${escapeHtml(getFileName(asset.filePath))}</b><span>${escapeHtml(asset.status === 'missing' ? text('libraryMissing') : `${formatBytes(asset.fileSize)} · ${formatTime(asset.downloadedAt)}`)}</span></span>
+      ${libraryAssetActions(asset, true)}
+    </div>`).join('');
+    return `<section class="library-asset-group"><h3 class="library-asset-group-title" style="--asset-color:${presentation.color}">${iconSvg(presentation.icon)}${escapeHtml(presentation.label)}<strong>${assets.length}</strong></h3><div class="library-detail-assets">${rows}</div></section>`;
+  }).join('');
+  els.libraryDetailBody.innerHTML = `<div class="library-detail-actions">${actions}</div><dl class="library-detail-meta">${fields.map(([label, value, wide]) => `<div class="library-detail-meta-item${wide ? ' is-wide' : ''}"><dt>${escapeHtml(label)}</dt><dd title="${escapeHtml(value)}">${escapeHtml(value)}</dd></div>`).join('')}</dl>${groups}`;
+}
+
+function openLibraryDetail(projectId) {
+  if (!libraryProjectForId(projectId)) return;
+  state.library.selectedProjectId = projectId;
+  renderLibraryDetail();
+  els.libraryDetailOverlay.hidden = false;
+  els.libraryDetailClose.focus();
+}
+
+function closeLibraryDetail() {
+  if (!els.libraryDetailOverlay) return;
+  els.libraryDetailOverlay.hidden = true;
+  state.library.selectedProjectId = null;
+}
+
+async function handleLibraryAction(action, assetId) {
+  const asset = libraryAssetForId(assetId);
+  if (!asset || asset.status === 'missing') return;
+  const item = libraryAssetBridgeItem(asset);
+  if (action === 'preview') return showMediaPreview(item);
+  if (action === 'import-editor') {
+    const result = await window.mediaDeck.importIntoEditor(item).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+    const editorName = result?.editorName || selectedEditorName();
+    if (result?.ok) return toast(text('libraryImportEditorDone', { editor: editorName }), 'success');
+    if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
+    if (result?.reason === 'editor-not-ready') return toast(text('libraryImportEditorNotReady', { editor: editorName }), 'warning');
+    if (result?.reason === 'background-import-unsupported') return toast(text('libraryImportEditorBackgroundUnsupported', { editor: editorName }), 'warning');
+    if (result?.reason === 'file-not-found') return toast(text('openFileFailed'), 'error');
+    return toast(text('libraryImportEditorFailed', { editor: editorName }), 'error');
+  }
+  if (action === 'reveal') {
+    const result = await window.mediaDeck.showItemInFolder(item.path).catch(() => false);
+    if (!result) toast(text('openFolderFailed'), 'error');
+  }
+}
+
+async function handleLibraryProjectImport(projectId) {
+  const project = libraryProjectForId(projectId);
+  const items = (project?.assets || [])
+    .filter((asset) => asset.status !== 'missing')
+    .map((asset) => libraryAssetBridgeItem(asset));
+  if (!items.length) return toast(text('openFileFailed'), 'error');
+  const result = await window.mediaDeck.importManyIntoEditor(items).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+  const editorName = result?.editorName || selectedEditorName();
+  if (result?.ok) return toast(text('libraryImportProjectDone', { editor: editorName, count: result.count || items.length }), 'success');
+  if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
+  if (result?.reason === 'editor-not-ready') return toast(text('libraryImportEditorNotReady', { editor: editorName }), 'warning');
+  if (result?.reason === 'background-import-unsupported') return toast(text('libraryImportEditorBackgroundUnsupported', { editor: editorName }), 'warning');
+  if (result?.reason === 'file-not-found') return toast(text('openFileFailed'), 'error');
+  return toast(text('libraryImportEditorFailed', { editor: editorName }), 'error');
+}
+
+async function handleLibraryProjectAction(action) {
+  const project = libraryProjectForId(state.library.selectedProjectId);
+  if (!project) return;
+  if (action === 'folder') {
+    const opened = await window.mediaDeck.openPath(project.folderPath).catch(() => false);
+    if (!opened) toast(text('openFolderFailed'), 'error');
+  } else if (action === 'source' && project.sourceUrl) {
+    closeLibraryDetail();
+    openUrl(project.sourceUrl, project.title || libraryProviderLabel(project.provider));
+  }
+}
+
+async function loadMediaLibrary(options = {}) {
+  if (state.library.loading) return;
+  state.library.loading = true;
+  state.library.error = '';
+  renderLibrary();
+  try {
+    const document = options.refresh
+      ? await window.mediaDeck.refreshMediaLibrary()
+      : await window.mediaDeck.listMediaLibrary();
+    state.library.items = Array.isArray(document?.items) ? document.items : [];
+    state.library.projects = Array.isArray(document?.projects) ? document.projects : [];
+    state.library.loaded = true;
+    renderLibraryFilters();
+    if (state.library.selectedProjectId && !libraryProjectForId(state.library.selectedProjectId)) closeLibraryDetail();
+    else if (state.library.selectedProjectId) renderLibraryDetail();
+    if (options.announce) toast(text('libraryRefreshDone'), 'success');
+  } catch (error) {
+    state.library.error = error?.message || String(error);
+  } finally {
+    state.library.loading = false;
+    renderLibrary();
+  }
+}
+
+function updateLibraryCopy() {
+  if (!els.libraryContent) return;
+  els.libraryProjectsLabel.textContent = text('libraryProjects');
+  els.libraryAssetsLabel.textContent = text('libraryAllAssets');
+  els.librarySearchLabel.textContent = text('librarySearch');
+  els.librarySearch.placeholder = text('librarySearchPlaceholder');
+  els.libraryRefresh.title = text('libraryRefresh');
+  els.libraryRefresh.setAttribute('aria-label', text('libraryRefresh'));
+  els.libraryGridView.title = text('libraryGridView');
+  els.libraryGridView.setAttribute('aria-label', text('libraryGridView'));
+  els.libraryListView.title = text('libraryListView');
+  els.libraryListView.setAttribute('aria-label', text('libraryListView'));
+  els.libraryDetailEyebrow.textContent = text('libraryProjects');
+  els.libraryDetailClose.title = text('close');
+  els.libraryDetailClose.setAttribute('aria-label', text('close'));
+  els.libraryDetailScrim.setAttribute('aria-label', text('close'));
+  renderLibraryFilters();
+  renderLibrary();
 }
 
 function tabForWebContentsId(webContentsId) {
@@ -5670,6 +6261,87 @@ function prepareSmokeVisualAudit(section) {
       });
     }
   }
+  if (section === 'library') {
+    const makeAsset = (projectKey, assetType, fileName, fileSize, options = {}) => ({
+      id: `${projectKey}-${assetType}-${fileName}`,
+      title: options.title || projectKey,
+      provider: options.provider || 'youtube',
+      mediaId: options.mediaId || projectKey,
+      assetType,
+      assetRole: options.assetRole || (assetType === 'image' ? 'cover' : 'primary'),
+      status: options.status || 'available',
+      fileSize,
+      downloadedAt: options.downloadedAt || now,
+      filePath: `C:\\SmokeDownloads\\${projectKey}\\${assetType}\\${fileName}`,
+      folderPath: `C:\\SmokeDownloads\\${projectKey}`,
+    });
+    const makeProject = (id, title, provider, mediaId, assets, options = {}) => ({
+      id, title, provider, mediaId, sourceGroupId: `${provider}:${mediaId}`,
+      sourceUrl: `https://www.youtube.com/watch?v=${mediaId}`,
+      folderPath: `C:\\SmokeDownloads\\${id}`,
+      coverPath: assets.find((asset) => asset.assetRole === 'cover')?.filePath || null,
+      updatedAt: options.updatedAt || now,
+      downloadedAt: options.updatedAt || now,
+      status: options.status || 'available',
+      missingCount: options.status === 'partial' ? 1 : 0,
+      totalSize: assets.reduce((sum, asset) => sum + asset.fileSize, 0),
+      assetCount: assets.length,
+      assetCounts: assets.reduce((counts, asset) => ({ ...counts, [asset.assetType]: counts[asset.assetType] + 1 }), { video: 0, audio: 0, image: 0, subtitle: 0 }),
+      assets,
+    });
+    const swissAssets = [
+      makeAsset('swiss', 'video', 'video-2160p-av1.webm', 147 * 1024 * 1024, { mediaId: 'Mpx3HPlyFZk' }),
+      makeAsset('swiss', 'audio', 'audio-320k.mp3', 12 * 1024 * 1024, { mediaId: 'Mpx3HPlyFZk' }),
+      makeAsset('swiss', 'image', 'cover.jpg', 340 * 1024, { mediaId: 'Mpx3HPlyFZk', assetRole: 'cover' }),
+      makeAsset('swiss', 'subtitle', 'subtitle-zh-hans.vtt', 28 * 1024, { mediaId: 'Mpx3HPlyFZk' }),
+    ];
+    const tutorialAssets = [
+      makeAsset('tutorial', 'video', 'video-2160p-vp9.webm', 255 * 1024 * 1024, { mediaId: 'PvSsT_kT_0w' }),
+      makeAsset('tutorial', 'image', 'cover.jpg', 290 * 1024, { mediaId: 'PvSsT_kT_0w', assetRole: 'cover' }),
+    ];
+    const musicAssets = [
+      makeAsset('music', 'audio', 'audio-320k.mp3', 8 * 1024 * 1024, { provider: 'tiktok', mediaId: 'music-42' }),
+      makeAsset('music', 'image', 'cover.jpg', 210 * 1024, { provider: 'tiktok', mediaId: 'music-42', assetRole: 'cover' }),
+    ];
+    const galleryAssets = [
+      makeAsset('gallery', 'image', 'image-01.jpg', 2 * 1024 * 1024, { provider: 'xiaohongshu', mediaId: 'gallery-7', assetRole: 'gallery' }),
+      makeAsset('gallery', 'image', 'image-02.jpg', 3 * 1024 * 1024, { provider: 'xiaohongshu', mediaId: 'gallery-7', assetRole: 'gallery', status: 'missing' }),
+    ];
+    const interviewAssets = [
+      makeAsset('interview', 'video', 'video-1080p-h264.mp4', 96 * 1024 * 1024, { mediaId: 'interview-5' }),
+      makeAsset('interview', 'image', 'cover.jpg', 260 * 1024, { mediaId: 'interview-5', assetRole: 'cover' }),
+    ];
+    state.library = {
+      ...state.library,
+      loaded: true,
+      loading: false,
+      error: '',
+      tab: 'projects',
+      query: '',
+      provider: 'all',
+      assetType: 'all',
+      timeRange: 'all',
+      sort: 'recent',
+      view: 'grid',
+      projects: [
+        makeProject('visual-swiss', '瑞士🇨🇭EP.2 🚂 冰河列車直達策馬特！馬特洪峰日照金山', 'youtube', 'Mpx3HPlyFZk', swissAssets),
+        makeProject('visual-tutorial', '【宅男福利来了】PotPlayer + Whisper + Ollama 最详细教程', 'youtube', 'PvSsT_kT_0w', tutorialAssets),
+        makeProject('visual-music', '城市夜行 · 音乐收藏', 'tiktok', 'music-42', musicAssets),
+        makeProject('visual-gallery', '旅行图片合集', 'xiaohongshu', 'gallery-7', galleryAssets, { status: 'partial' }),
+        makeProject('visual-interview', '创作者访谈 · 影像工作流', 'youtube', 'interview-5', interviewAssets),
+      ],
+    };
+    state.library.items = logicalLibraryAssets();
+    renderLibraryFilters();
+    renderLibrary();
+    const libraryPreview = String(window.mediaDeckSmokeVisualPreview || '').trim();
+    if (libraryPreview === 'library-assets') {
+      state.library.tab = 'assets';
+      renderLibrary();
+    } else if (libraryPreview === 'library-detail') {
+      openLibraryDetail(state.library.projects[0].id);
+    }
+  }
   if (section === 'browser') {
     const tab = activeTab();
     if (tab) {
@@ -5758,6 +6430,20 @@ function closeMediaPreview() {
   els.mediaPreviewDialog.dataset.previewType = '';
   els.mediaPreviewStatus.textContent = '';
   state.previewItem = null;
+}
+
+function containOverlayWheel(event, scrollSelector) {
+  const scroller = event.target.closest(scrollSelector);
+  if (!scroller) {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  const canScroll = scroller.scrollHeight > scroller.clientHeight + 1;
+  const atTop = scroller.scrollTop <= 0;
+  const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1;
+  if (!canScroll || (event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) event.preventDefault();
+  event.stopPropagation();
 }
 
 async function openPreviewInSystem() {
@@ -6610,10 +7296,76 @@ function bindEvents() {
   els.mediaPreviewOverlay.addEventListener('click', (event) => {
     if (event.target === els.mediaPreviewOverlay) closeMediaPreview();
   });
+  els.mediaPreviewOverlay.addEventListener('wheel', (event) => containOverlayWheel(event, '.media-preview-body'), { passive: false, capture: true });
   els.titlebarAccount?.addEventListener('click', () => setSection('account'));
   els.sidebar.forEach((button) => button.addEventListener('click', () => setSection(button.dataset.section)));
   els.browserStatusDownloads.addEventListener('click', () => setSection('downloads'));
+  els.libraryRefresh.addEventListener('click', () => void loadMediaLibrary({ refresh: true, announce: true }));
+  els.libraryTabs.addEventListener('click', (event) => {
+    const tab = event.target.closest('[data-library-tab]');
+    if (!tab) return;
+    state.library.tab = tab.dataset.libraryTab === 'assets' ? 'assets' : 'projects';
+    renderLibrary();
+  });
+  els.librarySearch.addEventListener('input', () => {
+    state.library.query = els.librarySearch.value;
+    renderLibrary();
+  });
+  els.libraryProviderFilter.addEventListener('change', () => {
+    state.library.provider = els.libraryProviderFilter.value;
+    renderLibrary();
+  });
+  els.libraryTypeFilter.addEventListener('change', () => {
+    state.library.assetType = els.libraryTypeFilter.value;
+    renderLibrary();
+  });
+  els.libraryTimeFilter.addEventListener('change', () => {
+    state.library.timeRange = els.libraryTimeFilter.value;
+    renderLibrary();
+  });
+  els.librarySort.addEventListener('change', () => {
+    state.library.sort = els.librarySort.value;
+    renderLibrary();
+  });
+  els.libraryGridView.addEventListener('click', () => {
+    state.library.view = 'grid';
+    renderLibrary();
+  });
+  els.libraryListView.addEventListener('click', () => {
+    state.library.view = 'list';
+    renderLibrary();
+  });
+  els.libraryContent.addEventListener('click', (event) => {
+    const action = event.target.closest('[data-library-asset-action]');
+    if (action) {
+      void handleLibraryAction(action.dataset.libraryAssetAction, action.dataset.libraryAssetId);
+      return;
+    }
+    const projectImport = event.target.closest('[data-library-project-import]');
+    if (projectImport) {
+      void handleLibraryProjectImport(projectImport.dataset.libraryProjectImport);
+      return;
+    }
+    const project = event.target.closest('[data-library-project]');
+    if (project) return openLibraryDetail(project.dataset.libraryProject);
+    if (event.target.closest('[data-library-browse]')) setSection('home');
+  });
+  els.libraryDetailBody.addEventListener('click', (event) => {
+    const assetAction = event.target.closest('[data-library-asset-action]');
+    if (assetAction) {
+      void handleLibraryAction(assetAction.dataset.libraryAssetAction, assetAction.dataset.libraryAssetId);
+      return;
+    }
+    const projectAction = event.target.closest('[data-library-project-action]');
+    if (projectAction) void handleLibraryProjectAction(projectAction.dataset.libraryProjectAction);
+  });
+  els.libraryDetailClose.addEventListener('click', closeLibraryDetail);
+  els.libraryDetailScrim.addEventListener('click', closeLibraryDetail);
+  els.libraryDetailOverlay.addEventListener('wheel', (event) => containOverlayWheel(event, '.library-detail-body'), { passive: false, capture: true });
   els.settingsNav.forEach((button) => button.addEventListener('click', () => setSettingsSection(button.dataset.settingsSection)));
+  els.settingsEditor.addEventListener('change', () => void changeDefaultEditingApp());
+  els.settingsEditorScan.addEventListener('click', () => void scanEditingApps());
+  els.settingsEditorChoose.addEventListener('click', () => void chooseEditingApp());
   els.tabAdd.addEventListener('click', () => setSection('home'));
   els.tabStrip.addEventListener('wheel', (event) => {
     if (els.tabStrip.scrollWidth <= els.tabStrip.clientWidth || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
@@ -6720,6 +7472,7 @@ function bindEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.favoritesPopoverOpen) setFavoritesPopoverOpen(false);
+    if (event.key === 'Escape' && !els.libraryDetailOverlay.hidden) closeLibraryDetail();
     if (event.key === 'Escape' && !els.mediaPreviewOverlay.hidden) closeMediaPreview();
     if (event.key === 'Escape' && !els.externalLoginOverlay.hidden) hideExternalLoginDialog();
     if (event.key === 'Escape' && !els.platformManagerOverlay.hidden) {
@@ -6894,6 +7647,12 @@ function bindEvents() {
     state.running = Boolean(payload?.running);
     updateDownloadBadge();
   });
+  els.settingsSearchEngine.addEventListener('change', () => {
+    state.settings.searchEngine = SEARCH_ENGINES[els.settingsSearchEngine.value] ? els.settingsSearchEngine.value : 'google';
+    saveState();
+    toast(text('saved'));
+  });
+  window.mediaDeck.onMediaLibraryChanged(() => void loadMediaLibrary());
   window.mediaDeck.onDownloadEvent(async (payload) => {
     if (!payload) return;
     if (window.mediaDeckSmokeDownload?.real) {
@@ -7003,12 +7762,13 @@ async function bootstrap() {
   if (String(state.selectedPlan).startsWith('flagship_')) state.selectedPlan = String(state.selectedPlan).replace(/^flagship_/, 'ultimate_');
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
-  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig] = await Promise.all([
+  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
     window.mediaDeck.getDefaultDownloadDir(),
     window.mediaDeck.getMediaCandidates(),
     window.mediaDeck.getRuntimeInfo(),
     window.mediaDeck.getPlatforms(),
+    window.mediaDeck.getEditorConfig(),
   ]);
   if (!localStorage.getItem(STORAGE_KEYS.locale)) {
     state.locale = I18N.resolveSupportedLocale(systemLocale) || 'zh-CN';
@@ -7016,6 +7776,8 @@ async function bootstrap() {
   state.settings.outputDir = state.settings.outputDir || defaultDir;
   state.runtimeInfo = runtimeInfo || null;
   state.platformConfig = platformConfig || state.platformConfig;
+  state.editor.editors = Array.isArray(editorConfiguration?.editors) ? editorConfiguration.editors : [];
+  state.editor.selected = editorConfiguration?.selected || null;
   state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
   try {
     await refreshRemoteAccount();
@@ -7086,6 +7848,12 @@ async function runRendererSelfTest() {
   const previousPaymentChannel = state.paymentChannel;
   const previousUpdateInfo = state.updateInfo ? { ...state.updateInfo } : null;
   const previousLatestVersion = els.settingsLatestVersion.textContent;
+  const previousLibrary = {
+    ...state.library,
+    items: [...state.library.items],
+    projects: [...state.library.projects],
+    previewUrls: new Map(state.library.previewUrls),
+  };
   const clickControl = async (label, control) => {
     window.__VIDOGO_SELF_TEST_PROGRESS = label;
     if (!control) {
@@ -7126,6 +7894,12 @@ async function runRendererSelfTest() {
     'showItemInFolder',
     'openDownloadedFile',
     'previewDownloadedFile',
+    'getEditorConfig',
+    'scanEditors',
+    'setDefaultEditor',
+    'chooseEditorExecutable',
+    'importIntoEditor',
+    'importManyIntoEditor',
     'openDownloadedFolder',
     'minimizeWindow',
     'toggleMaximizeWindow',
@@ -7157,6 +7931,8 @@ async function runRendererSelfTest() {
     'cancelDownload',
     'controlDownload',
     'verifyDownloadedFile',
+    'listMediaLibrary',
+    'refreshMediaLibrary',
     'onOpenNewTab',
     'onBrowserNavigate',
     'onExternalLoginRequest',
@@ -7164,6 +7940,7 @@ async function runRendererSelfTest() {
     'onNativeDownloadRequest',
     'onDownloadState',
     'onDownloadEvent',
+    'onMediaLibraryChanged',
     'onEntitlementsChanged',
     'onRecordingEvent',
   ];
@@ -7334,12 +8111,91 @@ async function runRendererSelfTest() {
   assert(Math.abs(els.tabbar.getBoundingClientRect().width - document.querySelector('.main').getBoundingClientRect().width) <= 1, 'Browser tab strip must span the full content width');
   assert(getVisibleWebviews().length === 0, 'Empty home state should not expose a browser webview');
 
-  for (const section of ['downloads', 'history', 'favorites', 'plans', 'account', 'settings']) {
+  for (const section of ['downloads', 'library', 'history', 'favorites', 'plans', 'account', 'settings']) {
     await clickControl(`sidebar:${section}`, document.querySelector(`.sidebar-btn[data-section="${section}"]`));
     assert(els.pages[section]?.classList.contains('active'), `section not active: ${section}`);
     assert(document.querySelector(`.sidebar-btn[data-section="${section}"]`)?.classList.contains('active'), `sidebar item not active: ${section}`);
     assert(els.tabbar.hidden, `Browser tab strip should be hidden on ${section}`);
   }
+
+  await waitFor(() => !state.library.loading, 1500);
+  const smokeProject = {
+    id: 'project-library-smoke', title: 'Glacier Express · Zermatt', provider: 'youtube', mediaId: 'Mpx3HPlyFZk',
+    sourceGroupId: 'youtube:Mpx3HPlyFZk', sourceUrl: 'https://www.youtube.com/watch?v=Mpx3HPlyFZk',
+    folderPath: 'C:\\SmokeDownloads\\YouTube\\Glacier Express [Mpx3HPlyFZk]', coverPath: 'C:\\SmokeDownloads\\YouTube\\Glacier Express [Mpx3HPlyFZk]\\images\\cover.jpg',
+    updatedAt: new Date().toISOString(), downloadedAt: new Date().toISOString(), status: 'available', missingCount: 0,
+    totalSize: 155 * 1024 * 1024, assetCount: 4, assetCounts: { video: 1, audio: 1, image: 1, subtitle: 1 },
+    assets: [
+      { id: 'library-video-smoke', title: 'Glacier Express', assetType: 'video', assetRole: 'primary', status: 'available', fileSize: 150 * 1024 * 1024, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\video.mp4', folderPath: 'C:\\SmokeDownloads' },
+      { id: 'library-audio-smoke', title: 'Glacier Express', assetType: 'audio', assetRole: 'derived', status: 'available', fileSize: 5 * 1024 * 1024, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\audio.mp3', folderPath: 'C:\\SmokeDownloads' },
+      { id: 'library-cover-smoke', title: 'Glacier Express', assetType: 'image', assetRole: 'cover', status: 'available', fileSize: 4096, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\cover.jpg', folderPath: 'C:\\SmokeDownloads' },
+      { id: 'library-subtitle-smoke', title: 'Glacier Express', assetType: 'subtitle', assetRole: 'caption', status: 'available', fileSize: 2048, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\subtitle.zh-CN.srt', folderPath: 'C:\\SmokeDownloads' },
+    ],
+  };
+  state.library = { ...state.library, loaded: true, loading: false, error: '', projects: [smokeProject], items: smokeProject.assets, tab: 'projects', query: '', provider: 'all', assetType: 'all', timeRange: 'all', sort: 'recent', view: 'grid' };
+  setSection('library');
+  renderLibraryFilters();
+  renderLibrary();
+  assert(els.libraryProviderFilter.options.length === libraryFilterPlatforms().length + 1, 'Library platform options must come from Platform Manager, not downloaded projects');
+  assert(els.libraryProjectCount.textContent === '1' && els.libraryAssetCount.textContent === '4', 'Media library totals did not render one project with four logical assets');
+  assert(els.libraryContent.querySelectorAll('[data-library-project]').length === 1, 'One source must render as exactly one media-project card');
+  await clickControl('library:open-project', els.libraryContent.querySelector('[data-library-project]'));
+  assert(!els.libraryDetailOverlay.hidden && els.libraryDetailBody.querySelectorAll('.library-detail-asset').length === 4, 'Media project detail did not group all assets');
+  const detailAssets = Array.from(els.libraryDetailBody.querySelectorAll('.library-detail-asset'));
+  const detailImportActions = Array.from(els.libraryDetailBody.querySelectorAll('[data-library-asset-action="import-editor"]'));
+  assert(detailImportActions.length === 4 && detailAssets.every((row) => row.querySelector('[data-library-asset-action="import-editor"]')), 'Video, audio, image, and subtitle assets should all expose editor import');
+  await clickControl('library:import-video-editor', detailImportActions[0]);
+  await clickControl('library:import-image-editor', detailImportActions[2]);
+  await clickControl('library:import-subtitle-editor', detailImportActions[3]);
+  const drawerWheel = new WheelEvent('wheel', { deltaY: 240, bubbles: true, cancelable: true });
+  els.libraryDetailScrim.dispatchEvent(drawerWheel);
+  assert(drawerWheel.defaultPrevented, 'Library drawer wheel events must not reach the obscured asset grid');
+  await clickControl('library:open-folder', els.libraryDetailBody.querySelector('[data-library-project-action="folder"]'));
+  await clickControl('library:close-detail', els.libraryDetailClose);
+  await clickControl('library:all-assets', els.libraryTabs.querySelector('[data-library-tab="assets"]'));
+  assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'All-assets view did not expose each logical asset');
+  await changeControl('library:type-audio', els.libraryTypeFilter, 'audio');
+  assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 1, 'Asset-type filter did not isolate the MP3');
+  await clickControl('library:preview-audio', els.libraryContent.querySelector('[data-library-asset-action="preview"]'));
+  await wait(20);
+  assert(!els.mediaPreviewOverlay.hidden && state.previewItem?.assetType === 'audio', 'Media library MP3 preview did not open');
+  closeMediaPreview();
+  await showMediaPreview(libraryAssetBridgeItem(smokeProject.assets[2]));
+  await wait(20);
+  const previewImage = els.mediaPreviewBody.querySelector('.media-preview-image');
+  assert(previewImage && getComputedStyle(els.mediaPreviewBody).overflow === 'hidden' && getComputedStyle(previewImage).objectFit === 'contain', 'Portrait image previews must fit inside a scrollbar-free canvas');
+  const previewWheel = new WheelEvent('wheel', { deltaY: 240, bubbles: true, cancelable: true });
+  els.mediaPreviewBody.dispatchEvent(previewWheel);
+  assert(previewWheel.defaultPrevented, 'Media preview wheel events must not reach the obscured page');
+  closeMediaPreview();
+  const audioActions = Array.from(els.libraryContent.querySelectorAll('[data-library-asset-action]'));
+  assert(audioActions.filter((button) => button.dataset.libraryAssetAction === 'preview').length === 1 && audioActions.filter((button) => button.dataset.libraryAssetAction === 'import-editor').length === 1 && !audioActions.some((button) => button.dataset.libraryAssetAction === 'system'), 'Media library MP3 rows must expose preview and editor import without a duplicate system-open action');
+  await clickControl('library:import-audio-editor', audioActions.find((button) => button.dataset.libraryAssetAction === 'import-editor'));
+  await clickControl('library:reveal-file', audioActions.find((button) => button.dataset.libraryAssetAction === 'reveal'));
+  state.library.assetType = 'all';
+  els.libraryTypeFilter.value = 'all';
+  await changeControl('library:provider-youtube', els.libraryProviderFilter, 'youtube');
+  assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'Media library platform filter hid matching YouTube assets');
+  await changeControl('library:time-today', els.libraryTimeFilter, 'today');
+  assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'Media library download-time filter hid today\'s assets');
+  state.library.provider = 'all';
+  state.library.timeRange = 'all';
+  els.libraryProviderFilter.value = 'all';
+  els.libraryTimeFilter.value = 'all';
+  els.librarySearch.value = 'not-a-match';
+  els.librarySearch.dispatchEvent(new Event('input', { bubbles: true }));
+  clicked.push('library:search-no-match');
+  assert(Boolean(els.libraryContent.querySelector('.library-empty')), 'Media library search did not render a no-results state');
+  els.librarySearch.value = '';
+  state.library.query = '';
+  await clickControl('library:list-view', els.libraryListView);
+  assert(els.libraryContent.querySelectorAll('.library-asset-row').length === 4, 'Media library list view did not render all assets');
+  await clickControl('library:media-projects', els.libraryTabs.querySelector('[data-library-tab="projects"]'));
+  assert(els.libraryContent.querySelectorAll('.library-project-row-shell').length === 1, 'Media-project list view did not render its project row');
+  await clickControl('library:import-project-editor', els.libraryContent.querySelector('[data-library-project-import]'));
+  openLibraryDetail(smokeProject.id);
+  await clickControl('library:open-source-embedded', els.libraryDetailBody.querySelector('[data-library-project-action="source"]'));
+  assert(state.section === 'browser' && activeTab()?.url === smokeProject.sourceUrl, 'Media library source page must open in the embedded browser');
 
   setSection('home');
   await wait(250);
@@ -8057,7 +8913,7 @@ async function runRendererSelfTest() {
   renderPlans();
 
   setSection('settings');
-  assert(els.settingsNav.length === 4 && els.settingsPanels.length === 4, 'Settings should expose the four VidBrowser secondary sections');
+  assert(els.settingsNav.length === 4 && els.settingsPanels.length === 4 && !document.querySelector('[data-settings-section="editors"]'), 'Editing-app settings should be merged into Preferences without a separate navigation item');
   await clickControl('settings:section-downloads', document.querySelector('[data-settings-section="downloads"]'));
   await clickControl('settings:choose-output', els.settingsChooseOutput);
   await clickControl('settings:reset-output', els.settingsResetOutput);
@@ -8070,6 +8926,18 @@ async function runRendererSelfTest() {
   els.settingsConcurrency.dispatchEvent(new Event('change'));
   clicked.push('settings:concurrency');
   await clickControl('settings:section-preferences', document.querySelector('[data-settings-section="preferences"]'));
+  await changeControl('settings:search-bing', els.settingsSearchEngine, 'bing');
+  assert(state.settings.searchEngine === 'bing', 'Default search engine setting was not restored');
+  assert(els.settingsEditor.options.length === 2 && state.editor.selected?.name, 'Detected editing apps did not render in settings');
+  await changeControl('settings:editor-premiere', els.settingsEditor, 'premiere-pro');
+  await waitFor(() => state.editor.selected?.id === 'premiere-pro', 1500);
+  assert(state.editor.selected?.name === 'Adobe Premiere Pro' && els.settingsEditorPath.value.includes('Premiere'), 'Changing the default editing app did not update its dynamic name and path');
+  renderLibrary();
+  assert(els.libraryContent.querySelector('[data-library-project-import]')?.title.includes('Adobe Premiere Pro'), 'Editor import labels must follow the selected editing app');
+  await clickControl('settings:editor-scan', els.settingsEditorScan);
+  await waitFor(() => !state.editor.scanning, 1500);
+  assert(state.editor.editors.length === 2, 'Editing-app rescan lost detected applications');
+  await clickControl('settings:editor-manual', els.settingsEditorChoose);
   assert(els.address.readOnly, 'Browser address display must remain read-only');
   await clickControl('settings:section-interface', document.querySelector('[data-settings-section="interface"]'));
   await changeControl('settings:theme-light', els.settingsTheme, 'light');
@@ -8096,6 +8964,7 @@ async function runRendererSelfTest() {
   state.selectedPlan = previousSelectedPlan;
   state.paymentChannel = previousPaymentChannel;
   state.updateInfo = previousUpdateInfo;
+  state.library = previousLibrary;
   els.settingsLatestVersion.textContent = previousLatestVersion;
   els.loginEmail.value = '';
   els.loginPassword.value = '';

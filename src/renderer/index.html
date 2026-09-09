@@ -32,6 +32,7 @@
         <aside class="sidebar">
           <button class="sidebar-btn active" data-section="browser" data-tooltip="浏览器" aria-label="浏览器"><span data-icon="monitor"></span></button>
           <button class="sidebar-btn" data-section="downloads" data-tooltip="下载" aria-label="下载"><span data-icon="download"></span><span class="download-badge" id="download-badge" hidden></span></button>
+          <button class="sidebar-btn" data-section="library" data-tooltip="素材库" aria-label="素材库"><span data-icon="folder-opened"></span></button>
           <button class="sidebar-btn" data-section="history" data-tooltip="历史" aria-label="历史"><span data-icon="clock"></span></button>
           <button class="sidebar-btn" data-section="favorites" data-tooltip="收藏" aria-label="收藏"><span data-icon="star"></span></button>
           <div class="sidebar-spacer"></div>
@@ -210,6 +211,60 @@
             </div>
           </section>
 
+          <section class="page" id="page-library">
+            <div class="library-view" aria-label="素材库">
+              <div class="library-toolbar">
+                <div class="library-tabs" id="library-tabs" role="tablist" aria-label="素材库视图">
+                  <button class="library-tab is-active" type="button" role="tab" aria-selected="true" data-library-tab="projects">
+                    <span id="library-projects-label">媒体项目</span>
+                    <span class="library-tab-count" id="library-project-count">0</span>
+                  </button>
+                  <button class="library-tab" type="button" role="tab" aria-selected="false" data-library-tab="assets">
+                    <span id="library-assets-label">全部素材</span>
+                    <span class="library-tab-count" id="library-asset-count">0</span>
+                  </button>
+                </div>
+                <label class="library-search">
+                  <span data-icon="search" aria-hidden="true"></span>
+                  <span class="visually-hidden" id="library-search-label">搜索素材库</span>
+                  <input id="library-search" type="search" placeholder="搜索标题、平台或媒体 ID" autocomplete="off" />
+                </label>
+                <div class="library-filter-row">
+                  <select id="library-provider-filter" aria-label="平台筛选"></select>
+                  <select id="library-type-filter" aria-label="素材类型筛选"></select>
+                  <select id="library-time-filter" aria-label="下载时间筛选"></select>
+                  <select id="library-sort" aria-label="排序方式"></select>
+                  <div class="library-view-toggle" id="library-view-toggle" aria-label="显示方式">
+                    <button class="is-active" id="library-grid-view" type="button" aria-label="网格视图" title="网格视图"><span data-icon="scale-to-original"></span></button>
+                    <button id="library-list-view" type="button" aria-label="列表视图" title="列表视图"><span data-icon="document"></span></button>
+                  </div>
+                  <button class="library-refresh-button" id="library-refresh" type="button" title="刷新" aria-label="刷新">
+                    <span data-icon="refresh" aria-hidden="true"></span>
+                    <span class="visually-hidden" id="library-refresh-label">刷新</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="library-summary" id="library-summary" aria-live="polite"></div>
+              <div class="library-content" id="library-content"></div>
+
+              <div class="library-detail-overlay" id="library-detail-overlay" hidden>
+                <button class="library-detail-scrim" id="library-detail-scrim" type="button" aria-label="关闭项目详情"></button>
+                <aside class="library-detail-panel" role="dialog" aria-modal="true" aria-labelledby="library-detail-title">
+                  <header class="library-detail-header">
+                    <div class="library-detail-cover" id="library-detail-cover"><span data-icon="folder-opened"></span></div>
+                    <div class="library-detail-heading">
+                      <p id="library-detail-eyebrow">媒体项目</p>
+                      <h2 id="library-detail-title">项目详情</h2>
+                    </div>
+                    <button class="library-detail-close" id="library-detail-close" type="button" aria-label="关闭项目详情"><span data-icon="close"></span></button>
+                  </header>
+                  <div class="library-detail-body" id="library-detail-body"></div>
+                </aside>
+              </div>
+            </div>
+          </section>
+
           <section class="page" id="page-history">
             <div class="history-view" aria-label="历史">
               <header class="history-toolbar">
@@ -374,7 +429,6 @@
               </aside>
               <div class="settings-content">
                 <section class="settings-panel is-active" data-settings-panel="interface">
-                  <div class="settings-header"><h2 id="settings-interface-title">界面</h2></div>
                   <div class="settings-list">
                   <div class="settings-section">
                     <div class="setting-copy">
@@ -419,7 +473,6 @@
                 </section>
 
                 <section class="settings-panel" data-settings-panel="downloads" hidden>
-                  <div class="settings-header"><h2 id="settings-downloads-title">下载</h2></div>
                   <div class="settings-list">
                   <div class="settings-section is-wide-control">
                     <div class="setting-copy">
@@ -455,22 +508,47 @@
                 </section>
 
                 <section class="settings-panel" data-settings-panel="preferences" hidden>
-                  <div class="settings-header"><h2 id="settings-preferences-title">偏好</h2></div>
                   <div class="settings-list">
-                <div class="settings-section">
-                  <div class="setting-copy">
-                    <div class="setting-label" id="settings-recording-title">网页录制</div>
-                    <p id="settings-recording-description">在网页视频上显示录制工具栏。该功能默认关闭。</p>
-                  </div>
-                  <div class="setting-control">
-                    <label class="settings-switch"><input id="settings-recording-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-recording-state">关闭</span></label>
-                  </div>
-                </div>
+                    <div class="settings-section">
+                      <div class="setting-copy">
+                        <div class="setting-label" id="settings-search-engine-title">默认搜索引擎</div>
+                        <p id="settings-search-engine-description">地址栏输入关键词时使用的搜索引擎。</p>
+                      </div>
+                      <div class="setting-control">
+                        <select class="setting-select" id="settings-search-engine-control">
+                          <option value="google">Google</option>
+                          <option value="bing">Bing</option>
+                          <option value="duckduckgo">DuckDuckGo</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="settings-section is-wide-control">
+                      <div class="setting-copy">
+                        <div class="setting-label" id="settings-editor-title">默认剪辑软件</div>
+                        <p id="settings-editor-description">素材库中的导入按钮会把素材导入这里选择的软件，只进入素材区，不自动添加到时间线。</p>
+                      </div>
+                      <div class="editor-settings-control">
+                        <select class="setting-select" id="settings-editor-control"></select>
+                        <input class="download-directory-input" id="settings-editor-path" type="text" readonly />
+                        <div class="editor-settings-actions">
+                          <button class="ghost-button" id="settings-editor-scan" type="button"><span data-icon="refresh"></span><span id="settings-editor-scan-label">扫描软件</span></button>
+                          <button class="ghost-button" id="settings-editor-choose" type="button"><span data-icon="folder-opened"></span><span id="settings-editor-choose-label">手动选择</span></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="settings-section">
+                      <div class="setting-copy">
+                        <div class="setting-label" id="settings-recording-title">网页录制</div>
+                        <p id="settings-recording-description">在网页视频上显示录制工具栏。该功能默认关闭。</p>
+                      </div>
+                      <div class="setting-control">
+                        <label class="settings-switch"><input id="settings-recording-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-recording-state">关闭</span></label>
+                      </div>
+                    </div>
                   </div>
                 </section>
 
                 <section class="settings-panel" data-settings-panel="about" hidden>
-                  <div class="settings-header"><h2 id="settings-about-title">关于</h2></div>
                   <div class="settings-list">
                   <div class="settings-section">
                     <div class="setting-copy">

@@ -9,6 +9,7 @@ const {
   createMediaLibraryStore,
   downloadMediaFileName,
   downloadTaskFolderName,
+  groupMediaLibraryItems,
   normalizeProviderId,
   providerFolderName,
   resolveMediaProjectDirectory,
@@ -77,11 +78,38 @@ async function main() {
     assert.equal(manifest.schemaVersion, 3);
     assert.equal(manifest.assets[0].assetType, 'video');
     assert.equal(manifest.assets[0].relativePath, 'video-1080p-h264.mp4');
+
+    const groupedProjects = groupMediaLibraryItems([
+      {
+        id: 'asset-video', sourceTaskId: 'video-job', title: 'Shared project', provider: 'youtube', mediaId: 'shared-id',
+        filePath: path.join(legacyVideoFolder, 'video', 'video.mp4'), folderPath: legacyVideoFolder, assetType: 'video',
+        fileSize: 5, downloadedAt: '2026-09-07T23:12:00.000Z', status: 'available',
+      },
+      {
+        id: 'asset-audio', sourceTaskId: 'audio-job', title: 'Shared project', provider: 'youtube', mediaId: 'shared-id',
+        filePath: path.join(legacyAudioFolder, 'audio', 'audio.mp3'), folderPath: legacyAudioFolder, assetType: 'audio',
+        fileSize: 5, downloadedAt: '2026-09-07T23:14:00.000Z', status: 'available',
+      },
+      {
+        id: 'cover-from-video', sourceTaskId: 'video-job:cover', title: 'Shared project', provider: 'youtube', mediaId: 'shared-id',
+        filePath: path.join(legacyVideoFolder, 'images', 'cover.jpg'), folderPath: legacyVideoFolder, assetType: 'image', assetRole: 'cover',
+        fileSize: 4, downloadedAt: '2026-09-07T23:12:00.000Z', status: 'available',
+      },
+      {
+        id: 'cover-from-audio', sourceTaskId: 'audio-job:cover', title: 'Shared project', provider: 'youtube', mediaId: 'shared-id',
+        filePath: path.join(legacyAudioFolder, 'images', 'cover.jpg'), folderPath: legacyAudioFolder, assetType: 'image', assetRole: 'cover',
+        fileSize: 4, downloadedAt: '2026-09-07T23:14:00.000Z', status: 'available',
+      },
+    ]);
+    assert.equal(groupedProjects.length, 1, 'Assets with the same provider and media id must appear as one project');
+    assert.deepEqual(groupedProjects[0].assetCounts, { video: 1, audio: 1, image: 1, subtitle: 0 });
+    assert.equal(groupedProjects[0].assets.filter((asset) => asset.assetRole === 'cover').length, 1, 'Duplicate legacy covers must be represented as one shared cover');
+    assert.equal(groupedProjects[0].assetCount, 3);
   } finally {
     await fs.rm(temporaryRoot, { recursive: true, force: true });
   }
 
-  process.stdout.write(JSON.stringify({ naming: true, classification: true, records: true, missingFiles: true }) + '\n');
+  process.stdout.write(JSON.stringify({ naming: true, classification: true, records: true, missingFiles: true, projectGrouping: true, sharedCover: true }) + '\n');
 }
 
 main().catch((error) => {

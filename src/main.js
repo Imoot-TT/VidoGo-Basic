@@ -31,11 +31,13 @@ const {
   normalizeStore: normalizeEntitlementStore,
 } = require('./entitlements');
 const { deriveGitHubUpdateState, safeHttpsUrl } = require('./update-check');
+const { customEditor, discoverEditors, importIntoEditor } = require('./editor-integration');
 const {
   classifiedOutputDirectory,
   createMediaLibraryStore,
   downloadMediaFileName,
   downloadTaskFolderName,
+  groupMediaLibraryItems,
   normalizeProviderId,
   resolveMediaProjectDirectory,
 } = require('./media-library');
@@ -69,6 +71,7 @@ const ENTITLEMENT_STATE_PATH = path.join(USER_DATA_PATH, 'entitlements.json');
 const ACCOUNT_SESSION_PATH = path.join(USER_DATA_PATH, 'account-session.json');
 const PLATFORM_CONFIG_PATH = path.join(USER_DATA_PATH, 'platforms.json');
 const MEDIA_LIBRARY_PATH = path.join(USER_DATA_PATH, 'media-library.json');
+const EDITOR_CONFIG_PATH = path.join(USER_DATA_PATH, 'editor-config.json');
 const ACCOUNT_API_ORIGIN = (() => {
   try {
     const configPath = app.isPackaged
@@ -365,6 +368,58 @@ async function savePlatformConfiguration(value) {
   await fs.writeFile(temporaryPath, `${JSON.stringify(normalized, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
   await fs.rename(temporaryPath, PLATFORM_CONFIG_PATH);
   return normalized;
+}
+
+function normalizeEditorConfiguration(value = {}) {
+  const customEditors = (Array.isArray(value.customEditors) ? value.customEditors : [])
+    .map((entry) => customEditor(entry?.executable))
+    .filter(Boolean)
+    .slice(0, 20);
+  return {
+    schemaVersion: 1,
+    selectedId: String(value.selectedId || '').slice(0, 100),
+    customEditors,
+  };
+}
+
+async function loadEditorConfigurationFile() {
+  try {
+    return normalizeEditorConfiguration(JSON.parse(await fs.readFile(EDITOR_CONFIG_PATH, 'utf8')));
+  } catch {
+    return normalizeEditorConfiguration();
+  }
+}
+
+async function saveEditorConfigurationFile(value) {
+  const normalized = normalizeEditorConfiguration(value);
+  await fs.mkdir(path.dirname(EDITOR_CONFIG_PATH), { recursive: true });
+  const temporaryPath = `${EDITOR_CONFIG_PATH}.tmp`;
+  await fs.writeFile(temporaryPath, `${JSON.stringify(normalized, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+  await fs.rename(temporaryPath, EDITOR_CONFIG_PATH);
+  return normalized;
+}
+
+let detectedEditorsCache = [];
+
+async function editorConfiguration(forceScan = false) {
+  const config = await loadEditorConfigurationFile();
+  if (forceScan || !detectedEditorsCache.length) {
+    detectedEditorsCache = IS_SMOKE_TEST
+      ? [
+        { id: 'jianying-pro', name: '剪映专业版', executable: 'C:\\Smoke\\JianyingPro.exe', priority: 10, importMode: 'import-dialog' },
+        { id: 'premiere-pro', name: 'Adobe Premiere Pro', executable: 'C:\\Smoke\\Adobe Premiere Pro.exe', priority: 20, importMode: 'import-dialog' },
+      ]
+      : await discoverEditors();
+  }
+  const byPath = new Map();
+  for (const editor of [...detectedEditorsCache, ...config.customEditors]) {
+    const key = String(editor.executable || '').toLowerCase();
+    if (key && !byPath.has(key)) byPath.set(key, editor);
+  }
+  const editors = Array.from(byPath.values()).sort((left, right) => Number(left.priority || 80) - Number(right.priority || 80) || left.name.localeCompare(right.name));
+  const selected = editors.find((editor) => editor.id === config.selectedId) || editors[0] || null;
+  if (selected?.id !== config.selectedId) await saveEditorConfigurationFile({ ...config, selectedId: selected?.id || '' });
+  return { selected, editors };
 }
 
 function loadAccountSession() {
@@ -2166,6 +2221,16 @@ function sendDownloadQueueState() {
   mainWindow.webContents.send('download:state', getDownloadQueueState());
 }
 
+function sendMediaLibraryChanged() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('library:changed');
+}
+
+async function mediaLibrarySnapshot(refresh = false) {
+  const document = await mediaLibraryStore.list({ refresh });
+  return { ...document, projects: groupMediaLibraryItems(document.items) };
+}
+
 function registerCompletedDownload(job, data = {}) {
   const filePath = String(data.filename || '').trim();
   if (!filePath) return;
@@ -2199,24 +2264,26 @@ function registerCompletedDownload(job, data = {}) {
   void (async () => {
     await mediaLibraryStore.addCompleted(completedAsset);
     const coverPath = String(data.thumbnail_filename || '').trim();
-    if (!coverPath || path.resolve(coverPath) === path.resolve(filePath) || completedAsset.assetType === 'image') return;
-    await mediaLibraryStore.addCompleted({
-      ...completedAsset,
-      id: `asset-${crypto.randomUUID()}`,
-      sourceTaskId: `${job.id}:cover`,
-      filePath: coverPath,
-      coverPath,
-      fileSize: 0,
-      resolution: '',
-      qualityLabel: '',
-      formatId: '',
-      kind: 'image',
-      assetType: 'image',
-      assetRole: 'cover',
-      mimeType: '',
-      videoCodec: '',
-      audioCodec: '',
-    });
+    if (coverPath && path.resolve(coverPath) !== path.resolve(filePath) && completedAsset.assetType !== 'image') {
+      await mediaLibraryStore.addCompleted({
+        ...completedAsset,
+        id: `asset-${crypto.randomUUID()}`,
+        sourceTaskId: `${job.id}:cover`,
+        filePath: coverPath,
+        coverPath,
+        fileSize: 0,
+        resolution: '',
+        qualityLabel: '',
+        formatId: '',
+        kind: 'image',
+        assetType: 'image',
+        assetRole: 'cover',
+        mimeType: '',
+        videoCodec: '',
+        audioCodec: '',
+      });
+    }
+    sendMediaLibraryChanged();
   })().catch(() => {});
 }
 
@@ -3712,6 +3779,11 @@ const DOWNLOAD_MEDIA_EXTENSIONS = new Set([
   '.mp4', '.webm', '.mkv', '.mov', '.m4v', '.avi',
   '.mp3', '.m4a', '.opus', '.ogg', '.wav', '.flac',
 ]);
+const EDITOR_IMPORT_EXTENSIONS = new Set([
+  ...DOWNLOAD_MEDIA_EXTENSIONS,
+  '.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tif', '.tiff', '.avif',
+  '.srt', '.vtt', '.ass', '.ssa', '.lrc', '.ttml', '.srv3',
+]);
 
 async function statPath(targetPath) {
   if (typeof targetPath !== 'string' || !targetPath.trim()) return null;
@@ -3849,6 +3921,70 @@ ipcMain.handle('download:open-folder', async (_event, item) => {
   return { ok: result === '', path: resolvedPath, reason: result || null };
 });
 
+ipcMain.handle('editor:get-config', () => editorConfiguration(false));
+
+ipcMain.handle('editor:scan', () => editorConfiguration(true));
+
+ipcMain.handle('editor:set-default', async (_event, editorId) => {
+  const configuration = await editorConfiguration(false);
+  const selected = configuration.editors.find((editor) => editor.id === String(editorId || ''));
+  if (!selected) return { ok: false, reason: 'editor-not-found', ...configuration };
+  const file = await loadEditorConfigurationFile();
+  await saveEditorConfigurationFile({ ...file, selectedId: selected.id });
+  return { ok: true, ...(await editorConfiguration(false)) };
+});
+
+ipcMain.handle('editor:choose-executable', async () => {
+  if (!mainWindow) return null;
+  if (IS_SMOKE_TEST) return { ok: true, ...(await editorConfiguration(false)) };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择剪辑软件',
+    properties: ['openFile'],
+    filters: [{ name: 'Windows 程序', extensions: ['exe'] }],
+  });
+  if (result.canceled || !result.filePaths[0]) return null;
+  const editor = customEditor(result.filePaths[0]);
+  if (!editor) return { ok: false, reason: 'invalid-editor' };
+  const file = await loadEditorConfigurationFile();
+  const customEditors = [...file.customEditors.filter((entry) => entry.executable.toLowerCase() !== editor.executable.toLowerCase()), editor];
+  await saveEditorConfigurationFile({ ...file, selectedId: editor.id, customEditors });
+  detectedEditorsCache = [];
+  return { ok: true, ...(await editorConfiguration(false)) };
+});
+
+ipcMain.handle('editor:import-file', async (_event, item = {}) => {
+  const requestedType = String(item.assetType || item.kind || '').toLowerCase();
+  if (!['video', 'audio', 'image', 'subtitle'].includes(requestedType)) return { ok: false, reason: 'unsupported-asset' };
+  if (process.platform !== 'win32') return { ok: false, reason: 'unsupported-platform' };
+  if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
+    const configuration = await editorConfiguration(false);
+    if (!configuration.selected) return { ok: false, reason: 'editor-not-found' };
+    return { ok: true, editor: configuration.selected.id, editorName: configuration.selected.name, path: item.path || '' };
+  }
+  const resolvedPath = await resolveDownloadedFile(item);
+  if (!resolvedPath) return { ok: false, reason: 'file-not-found' };
+  if (!EDITOR_IMPORT_EXTENSIONS.has(path.extname(resolvedPath).toLowerCase())) return { ok: false, reason: 'unsupported-asset' };
+  const configuration = await editorConfiguration(false);
+  if (!configuration.selected) return { ok: false, reason: 'editor-not-found' };
+  return importIntoEditor(configuration.selected, resolvedPath);
+});
+
+ipcMain.handle('editor:import-files', async (_event, items = []) => {
+  const requestedItems = (Array.isArray(items) ? items : []).slice(0, 100)
+    .filter((item) => ['video', 'audio', 'image', 'subtitle'].includes(String(item?.assetType || item?.kind || '').toLowerCase()));
+  if (!requestedItems.length) return { ok: false, reason: 'unsupported-asset' };
+  if (process.platform !== 'win32') return { ok: false, reason: 'unsupported-platform' };
+  const configuration = await editorConfiguration(false);
+  if (!configuration.selected) return { ok: false, reason: 'editor-not-found' };
+  if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
+    return { ok: true, editor: configuration.selected.id, editorName: configuration.selected.name, path: requestedItems[0]?.path || '', count: requestedItems.length };
+  }
+  const resolvedPaths = (await Promise.all(requestedItems.map((item) => resolveDownloadedFile(item))))
+    .filter((filePath) => filePath && EDITOR_IMPORT_EXTENSIONS.has(path.extname(filePath).toLowerCase()));
+  if (!resolvedPaths.length) return { ok: false, reason: 'file-not-found' };
+  return importIntoEditor(configuration.selected, Array.from(new Set(resolvedPaths)));
+});
+
 ipcMain.handle('window:minimize', () => {
   if (!mainWindow) return false;
   if (IS_SMOKE_TEST) return true;
@@ -3889,14 +4025,14 @@ ipcMain.handle('library:list', async (event) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
     throw new Error('The media library is only available to the app renderer.');
   }
-  return mediaLibraryStore.list({ refresh: false });
+  return mediaLibrarySnapshot(false);
 });
 
 ipcMain.handle('library:refresh', async (event) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
     throw new Error('The media library is only available to the app renderer.');
   }
-  return mediaLibraryStore.list({ refresh: true });
+  return mediaLibrarySnapshot(true);
 });
 
 ipcMain.handle('window:renderer-ready', (event) => {

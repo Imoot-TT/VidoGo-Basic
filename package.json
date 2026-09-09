@@ -1,6 +1,6 @@
 {
   "name": "vidogo-basic",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "VidoGo Basic video browser and downloader",
   "main": "./src/main.js",
@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": ".\\node_modules\\electron\\dist\\electron.exe .",
-    "check": "node --check src/main.js && node --check src/builtin-account.js && node --check src/entitlements.js && node --check src/media-library.js && node --check src/media-rules.js && node --check src/manifest-rules.js && node --check src/update-check.js && node --check src/preload.js && node --check src/webview-preload.js && node --check src/recorder-toolbar.js && node --check src/renderer/icons.js && node --check src/renderer/locales.js && node --check src/renderer/app.js && node tests/verify_builtin_account.js && node tests/verify_entitlements.js && node tests/verify_media_library.js && node tests/verify_media_rules.js && node tests/verify_manifest_rules.js && node tests/verify_update_check.js && node tests/verify_renderer_assets.js",
+    "check": "node --check src/main.js && node --check src/builtin-account.js && node --check src/editor-integration.js && node --check src/entitlements.js && node --check src/media-library.js && node --check src/media-rules.js && node --check src/manifest-rules.js && node --check src/update-check.js && node --check src/preload.js && node --check src/webview-preload.js && node --check src/recorder-toolbar.js && node --check src/renderer/icons.js && node --check src/renderer/locales.js && node --check src/renderer/app.js && node tests/verify_builtin_account.js && node tests/verify_entitlements.js && node tests/verify_media_library.js && node tests/verify_media_rules.js && node tests/verify_manifest_rules.js && node tests/verify_update_check.js && node tests/verify_renderer_assets.js",
     "check:backend": "python tests/verify_backend.py",
     "smoke": "node tests/run_electron_smoke.js",
     "build:icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\build_icon.ps1",

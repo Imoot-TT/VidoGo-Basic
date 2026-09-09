@@ -261,6 +261,94 @@ function normalizeMediaLibrary(value) {
   };
 }
 
+function mediaLibraryProjectKey(item = {}) {
+  const provider = normalizeProviderId(item.provider, item.sourceUrl, item.mediaUrl);
+  const mediaId = String(item.mediaId || '').trim();
+  if (mediaId) return `${provider}:media:${mediaId}`;
+  const sourceGroupId = String(item.sourceGroupId || '').trim();
+  if (sourceGroupId) return `${provider}:group:${sourceGroupId}`;
+  const sourceUrl = String(item.sourceUrl || '').trim();
+  if (sourceUrl) return `${provider}:source:${sourceUrl}`;
+  return `${provider}:folder:${path.resolve(String(item.folderPath || path.dirname(String(item.filePath || '.'))))}`;
+}
+
+function groupMediaLibraryItems(items = []) {
+  const groups = new Map();
+  for (const rawItem of Array.isArray(items) ? items : []) {
+    const item = normalizeLibraryItem(rawItem);
+    if (!item) continue;
+    const key = mediaLibraryProjectKey(item);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item);
+  }
+
+  const projects = [];
+  for (const [key, groupedItems] of groups) {
+    groupedItems.sort((left, right) => Date.parse(right.downloadedAt || 0) - Date.parse(left.downloadedAt || 0));
+    const logicalAssets = [];
+    let sharedCover = null;
+    const seenPaths = new Set();
+    for (const item of groupedItems) {
+      const normalizedPath = process.platform === 'win32' ? item.filePath.toLowerCase() : item.filePath;
+      if (seenPaths.has(normalizedPath)) continue;
+      seenPaths.add(normalizedPath);
+      const isCover = item.assetType === 'image' && item.assetRole === 'cover';
+      if (isCover) {
+        if (!sharedCover || (sharedCover.status === 'missing' && item.status !== 'missing')) sharedCover = item;
+        continue;
+      }
+      logicalAssets.push(item);
+    }
+    if (sharedCover) logicalAssets.push(sharedCover);
+    logicalAssets.sort((left, right) => Date.parse(right.downloadedAt || 0) - Date.parse(left.downloadedAt || 0));
+
+    const newest = logicalAssets[0] || groupedItems[0];
+    const availableCover = sharedCover?.status !== 'missing' ? sharedCover : null;
+    const coverPath = availableCover?.filePath
+      || logicalAssets.map((item) => item.coverPath).find(Boolean)
+      || sharedCover?.filePath
+      || null;
+    const folderCounts = new Map();
+    for (const item of logicalAssets) {
+      const folder = item.folderPath;
+      folderCounts.set(folder, (folderCounts.get(folder) || 0) + 1);
+    }
+    const folderPath = [...folderCounts.entries()]
+      .sort((left, right) => right[1] - left[1])[0]?.[0]
+      || newest.folderPath;
+    const assetCounts = { video: 0, audio: 0, image: 0, subtitle: 0 };
+    let totalSize = 0;
+    let missingCount = 0;
+    for (const item of logicalAssets) {
+      assetCounts[item.assetType] += 1;
+      totalSize += Math.max(0, Number(item.fileSize || 0));
+      if (item.status === 'missing') missingCount += 1;
+    }
+    const status = missingCount === 0 ? 'available' : (missingCount === logicalAssets.length ? 'missing' : 'partial');
+    projects.push({
+      id: `project-${crypto.createHash('sha1').update(key).digest('hex').slice(0, 16)}`,
+      key,
+      sourceGroupId: newest.sourceGroupId,
+      title: newest.title,
+      provider: newest.provider,
+      mediaId: newest.mediaId,
+      sourceUrl: newest.sourceUrl,
+      folderPath,
+      folderPaths: [...folderCounts.keys()],
+      coverPath,
+      downloadedAt: newest.downloadedAt,
+      updatedAt: newest.downloadedAt,
+      status,
+      missingCount,
+      totalSize,
+      assetCount: logicalAssets.length,
+      assetCounts,
+      assets: logicalAssets,
+    });
+  }
+  return projects.sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0));
+}
+
 function createMediaLibraryStore(filePath) {
   const resolvedFilePath = path.resolve(filePath);
   let cached = null;
@@ -381,6 +469,8 @@ module.exports = {
   downloadMediaFileName,
   downloadTaskFolderName,
   localDateStamp,
+  groupMediaLibraryItems,
+  mediaLibraryProjectKey,
   normalizeMediaLibrary,
   normalizeProviderId,
   providerFolderName,
