@@ -6,6 +6,7 @@ const nodeNet = require('node:net');
 const path = require('path');
 const { pathToFileURL } = require('node:url');
 const { execFile, execFileSync, spawn } = require('child_process');
+const { autoUpdater } = require('electron-updater');
 const WebSocket = require('ws');
 const {
   classifyMediaPage,
@@ -58,13 +59,16 @@ const PARTITION_NAME = 'vidogo-basic-0.1.3';
 const BROWSER_PARTITION = `persist:${PARTITION_NAME}`;
 const BACKGROUND_DOWNLOAD_PARTITION = `${PARTITION_NAME}-background-downloads`;
 const IS_SMOKE_TEST = process.env.ELECTRON_SMOKE_TEST === '1';
+const UPDATE_PROBE_RESULT_PATH = String(process.env.ELECTRON_UPDATE_PROBE_RESULT || '').trim();
 const USE_PERSISTENT_SMOKE_PROFILE = IS_SMOKE_TEST && process.env.ELECTRON_SMOKE_USE_PERSISTENT_PROFILE === '1';
 const USE_SMOKE_ACCOUNT_MOCK = IS_SMOKE_TEST && process.env.ELECTRON_SMOKE_REAL_ACCOUNT_API !== '1';
 const IS_REAL_DOWNLOAD_SMOKE = process.env.ELECTRON_SMOKE_REAL_DOWNLOADS === '1';
 const USER_DATA_ROOT = path.join(app.getPath('appData'), STORAGE_NAMESPACE);
-const USER_DATA_PATH = IS_SMOKE_TEST && !USE_PERSISTENT_SMOKE_PROFILE
-  ? path.join(app.getPath('temp'), `${APP_NAME}-smoke-${process.pid}`)
-  : path.join(USER_DATA_ROOT, RUNTIME_PROFILE);
+const USER_DATA_PATH = UPDATE_PROBE_RESULT_PATH
+  ? path.join(app.getPath('temp'), `${APP_NAME}-update-probe-${process.pid}`)
+  : (IS_SMOKE_TEST && !USE_PERSISTENT_SMOKE_PROFILE
+    ? path.join(app.getPath('temp'), `${APP_NAME}-smoke-${process.pid}`)
+    : path.join(USER_DATA_ROOT, RUNTIME_PROFILE));
 const SESSION_DATA_PATH = path.join(USER_DATA_PATH, 'SessionData');
 const PARTITIONS_PATH = path.join(USER_DATA_PATH, 'Partitions');
 const ENTITLEMENT_STATE_PATH = path.join(USER_DATA_PATH, 'entitlements.json');
@@ -176,6 +180,8 @@ const TITLE_BAR_THEMES = {
 };
 const UPDATE_RELEASE_API_URL = process.env.VIDOGO_UPDATE_API_URL
   || 'https://api.github.com/repos/Imoot-TT/VidoGo-Basic/releases?per_page=30';
+const UPDATE_RELEASE_BASE_URL = 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag';
+const UPDATE_AUTO_CHECK_DELAY_MS = 12_000;
 let metadataRequestCounter = 0;
 let metadataGeneration = 0;
 let currentEntitlementProfile = normalizeEntitlementProfile({});
@@ -187,6 +193,25 @@ let smokeOrders = [];
 let systemNetworkTimer = null;
 let systemNetworkSampling = false;
 let previousSystemNetworkTotals = null;
+let appUpdaterInitialized = false;
+let backgroundUpdateTimer = null;
+let appUpdateState = {
+  ok: true,
+  status: 'idle',
+  available: false,
+  canAutoUpdate: app.isPackaged,
+  currentVersion: app.getVersion(),
+  latestVersion: null,
+  releaseUrl: null,
+  releaseNotes: '',
+  percent: 0,
+  transferred: 0,
+  total: 0,
+  bytesPerSecond: 0,
+  checkedAt: null,
+  message: null,
+  source: app.isPackaged ? 'electron-updater' : 'github',
+};
 let systemNetworkSpeed = {
   available: false,
   receivedBytesPerSecond: 0,
@@ -614,11 +639,242 @@ async function fetchLatestReleaseResponse() {
   }
 }
 
+function updateReleaseNotes(info) {
+  if (typeof info?.releaseNotes === 'string') return info.releaseNotes;
+  if (!Array.isArray(info?.releaseNotes)) return '';
+  return info.releaseNotes
+    .map((entry) => typeof entry === 'string' ? entry : entry?.note)
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function releaseUrlForVersion(version) {
+  const normalized = String(version || '').trim();
+  return normalized ? `${UPDATE_RELEASE_BASE_URL}/${RELEASE_CHANNEL}-v${encodeURIComponent(normalized)}` : null;
+}
+
+function setAppUpdateState(patch, { emit = true } = {}) {
+  appUpdateState = {
+    ...appUpdateState,
+    ...patch,
+    currentVersion: app.getVersion(),
+  };
+  if (emit && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('app:update-state', { ...appUpdateState });
+  }
+  return { ...appUpdateState };
+}
+
+function writeUpdaterLog(level, ...values) {
+  const message = values.map((value) => {
+    if (value instanceof Error) return value.stack || value.message;
+    if (typeof value === 'string') return value;
+    try { return JSON.stringify(value); } catch { return String(value); }
+  }).join(' ');
+  const logger = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+  logger(`[updater] ${message}`);
+  try {
+    fsSync.mkdirSync(USER_DATA_PATH, { recursive: true });
+    fsSync.appendFileSync(
+      path.join(USER_DATA_PATH, 'updater.log'),
+      `${new Date().toISOString()} [${String(level).toUpperCase()}] ${message}\n`,
+      'utf8',
+    );
+  } catch {
+    // Update logging must never prevent an update check or installation.
+  }
+}
+
+function configureAppUpdater() {
+  if (appUpdaterInitialized || IS_SMOKE_TEST || !app.isPackaged) return;
+  appUpdaterInitialized = true;
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoRunAppAfterInstall = true;
+  autoUpdater.allowPrerelease = false;
+  autoUpdater.disableDifferentialDownload = false;
+  autoUpdater.logger = {
+    info: (...values) => writeUpdaterLog('info', ...values),
+    warn: (...values) => writeUpdaterLog('warn', ...values),
+    error: (...values) => writeUpdaterLog('error', ...values),
+    debug: (...values) => writeUpdaterLog('debug', ...values),
+  };
+
+  autoUpdater.on('checking-for-update', () => {
+    setAppUpdateState({
+      ok: true,
+      status: 'checking',
+      available: false,
+      canAutoUpdate: true,
+      message: null,
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('update-available', (info) => {
+    setAppUpdateState({
+      ok: true,
+      status: 'available',
+      available: true,
+      canAutoUpdate: true,
+      latestVersion: info?.version || null,
+      releaseUrl: releaseUrlForVersion(info?.version),
+      releaseNotes: updateReleaseNotes(info),
+      percent: 0,
+      transferred: 0,
+      total: 0,
+      bytesPerSecond: 0,
+      checkedAt: new Date().toISOString(),
+      message: null,
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    setAppUpdateState({
+      ok: true,
+      status: 'current',
+      available: false,
+      canAutoUpdate: true,
+      latestVersion: info?.version || app.getVersion(),
+      releaseUrl: null,
+      releaseNotes: '',
+      percent: 0,
+      transferred: 0,
+      total: 0,
+      bytesPerSecond: 0,
+      checkedAt: new Date().toISOString(),
+      message: null,
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('download-progress', (progress) => {
+    setAppUpdateState({
+      ok: true,
+      status: 'downloading',
+      available: true,
+      canAutoUpdate: true,
+      percent: Math.max(0, Math.min(100, Number(progress?.percent) || 0)),
+      transferred: Math.max(0, Number(progress?.transferred) || 0),
+      total: Math.max(0, Number(progress?.total) || 0),
+      bytesPerSecond: Math.max(0, Number(progress?.bytesPerSecond) || 0),
+      message: null,
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    setAppUpdateState({
+      ok: true,
+      status: 'downloaded',
+      available: true,
+      canAutoUpdate: true,
+      latestVersion: info?.version || appUpdateState.latestVersion,
+      releaseUrl: releaseUrlForVersion(info?.version || appUpdateState.latestVersion),
+      releaseNotes: updateReleaseNotes(info) || appUpdateState.releaseNotes,
+      percent: 100,
+      transferred: appUpdateState.total || appUpdateState.transferred,
+      message: null,
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('update-cancelled', () => {
+    setAppUpdateState({
+      ok: false,
+      status: 'available',
+      available: true,
+      canAutoUpdate: true,
+      message: 'Update download was cancelled.',
+      source: 'electron-updater',
+    });
+  });
+  autoUpdater.on('error', (error) => {
+    writeUpdaterLog('error', error);
+    setAppUpdateState({
+      ok: false,
+      status: 'failed',
+      available: Boolean(appUpdateState.latestVersion),
+      canAutoUpdate: true,
+      message: String(error?.message || error || 'Unknown update error.'),
+      source: 'electron-updater',
+    });
+  });
+}
+
 async function checkForAppUpdates() {
-  const response = await fetchLatestReleaseResponse();
-  const state = deriveGitHubUpdateState(app.getVersion(), response, undefined, RELEASE_CHANNEL);
-  if (response.error) state.message = response.error;
-  return state;
+  if (!app.isPackaged || IS_SMOKE_TEST) {
+    const response = await fetchLatestReleaseResponse();
+    const state = deriveGitHubUpdateState(app.getVersion(), response, undefined, RELEASE_CHANNEL);
+    if (response.error) state.message = response.error;
+    return setAppUpdateState({
+      ...state,
+      canAutoUpdate: IS_SMOKE_TEST,
+      status: state.available ? 'available' : state.status,
+      percent: 0,
+      transferred: 0,
+      total: 0,
+      bytesPerSecond: 0,
+    });
+  }
+  configureAppUpdater();
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    if (!result && appUpdateState.status === 'checking') {
+      return setAppUpdateState({ ok: false, status: 'failed', message: 'The updater did not return update information.' });
+    }
+  } catch (error) {
+    if (appUpdateState.status !== 'failed') {
+      setAppUpdateState({ ok: false, status: 'failed', message: String(error?.message || error) });
+    }
+  }
+  return { ...appUpdateState };
+}
+
+async function downloadAppUpdate() {
+  if (!appUpdateState.available || !['available', 'failed'].includes(appUpdateState.status)) {
+    return { ...appUpdateState, ok: false, message: 'No downloadable update is available.' };
+  }
+  if (IS_SMOKE_TEST) {
+    setAppUpdateState({ ok: true, status: 'downloading', percent: 54, transferred: 54, total: 100, bytesPerSecond: 10 });
+    setTimeout(() => {
+      setAppUpdateState({ ok: true, status: 'downloaded', percent: 100, transferred: 100, total: 100, bytesPerSecond: 0 });
+    }, 25);
+    return { ...appUpdateState };
+  }
+  if (!app.isPackaged) {
+    return { ...appUpdateState, ok: false, canAutoUpdate: false, message: 'Automatic updates are only available in an installed build.' };
+  }
+  configureAppUpdater();
+  try {
+    setAppUpdateState({ ok: true, status: 'downloading', percent: 0, transferred: 0, total: 0, bytesPerSecond: 0, message: null });
+    await autoUpdater.downloadUpdate();
+  } catch (error) {
+    if (appUpdateState.status !== 'failed') {
+      setAppUpdateState({ ok: false, status: 'failed', message: String(error?.message || error) });
+    }
+  }
+  return { ...appUpdateState };
+}
+
+function installDownloadedAppUpdate(force = false) {
+  if (appUpdateState.status !== 'downloaded') {
+    return { ...appUpdateState, ok: false, message: 'The update has not finished downloading.' };
+  }
+  const activeWork = activeDownloadJobs.size + queuedDownloadJobs.length + activeRecordingSessions.size;
+  if (activeWork > 0 && !force) {
+    return { ...appUpdateState, ok: false, status: 'blocked-active-work', activeWork };
+  }
+  setAppUpdateState({ ok: true, status: 'installing', message: null });
+  if (!IS_SMOKE_TEST) {
+    setTimeout(() => autoUpdater.quitAndInstall(true, true), 150);
+  }
+  return { ...appUpdateState, activeWork };
+}
+
+function scheduleBackgroundUpdateCheck() {
+  if (IS_SMOKE_TEST || !app.isPackaged || backgroundUpdateTimer) return;
+  backgroundUpdateTimer = setTimeout(() => {
+    backgroundUpdateTimer = null;
+    void checkForAppUpdates();
+  }, UPDATE_AUTO_CHECK_DELAY_MS);
+  backgroundUpdateTimer.unref?.();
 }
 
 function createAppIcon() {
@@ -3185,6 +3441,13 @@ app.on('web-contents-created', (_event, contents) => {
 
 app.whenReady().then(async () => {
   await ensureUserDataPath();
+  configureAppUpdater();
+  if (UPDATE_PROBE_RESULT_PATH && app.isPackaged) {
+    const result = await checkForAppUpdates();
+    await fs.writeFile(UPDATE_PROBE_RESULT_PATH, JSON.stringify(result, null, 2), 'utf8');
+    app.exit(result.ok ? 0 : 1);
+    return;
+  }
   configureBrowserIdentity();
   registerBrowserRequestFeatures();
   startSystemNetworkMonitor();
@@ -3199,6 +3462,8 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  if (backgroundUpdateTimer) clearTimeout(backgroundUpdateTimer);
+  backgroundUpdateTimer = null;
   if (systemNetworkTimer) clearInterval(systemNetworkTimer);
   systemNetworkTimer = null;
   for (const job of queuedDownloadJobs.splice(0)) {
@@ -3281,7 +3546,10 @@ ipcMain.handle('browser:inspect-frames', (_event, webContentsId) => inspectBrows
 ipcMain.handle('browser:get-blocked-request-diagnostics', () => blockedRequestDiagnostics.slice());
 ipcMain.handle('browser:get-dailymotion-request-diagnostics', () => dailymotionRequestDiagnostics.slice());
 
+ipcMain.handle('app:get-update-state', () => ({ ...appUpdateState }));
 ipcMain.handle('app:check-for-updates', () => checkForAppUpdates());
+ipcMain.handle('app:download-update', () => downloadAppUpdate());
+ipcMain.handle('app:install-update', (_event, options = {}) => installDownloadedAppUpdate(options.force === true));
 
 ipcMain.handle('account:get-config', () => ({ apiOrigin: ACCOUNT_API_ORIGIN, connected: Boolean(ACCOUNT_API_ORIGIN) }));
 ipcMain.handle('account:register', (_event, credentials = {}) => accountRegister({ email: credentials.email, password: credentials.password }));
@@ -4038,6 +4306,7 @@ ipcMain.handle('library:refresh', async (event) => {
 ipcMain.handle('window:renderer-ready', (event) => {
   if (IS_SMOKE_TEST || !mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return false;
   mainWindow.show();
+  scheduleBackgroundUpdateCheck();
   return true;
 });
 

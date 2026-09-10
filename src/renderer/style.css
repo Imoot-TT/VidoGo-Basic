@@ -859,6 +859,58 @@ button { cursor: pointer; }
   backdrop-filter: blur(6px);
 }
 .external-login-overlay[hidden] { display: none; }
+.app-update-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(3 8 16 / 68%);
+  backdrop-filter: blur(6px);
+}
+.app-update-overlay[hidden] { display: none; }
+.app-update-dialog {
+  width: min(460px, calc(100vw - 48px));
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  color: var(--app-text);
+  background: var(--app-panel);
+  box-shadow: 0 28px 90px rgb(0 0 0 / 46%);
+}
+.app-update-header {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--app-border);
+}
+.app-update-header img { width: 48px; height: 48px; border-radius: 12px; }
+.app-update-header > div { min-width: 0; }
+.app-update-header span { color: var(--app-accent); font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+.app-update-header h2 { margin: 4px 0 0; overflow: hidden; font-size: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.app-update-header .platform-dialog-close { align-self: start; }
+.app-update-body { display: grid; gap: 12px; padding: 24px 24px 20px; }
+.app-update-version { margin: 0; font-size: 16px; font-weight: 750; }
+.app-update-status,
+.app-update-hint { margin: 0; color: var(--app-muted); font-size: 12px; line-height: 1.6; }
+.app-update-progress { display: grid; gap: 8px; margin-top: 2px; }
+.app-update-progress[hidden] { display: none; }
+.app-update-progress-track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--app-soft); }
+.app-update-progress-track > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--app-accent), color-mix(in srgb, var(--app-accent) 68%, #8ef1ff));
+  transition: width 180ms ease;
+}
+.app-update-progress-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--app-muted); font-size: 11px; direction: ltr; }
+.app-update-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px 18px; }
+.app-update-actions button { min-width: 104px; }
+.app-update-actions button:disabled { opacity: .65; cursor: progress; }
 .media-preview-overlay {
   position: fixed;
   z-index: 2147483645;

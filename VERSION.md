@@ -3,17 +3,19 @@
 ## 当前版本
 
 - 产品名称：**VidoGo Basic**
-- 源码版本：**0.1.5**
-- GitHub Release 标签：**`basic-v0.1.5`**
-- Windows 安装包：**`VidoGo-Basic-0.1.5-x64-Setup.exe`**
+- 源码版本：**0.1.9**
+- GitHub Release 标签：**`basic-v0.1.9`**
+- Windows 安装包：**`VidoGo-Basic-0.1.9-x64-Setup.exe`**
 
 `0.1.0` 是 Basic 产品线的首个公开开发版本；后续 `0.1.x` 用于兼容性和平台支持修复。`0.x` 表示产品仍在开发阶段；产品达到首个稳定版本时再升级为 `1.0.0`。
+
+`0.1.9` 是首个内置自动更新器的 Basic 版本。`0.1.8` 及更早版本需要最后一次手动安装 `0.1.9`；从 `0.1.9` 开始，后续公开版本可在应用内后台下载并通过重启完成安装。
 
 ## 产品线命名
 
 | 产品线 | 应用内显示 | Release 标签 | 安装包示例 |
 | --- | --- | --- | --- |
-| Basic | `VidoGo Basic 0.1.5` | `basic-v0.1.5` | `VidoGo-Basic-0.1.5-x64-Setup.exe` |
+| Basic | `VidoGo Basic 0.1.9` | `basic-v0.1.9` | `VidoGo-Basic-0.1.9-x64-Setup.exe` |
 | V2 | `VidoGo V2 0.1.0` | `v2-v0.1.0` | `VidoGo-V2-0.1.0-x64-Setup.exe` |
 | Platform | `VidoGo Platform 0.1.0` | `platform-v0.1.0` | `VidoGo-Platform-0.1.0.zip` |
 

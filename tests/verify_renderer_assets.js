@@ -111,6 +111,12 @@ assert(html.includes('src="./assets/vidogo-app-icon-16.png"') && html.includes('
 assert(main.includes("nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-256.png'))"), 'Electron runtime icon must load the official renderer asset');
 assert(packageJson.build?.win?.icon === 'app-icon.ico', 'Windows packaging must use the official app-icon.ico');
 assert(packageJson.scripts?.['pack:win']?.includes('--config.electronDist=node_modules/electron/dist'), 'Windows packaging must use the installed Electron distribution reliably');
+assert(packageJson.version === '0.1.9', 'Package version must match the automatic-update release version');
+assert(packageJson.dependencies?.['electron-updater'] === '6.8.9', 'electron-updater must be pinned as a packaged runtime dependency');
+assert(packageJson.build?.publish?.provider === 'github'
+  && packageJson.build.publish.owner === 'Imoot-TT'
+  && packageJson.build.publish.repo === 'VidoGo-Basic'
+  && packageJson.build.publish.tagNamePrefix === 'basic-v', 'GitHub automatic-update provider is not explicit or points at the wrong product line');
 assert(main.includes('roundedCorners: true'), 'Native supported window rounding must remain enabled');
 assert(main.includes('const TITLE_BAR_HEIGHT = 32;') && css.includes('--titlebar: 32px;'), 'Native overlay and renderer title bar must share the compact 32px height');
 assert(html.includes('src="./icons.js"'), 'Renderer icon system is not loaded');
@@ -246,8 +252,15 @@ assert(!/<button[^>]+data-order-pay/.test(app) && !app.includes('continueLocalPa
 for (const token of ['parseVersion', 'compareVersions', 'deriveGitHubUpdateState', 'releaseDownloadUrl', 'safeHttpsUrl']) {
   assert(updateCheck.includes(token), `Update checker token missing: ${token}`);
 }
-assert(main.includes('api.github.com/repos/Imoot-TT/VidoGo-Basic/releases?per_page=30') && main.includes('RELEASE_CHANNEL') && main.includes('net.fetch'), 'Main update check is not connected to the Basic GitHub release channel');
-assert(app.includes('handleUpdateCheck') && app.includes("text('updateAvailable'") && app.includes("text('openRelease'"), 'Settings update UI does not handle available releases');
+assert(main.includes("require('electron-updater')") && main.includes('autoUpdater.autoDownload = false') && main.includes('autoUpdater.autoInstallOnAppQuit = true'), 'Main process automatic updater is not configured');
+for (const token of ["'update-available'", "'download-progress'", "'update-downloaded'", 'autoUpdater.downloadUpdate()', 'autoUpdater.quitAndInstall(true, true)']) {
+  assert(main.includes(token), `Automatic updater lifecycle token missing: ${token}`);
+}
+assert(main.includes("ipcMain.handle('app:get-update-state'") && main.includes("ipcMain.handle('app:download-update'") && main.includes("ipcMain.handle('app:install-update'"), 'Automatic updater IPC handlers are incomplete');
+assert(preload.includes('getUpdateState') && preload.includes('downloadUpdate') && preload.includes('installUpdate') && preload.includes('onUpdateState'), 'Automatic updater renderer bridge is incomplete');
+assert(app.includes('handleUpdateCheck') && app.includes('startAppUpdateDownload') && app.includes('restartForAppUpdate') && app.includes("text('restartToUpdate'"), 'Settings update UI does not handle automatic download and restart');
+assert(html.includes('id="app-update-overlay"') && html.includes('id="app-update-progress-bar"') && html.includes('id="app-update-primary"'), 'Automatic update dialog markup is incomplete');
+assert(css.includes('.app-update-overlay') && css.includes('.app-update-progress-track') && css.includes('.app-update-actions'), 'Automatic update dialog styles are incomplete');
 for (const token of ['parseAttributeList', 'parseHlsPlaylist', 'buildHlsCandidate', 'drmSystemForKey', 'parseDashManifest', 'buildDashCandidate', 'dashDrmSystem', 'estimatedSizeBytes']) {
   assert(manifestRules.includes(token), `Manifest implementation token missing: ${token}`);
 }

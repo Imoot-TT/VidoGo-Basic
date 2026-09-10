@@ -569,6 +569,7 @@
                   <div class="settings-section">
                     <div class="setting-copy">
                       <div class="setting-label" id="settings-update-title">更新</div>
+                      <p id="settings-update-description">检查并在后台下载新版本。</p>
                     </div>
                     <div class="setting-control">
                       <button class="ghost-button" id="settings-check-update" type="button">检查更新</button>
@@ -675,6 +676,36 @@
         <footer class="media-preview-footer">
           <span id="media-preview-status"></span>
           <button class="ghost-button" id="media-preview-system-open" type="button"><span data-icon="switch-button"></span><span id="media-preview-system-open-label">使用系统应用打开</span></button>
+        </footer>
+      </div>
+    </section>
+    <section class="app-update-overlay" id="app-update-overlay" hidden>
+      <div class="app-update-dialog" role="dialog" aria-modal="true" aria-labelledby="app-update-title" aria-describedby="app-update-status">
+        <header class="app-update-header">
+          <img src="./assets/vidogo-app-icon-256.png" alt="" aria-hidden="true" />
+          <div>
+            <span id="app-update-eyebrow">版本更新</span>
+            <h2 id="app-update-title">VidoGo Basic</h2>
+          </div>
+          <button class="platform-dialog-close" id="app-update-close" type="button" aria-label="关闭"><span data-icon="close"></span></button>
+        </header>
+        <div class="app-update-body">
+          <p class="app-update-version" id="app-update-version">发现新版本</p>
+          <p class="app-update-status" id="app-update-status" role="status" aria-live="polite">准备更新</p>
+          <div class="app-update-progress" id="app-update-progress" hidden>
+            <div class="app-update-progress-track" role="progressbar" aria-label="更新下载进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <span id="app-update-progress-bar"></span>
+            </div>
+            <div class="app-update-progress-meta">
+              <span id="app-update-progress-size">0 B / 0 B</span>
+              <span id="app-update-progress-percent">0%</span>
+            </div>
+          </div>
+          <p class="app-update-hint" id="app-update-hint">下载期间可以继续使用 VidoGo。</p>
+        </div>
+        <footer class="app-update-actions">
+          <button class="ghost-button" id="app-update-later" type="button">稍后</button>
+          <button class="platform-primary-button" id="app-update-primary" type="button">立即下载</button>
         </footer>
       </div>
     </section>

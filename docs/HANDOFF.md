@@ -1,5 +1,13 @@
 # VidoGo Development Handoff
 
+## 2026-09-10 Automatic Update Bootstrap (0.1.9)
+
+- Added the packaged `electron-updater` runtime with an explicit public GitHub Releases provider for `Imoot-TT/VidoGo-Basic` and the `basic-v` tag prefix.
+- Packaged builds check for updates after startup, allow users to continue working during a background differential download, show transferred bytes and progress, and hand a completed update to the NSIS installer on restart.
+- Restart is guarded when downloads or recordings are active. Update errors are written to the persistent `updater.log` without forcing a blocking dialog for background-check network failures.
+- Added a localized update dialog and IPC lifecycle coverage for checking, available, downloading, downloaded, failed, blocked, and installing states.
+- The final `0.1.9` NSIS installer, blockmap, `latest.yml`, packaged smoke test, release verifier, production-dependency audit, and a real packaged GitHub update check pass. Versions `0.1.8` and earlier still require one final manual install of `0.1.9` before automatic updates can take over.
+
 > This handoff applies only to the independent **VidoGo Basic 0.1.0** product line in `VidoGo-Basic/`. V2 work belongs in the sibling `VidoGo-V2/` project and must not reuse these instructions unless explicitly requested.
 
 Read this file first when continuing Basic development. The public website and management service are separate sibling projects under `VidoGo-Platform/`; they must not share private runtime data or build output with this desktop project.

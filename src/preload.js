@@ -48,7 +48,10 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   checkDownloadEntitlement: (payload) => ipcRenderer.invoke('entitlements:check-download', payload),
   configureEntitlements: (options) => ipcRenderer.invoke('entitlements:configure', options),
   configureRecording: (options) => ipcRenderer.invoke('recording:configure', options),
+  getUpdateState: () => ipcRenderer.invoke('app:get-update-state'),
   checkForUpdates: () => ipcRenderer.invoke('app:check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('app:download-update'),
+  installUpdate: (options) => ipcRenderer.invoke('app:install-update', options),
   getAccountServiceConfig: () => ipcRenderer.invoke('account:get-config'),
   registerAccount: (credentials) => ipcRenderer.invoke('account:register', credentials),
   loginAccount: (credentials) => ipcRenderer.invoke('account:login', credentials),
@@ -78,6 +81,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   onMediaLibraryChanged: (callback) => bind('library:changed', callback),
   onEntitlementsChanged: (callback) => bind('entitlements:changed', callback),
   onRecordingEvent: (callback) => bind('recording:event', callback),
+  onUpdateState: (callback) => bind('app:update-state', callback),
 });
 
 contextBridge.exposeInMainWorld('mediaDeckSmokeExpectedBackend', process.env.ELECTRON_SMOKE_EXPECT_BACKEND || '');

@@ -762,14 +762,32 @@ const DOWNLOAD_CONTROL_TEXT = {
 };
 for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], DOWNLOAD_CONTROL_TEXT[locale] || DOWNLOAD_CONTROL_TEXT.en);
 const UPDATE_TEXT = {
-  'zh-CN': { checkingUpdates: '正在检查…', updateAvailable: '发现新版本 {version}。', openRelease: '打开下载页面', updateNotPublished: '项目尚未发布公开版本。', updateCheckFailed: '检查更新失败：{message}' },
-  'zh-TW': { checkingUpdates: '正在檢查…', updateAvailable: '發現新版本 {version}。', openRelease: '開啟下載頁面', updateNotPublished: '專案尚未發布公開版本。', updateCheckFailed: '檢查更新失敗：{message}' },
-  en: { checkingUpdates: 'Checking…', updateAvailable: 'Version {version} is available.', openRelease: 'Open download page', updateNotPublished: 'No public release has been published yet.', updateCheckFailed: 'Update check failed: {message}' },
-  ru: { checkingUpdates: 'Проверка…', updateAvailable: 'Доступна версия {version}.', openRelease: 'Открыть страницу загрузки', updateNotPublished: 'Публичный выпуск ещё не опубликован.', updateCheckFailed: 'Не удалось проверить обновления: {message}' },
-  pt: { checkingUpdates: 'Verificando…', updateAvailable: 'A versão {version} está disponível.', openRelease: 'Abrir página de download', updateNotPublished: 'Ainda não há uma versão pública publicada.', updateCheckFailed: 'Falha ao verificar atualizações: {message}' },
-  vi: { checkingUpdates: 'Đang kiểm tra…', updateAvailable: 'Đã có phiên bản {version}.', openRelease: 'Mở trang tải xuống', updateNotPublished: 'Chưa có bản phát hành công khai.', updateCheckFailed: 'Kiểm tra cập nhật thất bại: {message}' },
-  th: { checkingUpdates: 'กำลังตรวจสอบ…', updateAvailable: 'มีเวอร์ชัน {version} พร้อมใช้งาน', openRelease: 'เปิดหน้าดาวน์โหลด', updateNotPublished: 'ยังไม่มีรุ่นสาธารณะ', updateCheckFailed: 'ตรวจสอบอัปเดตไม่สำเร็จ: {message}' },
-  ar: { checkingUpdates: 'جار التحقق…', updateAvailable: 'الإصدار {version} متاح.', openRelease: 'فتح صفحة التنزيل', updateNotPublished: 'لم يُنشر إصدار عام بعد.', updateCheckFailed: 'فشل التحقق من التحديثات: {message}' },
+  'zh-CN': {
+    checkingUpdates: '正在检查…', updateAvailable: '发现新版本 {version}。', openRelease: '打开下载页面', updateNotPublished: '项目尚未发布公开版本。', updateCheckFailed: '检查更新失败：{message}',
+    updateCheckDescription: '检查并在后台下载新版本。', updateTitle: '版本更新', downloadUpdate: '立即下载', downloadingUpdate: '正在下载 {percent}%', restartToUpdate: '立即重启',
+    updatePreparing: '准备下载更新。', updateDownloading: '正在下载，软件可以继续使用。', updateDownloaded: '下载成功，重启软件完成升级。', updateInstalling: '正在退出并安装更新…',
+    updateCanContinue: '下载期间可以继续使用 VidoGo。', updateRestartHint: '重启会关闭当前窗口，请先保存正在进行的工作。', updateLater: '稍后', updateRetry: '重试',
+    updateActiveWork: '当前还有下载或录制任务。立即重启会中断这些任务，是否继续？', updateAutomaticUnavailable: '开发模式不能自动安装，请打开下载页面。',
+  },
+  'zh-TW': {
+    checkingUpdates: '正在檢查…', updateAvailable: '發現新版本 {version}。', openRelease: '開啟下載頁面', updateNotPublished: '專案尚未發布公開版本。', updateCheckFailed: '檢查更新失敗：{message}',
+    updateCheckDescription: '檢查並在背景下載新版本。', updateTitle: '版本更新', downloadUpdate: '立即下載', downloadingUpdate: '正在下載 {percent}%', restartToUpdate: '立即重新啟動',
+    updatePreparing: '準備下載更新。', updateDownloading: '正在下載，軟體可以繼續使用。', updateDownloaded: '下載成功，重新啟動軟體即可完成升級。', updateInstalling: '正在結束並安裝更新…',
+    updateCanContinue: '下載期間可以繼續使用 VidoGo。', updateRestartHint: '重新啟動會關閉目前視窗，請先儲存進行中的工作。', updateLater: '稍後', updateRetry: '重試',
+    updateActiveWork: '目前仍有下載或錄製工作。立即重新啟動會中斷這些工作，是否繼續？', updateAutomaticUnavailable: '開發模式無法自動安裝，請開啟下載頁面。',
+  },
+  en: {
+    checkingUpdates: 'Checking…', updateAvailable: 'Version {version} is available.', openRelease: 'Open download page', updateNotPublished: 'No public release has been published yet.', updateCheckFailed: 'Update check failed: {message}',
+    updateCheckDescription: 'Check for and download new versions in the background.', updateTitle: 'Version update', downloadUpdate: 'Download now', downloadingUpdate: 'Downloading {percent}%', restartToUpdate: 'Restart now',
+    updatePreparing: 'The update is ready to download.', updateDownloading: 'Downloading in the background. You can keep using the app.', updateDownloaded: 'Download complete. Restart the app to finish updating.', updateInstalling: 'Closing and installing the update…',
+    updateCanContinue: 'You can keep using VidoGo while the update downloads.', updateRestartHint: 'Restarting closes the current window. Save any work in progress first.', updateLater: 'Later', updateRetry: 'Retry',
+    updateActiveWork: 'Downloads or recordings are still active. Restarting now will interrupt them. Continue?', updateAutomaticUnavailable: 'Automatic installation is unavailable in development mode. Open the download page instead.',
+  },
+  ru: { checkingUpdates: 'Проверка…', updateAvailable: 'Доступна версия {version}.', openRelease: 'Открыть страницу загрузки', updateNotPublished: 'Публичный выпуск ещё не опубликован.', updateCheckFailed: 'Не удалось проверить обновления: {message}', updateCheckDescription: 'Проверка и фоновая загрузка новых версий.', updateTitle: 'Обновление версии', downloadUpdate: 'Скачать', downloadingUpdate: 'Загрузка {percent}%', restartToUpdate: 'Перезапустить', updatePreparing: 'Обновление готово к загрузке.', updateDownloading: 'Загрузка идёт в фоне. Можно продолжать работу.', updateDownloaded: 'Загрузка завершена. Перезапустите приложение для обновления.', updateInstalling: 'Закрытие и установка обновления…', updateCanContinue: 'Во время загрузки можно продолжать пользоваться VidoGo.', updateRestartHint: 'Перезапуск закроет текущее окно. Сначала сохраните работу.', updateLater: 'Позже', updateRetry: 'Повторить', updateActiveWork: 'Есть активные загрузки или записи. Перезапуск прервёт их. Продолжить?', updateAutomaticUnavailable: 'Автоустановка недоступна в режиме разработки. Откройте страницу загрузки.' },
+  pt: { checkingUpdates: 'Verificando…', updateAvailable: 'A versão {version} está disponível.', openRelease: 'Abrir página de download', updateNotPublished: 'Ainda não há uma versão pública publicada.', updateCheckFailed: 'Falha ao verificar atualizações: {message}', updateCheckDescription: 'Verifique e baixe novas versões em segundo plano.', updateTitle: 'Atualização de versão', downloadUpdate: 'Baixar agora', downloadingUpdate: 'Baixando {percent}%', restartToUpdate: 'Reiniciar agora', updatePreparing: 'A atualização está pronta para baixar.', updateDownloading: 'Baixando em segundo plano. Você pode continuar usando o app.', updateDownloaded: 'Download concluído. Reinicie o app para concluir.', updateInstalling: 'Fechando e instalando a atualização…', updateCanContinue: 'Você pode continuar usando o VidoGo durante o download.', updateRestartHint: 'A reinicialização fechará a janela atual. Salve seu trabalho primeiro.', updateLater: 'Mais tarde', updateRetry: 'Tentar novamente', updateActiveWork: 'Há downloads ou gravações ativos. Reiniciar irá interrompê-los. Continuar?', updateAutomaticUnavailable: 'A instalação automática não está disponível no modo de desenvolvimento. Abra a página de download.' },
+  vi: { checkingUpdates: 'Đang kiểm tra…', updateAvailable: 'Đã có phiên bản {version}.', openRelease: 'Mở trang tải xuống', updateNotPublished: 'Chưa có bản phát hành công khai.', updateCheckFailed: 'Kiểm tra cập nhật thất bại: {message}', updateCheckDescription: 'Kiểm tra và tải phiên bản mới trong nền.', updateTitle: 'Cập nhật phiên bản', downloadUpdate: 'Tải ngay', downloadingUpdate: 'Đang tải {percent}%', restartToUpdate: 'Khởi động lại', updatePreparing: 'Bản cập nhật đã sẵn sàng để tải.', updateDownloading: 'Đang tải trong nền. Bạn có thể tiếp tục sử dụng ứng dụng.', updateDownloaded: 'Đã tải xong. Khởi động lại để hoàn tất cập nhật.', updateInstalling: 'Đang đóng và cài đặt bản cập nhật…', updateCanContinue: 'Bạn có thể tiếp tục dùng VidoGo trong khi tải.', updateRestartHint: 'Khởi động lại sẽ đóng cửa sổ hiện tại. Hãy lưu công việc trước.', updateLater: 'Để sau', updateRetry: 'Thử lại', updateActiveWork: 'Vẫn còn tác vụ tải hoặc ghi hình. Khởi động lại sẽ làm gián đoạn chúng. Tiếp tục?', updateAutomaticUnavailable: 'Không thể tự động cài đặt ở chế độ phát triển. Hãy mở trang tải xuống.' },
+  th: { checkingUpdates: 'กำลังตรวจสอบ…', updateAvailable: 'มีเวอร์ชัน {version} พร้อมใช้งาน', openRelease: 'เปิดหน้าดาวน์โหลด', updateNotPublished: 'ยังไม่มีรุ่นสาธารณะ', updateCheckFailed: 'ตรวจสอบอัปเดตไม่สำเร็จ: {message}', updateCheckDescription: 'ตรวจสอบและดาวน์โหลดเวอร์ชันใหม่ในเบื้องหลัง', updateTitle: 'อัปเดตเวอร์ชัน', downloadUpdate: 'ดาวน์โหลดตอนนี้', downloadingUpdate: 'กำลังดาวน์โหลด {percent}%', restartToUpdate: 'เริ่มใหม่ตอนนี้', updatePreparing: 'อัปเดตพร้อมให้ดาวน์โหลดแล้ว', updateDownloading: 'กำลังดาวน์โหลดในเบื้องหลัง คุณยังใช้งานแอปต่อได้', updateDownloaded: 'ดาวน์โหลดเสร็จแล้ว เริ่มแอปใหม่เพื่ออัปเดตให้เสร็จ', updateInstalling: 'กำลังปิดและติดตั้งอัปเดต…', updateCanContinue: 'คุณยังใช้ VidoGo ต่อได้ระหว่างดาวน์โหลด', updateRestartHint: 'การเริ่มใหม่จะปิดหน้าต่างปัจจุบัน โปรดบันทึกงานก่อน', updateLater: 'ภายหลัง', updateRetry: 'ลองใหม่', updateActiveWork: 'ยังมีงานดาวน์โหลดหรือบันทึกอยู่ การเริ่มใหม่จะขัดจังหวะงานเหล่านั้น ดำเนินการต่อหรือไม่?', updateAutomaticUnavailable: 'โหมดพัฒนาไม่รองรับการติดตั้งอัตโนมัติ โปรดเปิดหน้าดาวน์โหลด' },
+  ar: { checkingUpdates: 'جار التحقق…', updateAvailable: 'الإصدار {version} متاح.', openRelease: 'فتح صفحة التنزيل', updateNotPublished: 'لم يُنشر إصدار عام بعد.', updateCheckFailed: 'فشل التحقق من التحديثات: {message}', updateCheckDescription: 'التحقق من الإصدارات الجديدة وتنزيلها في الخلفية.', updateTitle: 'تحديث الإصدار', downloadUpdate: 'تنزيل الآن', downloadingUpdate: 'جار التنزيل {percent}٪', restartToUpdate: 'إعادة التشغيل الآن', updatePreparing: 'التحديث جاهز للتنزيل.', updateDownloading: 'يجري التنزيل في الخلفية ويمكنك متابعة استخدام التطبيق.', updateDownloaded: 'اكتمل التنزيل. أعد تشغيل التطبيق لإتمام التحديث.', updateInstalling: 'جار الإغلاق وتثبيت التحديث…', updateCanContinue: 'يمكنك متابعة استخدام VidoGo أثناء التنزيل.', updateRestartHint: 'ستغلق إعادة التشغيل النافذة الحالية. احفظ عملك أولاً.', updateLater: 'لاحقاً', updateRetry: 'إعادة المحاولة', updateActiveWork: 'ما زالت هناك تنزيلات أو تسجيلات نشطة. ستؤدي إعادة التشغيل إلى مقاطعتها. هل تريد المتابعة؟', updateAutomaticUnavailable: 'التثبيت التلقائي غير متاح في وضع التطوير. افتح صفحة التنزيل بدلاً من ذلك.' },
 };
 for (const [locale, copy] of Object.entries(UPDATE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const BROWSER_STATUS_TEXT = {
@@ -1090,6 +1108,20 @@ const els = {
   settingsCheckUpdate: document.getElementById('settings-check-update'),
   settingsVersion: document.getElementById('settings-version'),
   settingsLatestVersion: document.getElementById('settings-latest-version'),
+  appUpdateOverlay: document.getElementById('app-update-overlay'),
+  appUpdateClose: document.getElementById('app-update-close'),
+  appUpdateEyebrow: document.getElementById('app-update-eyebrow'),
+  appUpdateTitle: document.getElementById('app-update-title'),
+  appUpdateVersion: document.getElementById('app-update-version'),
+  appUpdateStatus: document.getElementById('app-update-status'),
+  appUpdateProgress: document.getElementById('app-update-progress'),
+  appUpdateProgressTrack: document.querySelector('.app-update-progress-track'),
+  appUpdateProgressBar: document.getElementById('app-update-progress-bar'),
+  appUpdateProgressSize: document.getElementById('app-update-progress-size'),
+  appUpdateProgressPercent: document.getElementById('app-update-progress-percent'),
+  appUpdateHint: document.getElementById('app-update-hint'),
+  appUpdateLater: document.getElementById('app-update-later'),
+  appUpdatePrimary: document.getElementById('app-update-primary'),
   platformManagerOverlay: document.getElementById('platform-manager-overlay'),
   platformManagerClose: document.getElementById('platform-manager-close'),
   platformResetButton: document.getElementById('platform-reset-button'),
@@ -1384,6 +1416,8 @@ function applyLocale() {
   els.mediaPreviewSystemOpenLabel.textContent = text('openWithSystem');
   els.mediaPreviewClose.title = text('close');
   els.mediaPreviewClose.setAttribute('aria-label', text('close'));
+  els.appUpdateClose.title = text('close');
+  els.appUpdateClose.setAttribute('aria-label', text('close'));
   els.historyClear.querySelector('span:last-child').textContent = text('clear');
   els.favoritesTitle.textContent = text('favoritesTitle');
   document.getElementById('favorites-popover-title').textContent = text('favoritesTitle');
@@ -1414,6 +1448,7 @@ function applyLocale() {
   renderPlans();
   renderQuickSites();
   renderPlatformManager();
+  syncAppUpdateUi();
   hydrateIcons();
 }
 
@@ -1458,6 +1493,7 @@ function updateSettingsCopy() {
   els.settingsAdBlockState.textContent = text(state.settings.adBlocker !== false ? 'on' : 'off');
   els.settingsRecordingState.textContent = text(state.settings.recordingEnabled === true ? 'on' : 'off');
   document.getElementById('settings-update-title').textContent = text('updates');
+  document.getElementById('settings-update-description').textContent = text('updateCheckDescription');
   syncUpdateCheckControl();
   document.getElementById('settings-version-title').textContent = text('currentVersion');
   document.getElementById('settings-latest-version-title').textContent = text('latestVersion');
@@ -1466,33 +1502,138 @@ function updateSettingsCopy() {
 
 function syncUpdateCheckControl() {
   if (!els.settingsCheckUpdate) return;
-  const canOpenRelease = state.updateInfo?.available === true && Boolean(state.updateInfo.releaseUrl);
-  els.settingsCheckUpdate.textContent = text(canOpenRelease ? 'openRelease' : 'checkUpdates');
+  const status = String(state.updateInfo?.status || 'idle');
+  const percent = Math.round(Number(state.updateInfo?.percent) || 0);
+  const labelKey = status === 'checking' ? 'checkingUpdates'
+    : status === 'available' ? (state.updateInfo?.canAutoUpdate ? 'downloadUpdate' : 'openRelease')
+      : status === 'downloading' ? 'downloadingUpdate'
+        : status === 'downloaded' ? 'restartToUpdate'
+          : status === 'installing' ? 'updateInstalling'
+            : status === 'failed' ? 'updateRetry'
+              : 'checkUpdates';
+  els.settingsCheckUpdate.textContent = text(labelKey, { percent });
+  els.settingsCheckUpdate.disabled = ['checking', 'installing'].includes(status);
 }
 
-async function handleUpdateCheck() {
-  if (state.updateInfo?.available && state.updateInfo.releaseUrl) {
-    const didOpen = await window.mediaDeck.openExternal(state.updateInfo.releaseUrl);
-    if (!didOpen) toast(text('updateCheckFailed', { message: text('paymentOpenFailed') }));
+function syncAppUpdateUi({ showDialog = false } = {}) {
+  if (!els.appUpdateOverlay) return;
+  const update = state.updateInfo || {};
+  const status = String(update.status || 'idle');
+  const percent = Math.max(0, Math.min(100, Number(update.percent) || 0));
+  const roundedPercent = Math.round(percent);
+  const latestVersion = update.latestVersion || state.runtimeInfo?.version || '-';
+  const progressVisible = ['downloading', 'downloaded'].includes(status);
+  els.appUpdateEyebrow.textContent = text('updateTitle');
+  els.appUpdateTitle.textContent = state.runtimeInfo?.appName || 'VidoGo Basic';
+  els.appUpdateVersion.textContent = text('updateAvailable', { version: latestVersion });
+  els.appUpdateProgress.hidden = !progressVisible;
+  els.appUpdateProgressBar.style.width = `${status === 'downloaded' ? 100 : percent}%`;
+  els.appUpdateProgressTrack.setAttribute('aria-valuenow', String(status === 'downloaded' ? 100 : roundedPercent));
+  els.appUpdateProgressSize.textContent = update.total > 0
+    ? `${formatBytes(update.transferred)} / ${formatBytes(update.total)}`
+    : (update.transferred > 0 ? formatBytes(update.transferred) : '-');
+  els.appUpdateProgressPercent.textContent = `${status === 'downloaded' ? 100 : roundedPercent}%`;
+  els.appUpdateStatus.textContent = status === 'checking' ? text('checkingUpdates')
+    : status === 'downloading' ? text('updateDownloading')
+      : status === 'downloaded' ? text('updateDownloaded')
+        : status === 'installing' ? text('updateInstalling')
+          : status === 'failed' ? text('updateCheckFailed', { message: update.message || 'unknown error' })
+            : text('updatePreparing');
+  els.appUpdateHint.textContent = status === 'downloaded' ? text('updateRestartHint') : text('updateCanContinue');
+  els.appUpdateLater.textContent = text('updateLater');
+  els.appUpdateLater.disabled = status === 'installing';
+  els.appUpdateClose.disabled = status === 'installing';
+  els.appUpdatePrimary.textContent = status === 'downloading' ? text('downloadingUpdate', { percent: roundedPercent })
+    : status === 'downloaded' ? text('restartToUpdate')
+      : status === 'installing' ? text('updateInstalling')
+        : status === 'failed' ? text('updateRetry')
+          : update.canAutoUpdate === false ? text('openRelease') : text('downloadUpdate');
+  els.appUpdatePrimary.disabled = ['checking', 'downloading', 'installing'].includes(status);
+  if (showDialog) els.appUpdateOverlay.hidden = false;
+  syncUpdateCheckControl();
+}
+
+function hideAppUpdateDialog() {
+  if (state.updateInfo?.status === 'installing') return;
+  els.appUpdateOverlay.hidden = true;
+}
+
+async function openManualUpdateRelease() {
+  const releaseUrl = state.updateInfo?.releaseUrl;
+  if (!releaseUrl) {
+    toast(text('updateAutomaticUnavailable'), 'warning');
     return;
   }
-  els.settingsCheckUpdate.disabled = true;
-  els.settingsCheckUpdate.textContent = text('checkingUpdates');
+  const didOpen = await window.mediaDeck.openExternal(releaseUrl);
+  if (!didOpen) toast(text('updateCheckFailed', { message: text('paymentOpenFailed') }), 'error');
+}
+
+async function startAppUpdateDownload() {
+  if (state.updateInfo?.canAutoUpdate === false) {
+    await openManualUpdateRelease();
+    return;
+  }
+  els.appUpdateOverlay.hidden = false;
+  try {
+    const result = await window.mediaDeck.downloadUpdate();
+    state.updateInfo = result && typeof result === 'object' ? result : null;
+    syncAppUpdateUi({ showDialog: true });
+  } catch (error) {
+    toast(text('updateCheckFailed', { message: error?.message || String(error) }), 'error');
+  }
+}
+
+async function restartForAppUpdate() {
+  let result = await window.mediaDeck.installUpdate({ force: false });
+  if (result?.status === 'blocked-active-work') {
+    if (!window.confirm(text('updateActiveWork'))) return;
+    result = await window.mediaDeck.installUpdate({ force: true });
+  }
+  if (!result?.ok) {
+    toast(text('updateCheckFailed', { message: result?.message || 'unknown error' }), 'error');
+    return;
+  }
+  state.updateInfo = result;
+  syncAppUpdateUi({ showDialog: true });
+}
+
+async function handleUpdatePrimaryAction() {
+  const status = String(state.updateInfo?.status || 'idle');
+  if (status === 'downloaded') return restartForAppUpdate();
+  if (status === 'available') return startAppUpdateDownload();
+  if (status === 'failed') return handleUpdateCheck({ showDialog: true });
+  if (state.updateInfo?.canAutoUpdate === false && state.updateInfo?.releaseUrl) return openManualUpdateRelease();
+  return undefined;
+}
+
+async function handleUpdateCheck({ showDialog = false } = {}) {
+  const currentStatus = String(state.updateInfo?.status || 'idle');
+  if (currentStatus === 'available') {
+    if (state.updateInfo?.canAutoUpdate === false) return openManualUpdateRelease();
+    return startAppUpdateDownload();
+  }
+  if (currentStatus === 'downloading') {
+    syncAppUpdateUi({ showDialog: true });
+    return;
+  }
+  if (currentStatus === 'downloaded') return restartForAppUpdate();
+  state.updateInfo = { ...(state.updateInfo || {}), status: 'checking', message: null };
+  syncAppUpdateUi({ showDialog });
   try {
     const result = await window.mediaDeck.checkForUpdates();
     state.updateInfo = result && typeof result === 'object' ? result : null;
-    els.settingsLatestVersion.textContent = result?.latestVersion || '-';
-    if (result?.available) toast(text('updateAvailable', { version: result.latestVersion || '-' }));
-    else if (result?.status === 'unpublished') toast(text('updateNotPublished'));
-    else if (result?.ok) toast(text('updateUnavailable'));
-    else toast(text('updateCheckFailed', { message: result?.message || 'unknown error' }));
+    els.settingsLatestVersion.textContent = result?.latestVersion || state.runtimeInfo?.version || '-';
+    if (result?.available) {
+      toast(text('updateAvailable', { version: result.latestVersion || '-' }), 'info');
+      syncAppUpdateUi({ showDialog: true });
+    } else if (result?.status === 'unpublished') toast(text('updateNotPublished'), 'warning');
+    else if (result?.ok) toast(text('updateUnavailable'), 'success');
+    else toast(text('updateCheckFailed', { message: result?.message || 'unknown error' }), 'error');
   } catch (error) {
-    state.updateInfo = null;
-    toast(text('updateCheckFailed', { message: error?.message || String(error) }));
-  } finally {
-    els.settingsCheckUpdate.disabled = false;
-    syncUpdateCheckControl();
+    state.updateInfo = { ...(state.updateInfo || {}), status: 'failed', ok: false, message: error?.message || String(error) };
+    toast(text('updateCheckFailed', { message: state.updateInfo.message }), 'error');
   }
+  syncAppUpdateUi({ showDialog: showDialog && Boolean(state.updateInfo?.available) });
 }
 
 function setSettingsSection(section) {
@@ -7528,6 +7669,7 @@ function bindEvents() {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && state.favoritesPopoverOpen) setFavoritesPopoverOpen(false);
+    if (event.key === 'Escape' && !els.appUpdateOverlay.hidden) hideAppUpdateDialog();
     if (event.key === 'Escape' && !els.libraryDetailOverlay.hidden) closeLibraryDetail();
     if (event.key === 'Escape' && !els.mediaPreviewOverlay.hidden) closeMediaPreview();
     if (event.key === 'Escape' && !els.externalLoginOverlay.hidden) hideExternalLoginDialog();
@@ -7680,6 +7822,12 @@ function bindEvents() {
     renderAccount();
   });
   els.settingsCheckUpdate.addEventListener('click', () => void handleUpdateCheck());
+  els.appUpdateClose.addEventListener('click', hideAppUpdateDialog);
+  els.appUpdateLater.addEventListener('click', hideAppUpdateDialog);
+  els.appUpdatePrimary.addEventListener('click', () => void handleUpdatePrimaryAction());
+  els.appUpdateOverlay.addEventListener('click', (event) => {
+    if (event.target === els.appUpdateOverlay) hideAppUpdateDialog();
+  });
   els.settingsTheme.addEventListener('change', () => {
     state.theme = els.settingsTheme.value;
     applyTheme();
@@ -7809,6 +7957,16 @@ function bindEvents() {
   });
   window.mediaDeck.onEntitlementsChanged(applyEntitlementState);
   window.mediaDeck.onRecordingEvent(handleRecordingEvent);
+  window.mediaDeck.onUpdateState((update) => {
+    if (!update || typeof update !== 'object') return;
+    const previousStatus = state.updateInfo?.status;
+    state.updateInfo = update;
+    if (update.latestVersion) els.settingsLatestVersion.textContent = update.latestVersion;
+    const shouldShow = ['available', 'downloaded'].includes(update.status)
+      ? update.status !== previousStatus
+      : update.status === 'failed' && els.appUpdateOverlay.hidden === false;
+    syncAppUpdateUi({ showDialog: shouldShow });
+  });
 }
 
 async function bootstrap() {
@@ -7818,19 +7976,21 @@ async function bootstrap() {
   if (String(state.selectedPlan).startsWith('flagship_')) state.selectedPlan = String(state.selectedPlan).replace(/^flagship_/, 'ultimate_');
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
-  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration] = await Promise.all([
+  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration, updateInfo] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
     window.mediaDeck.getDefaultDownloadDir(),
     window.mediaDeck.getMediaCandidates(),
     window.mediaDeck.getRuntimeInfo(),
     window.mediaDeck.getPlatforms(),
     window.mediaDeck.getEditorConfig(),
+    window.mediaDeck.getUpdateState(),
   ]);
   if (!localStorage.getItem(STORAGE_KEYS.locale)) {
     state.locale = I18N.resolveSupportedLocale(systemLocale) || 'zh-CN';
   }
   state.settings.outputDir = state.settings.outputDir || defaultDir;
   state.runtimeInfo = runtimeInfo || null;
+  state.updateInfo = updateInfo && typeof updateInfo === 'object' ? updateInfo : null;
   state.platformConfig = platformConfig || state.platformConfig;
   state.editor.editors = Array.isArray(editorConfiguration?.editors) ? editorConfiguration.editors : [];
   state.editor.selected = editorConfiguration?.selected || null;
@@ -7978,7 +8138,10 @@ async function runRendererSelfTest() {
     'getEntitlements',
     'configureEntitlements',
     'configureRecording',
+    'getUpdateState',
     'checkForUpdates',
+    'downloadUpdate',
+    'installUpdate',
     'getMediaCandidates',
     'extractPageMedia',
     'resolvePageMedia',
@@ -7999,6 +8162,7 @@ async function runRendererSelfTest() {
     'onMediaLibraryChanged',
     'onEntitlementsChanged',
     'onRecordingEvent',
+    'onUpdateState',
   ];
   const missingApiMethods = requiredApiMethods.filter((name) => typeof window.mediaDeck?.[name] !== 'function');
   assert(missingApiMethods.length === 0, `Missing mediaDeck API methods: ${missingApiMethods.join(', ')}`);
@@ -9003,13 +9167,18 @@ async function runRendererSelfTest() {
   await changeControl('settings:adblock-on', els.settingsAdBlock, true);
   assert(state.settings.adBlocker === true, 'Ad blocker setting did not enable');
   await clickControl('settings:section-about', document.querySelector('[data-settings-section="about"]'));
-  await clickControl('settings:check-update', els.settingsCheckUpdate);
-  await wait(60);
   assert(els.settingsVersion.textContent.includes('VidoGo'), 'Settings version did not render');
   assert(els.settingsLatestVersion.textContent === '0.2.0', 'Latest GitHub release version did not render after update check');
   assert(state.updateInfo?.available === true && state.updateInfo?.source === 'github', 'Available GitHub update state was not retained');
-  assert(els.settingsCheckUpdate.textContent === text('openRelease'), 'Available update did not expose its download page action');
-  await clickControl('settings:open-update-release', els.settingsCheckUpdate);
+  assert(els.settingsCheckUpdate.textContent === text('downloadUpdate'), `Available update did not expose its background download action: ${els.settingsCheckUpdate.textContent} / ${JSON.stringify(state.updateInfo)}`);
+  assert(els.appUpdateOverlay.hidden === false && els.appUpdatePrimary.textContent === text('downloadUpdate'), `Available update dialog did not open: hidden=${els.appUpdateOverlay.hidden}, action=${els.appUpdatePrimary.textContent}`);
+  await clickControl('settings:download-update', els.settingsCheckUpdate);
+  await wait(80);
+  assert(state.updateInfo?.status === 'downloaded' && Number(state.updateInfo?.percent) === 100, 'Simulated automatic update did not finish downloading');
+  assert(els.appUpdateProgress.hidden === false && els.appUpdateProgressPercent.textContent === '100%', 'Update dialog did not render completed progress');
+  assert(els.settingsCheckUpdate.textContent === text('restartToUpdate'), 'Downloaded update did not expose its restart action');
+  await clickControl('settings:restart-update', els.appUpdatePrimary);
+  assert(state.updateInfo?.status === 'installing', 'Restart action did not hand the downloaded update to the installer');
 
   state.settings = previousSettings;
   state.history = previousHistory;
@@ -9020,6 +9189,7 @@ async function runRendererSelfTest() {
   state.selectedPlan = previousSelectedPlan;
   state.paymentChannel = previousPaymentChannel;
   state.updateInfo = previousUpdateInfo;
+  els.appUpdateOverlay.hidden = true;
   state.library = previousLibrary;
   els.settingsLatestVersion.textContent = previousLatestVersion;
   els.loginEmail.value = '';
