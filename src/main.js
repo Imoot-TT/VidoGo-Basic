@@ -671,8 +671,13 @@ function writeUpdaterLog(level, ...values) {
     if (typeof value === 'string') return value;
     try { return JSON.stringify(value); } catch { return String(value); }
   }).join(' ');
-  const logger = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
-  logger(`[updater] ${message}`);
+  // Packaged GUI processes may outlive the terminal/pipe that launched them.
+  // Writing to that closed pipe raises an asynchronous EPIPE error, so the
+  // packaged app relies on the persistent updater.log below instead.
+  if (!app.isPackaged || IS_SMOKE_TEST) {
+    const logger = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+    logger(`[updater] ${message}`);
+  }
   try {
     fsSync.mkdirSync(USER_DATA_PATH, { recursive: true });
     fsSync.appendFileSync(
