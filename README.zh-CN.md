@@ -4,7 +4,7 @@
   <p>面向 Windows 的在线视频识别、下载与录制桌面工具。</p>
   <p><a href="README.md">English</a> · <strong>中文</strong></p>
   <p>
-    <img alt="版本" src="https://img.shields.io/badge/version-0.1.6-1688f0">
+    <img alt="版本" src="https://img.shields.io/badge/version-0.1.9-1688f0">
     <img alt="平台" src="https://img.shields.io/badge/platform-Windows%20x64-0078d4">
     <img alt="许可证" src="https://img.shields.io/badge/license-MIT-22a06b">
   </p>
@@ -14,7 +14,7 @@
 
 ## 下载
 
-[下载 VidoGo Basic 0.1.6 Windows x64 安装包](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.6)
+[下载 VidoGo Basic 0.1.9 Windows x64 安装包](https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.1.9)
 
 ## 主要功能
 

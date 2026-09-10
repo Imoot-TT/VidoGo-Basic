@@ -88,6 +88,8 @@ jobs:
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           if ($env:RELEASE_TAG -ne "basic-v$version") { throw "Release tag does not match package version" }
+          $notesFile = "docs/releases/$version.md"
+          if (-not (Test-Path -LiteralPath $notesFile)) { throw "Missing user-facing release notes: $notesFile" }
           $installer = "dist/VidoGo-Basic-$version-x64-Setup.exe"
           $assets = @($installer, "$installer.blockmap", "dist/latest.yml")
           foreach ($asset in $assets) {
@@ -95,8 +97,9 @@ jobs:
           }
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $env:RELEASE_TAG --target main --title "VidoGo Basic $($env:RELEASE_TAG -replace '^basic-v','')" --generate-notes
-            if ($LASTEXITCODE -ne 0) { throw "Release creation failed" }
+            throw "Release $env:RELEASE_TAG must be created by the Imoot-TT account before running this workflow."
           }
+          gh release edit $env:RELEASE_TAG --title "VidoGo Basic $version" --notes-file $notesFile --latest
+          if ($LASTEXITCODE -ne 0) { throw "Release notes update failed" }
           gh release upload $env:RELEASE_TAG @assets --clobber
           if ($LASTEXITCODE -ne 0) { throw "Release upload failed" }
