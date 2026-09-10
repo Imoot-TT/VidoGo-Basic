@@ -3025,6 +3025,10 @@ html[dir="rtl"] select:not([multiple]) {
 }
 .library-project-import:hover { border-color: color-mix(in srgb, var(--app-accent) 48%, var(--app-border)); background: var(--app-hover); }
 .library-project-import .ui-icon { width: 15px; height: 15px; }
+.library-project-import.is-loading,
+.library-asset-action.is-editor-action.is-loading { color: var(--app-accent); opacity: 1; cursor: progress; }
+.library-project-import.is-loading .ui-icon,
+.library-asset-action.is-editor-action.is-loading .ui-icon { animation: library-spin 800ms linear infinite; }
 .library-asset-row { grid-template-columns: 48px minmax(180px, 1fr) 90px minmax(150px, 1fr) 90px auto; }
 .library-project-row:hover,
 .library-asset-row:hover { border-color: color-mix(in srgb, var(--app-accent) 36%, var(--app-border)); }

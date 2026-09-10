@@ -70,7 +70,7 @@ const badMarkers = mojibakeMarkers.filter((marker) => combined.includes(marker))
 assert(badMarkers.length === 0, `Mojibake markers found: ${badMarkers.join(', ')}`);
 
 const referenceIcons = [
-  'monitor', 'download', 'clock', 'star', 'shopping-cart', 'user', 'setting',
+  'monitor', 'download', 'clock', 'star', 'shopping-cart', 'user', 'setting', 'send', 'sliders',
   'house', 'plus', 'close', 'arrow-left', 'arrow-right', 'refresh',
   'search', 'scale-to-original', 'delete', 'timer', 'view', 'folder-opened', 'minus',
   'circle-check', 'circle-close', 'switch-button', 'user-filled',
@@ -276,6 +276,10 @@ assert(main.includes("ipcMain.handle('download:preview-file'") && main.includes(
 assert(main.includes("ipcMain.handle('editor:scan'") && main.includes("ipcMain.handle('editor:choose-executable'") && main.includes("ipcMain.handle('editor:import-files'") && preload.includes('scanEditors') && preload.includes('chooseEditorExecutable') && preload.includes('importManyIntoEditor'), 'Editing-app discovery, manual configuration, and project import bridge is incomplete');
 assert(main.includes("ipcMain.handle('editor:import-file'") && editorIntegration.includes("importMode = 'import-dialog'") && editorIntegration.includes("importMode = 'open-file'") && editorIntegration.includes("importMode = 'open-media'") && editorIntegration.includes('DIALOG_IMPORT_SCRIPT') && editorIntegration.includes('Clipboard') && editorIntegration.includes('`-open-file=${mediaPath}`') && editorIntegration.includes("['/OPEN', mediaPath]"), 'Editor imports must use per-application adapters instead of one shared launch argument');
 assert(app.includes('data-library-asset-action="import-editor"') && app.includes("libraryImportEditor: '导入 {editor}'"), 'Every media-library asset view must expose a dynamically named editor-import action');
+assert(app.includes("iconSvg('send')") && html.includes('data-icon="sliders"'), 'Editor import and Preferences must use distinct send and sliders icons');
+assert(app.includes('beginLibraryEditorImport') && app.includes("libraryImportingEditor: '正在启动并导入 {editor}…'") && css.includes('.library-asset-action.is-editor-action.is-loading'), 'Editor import controls must expose a visible pending state while an editing app starts');
+assert(app.includes('libraryPlatformProviderKey(platform)') && app.includes('MEDIA_RULES?.providerSiteForUrl') && app.includes('label: platform.name'), 'Library platform labels and filters must resolve through Platform Manager URLs');
+assert(!app.includes("text('libraryMediaId')") && !app.includes("librarySearchPlaceholder: '搜索标题、平台或媒体 ID'"), 'Internal media IDs must not be exposed in library details or search copy');
 assert(html.includes('id="settings-search-engine-control"') && html.includes('id="settings-editor-control"') && html.includes('data-settings-panel="preferences"') && !html.includes('data-settings-panel="editors"') && !html.includes('class="settings-header"'), 'Settings must restore search-engine selection, merge editor management into Preferences, and omit redundant panel titles');
 assert(html.includes('id="media-preview-overlay"') && app.includes('showMediaPreview') && app.includes('closeMediaPreview'), 'Built-in video, audio, image, and subtitle preview UI is incomplete');
 assert(css.includes('.media-preview-dialog[data-preview-type="audio"]') && css.includes('height: 250px'), 'Audio preview must use a compact layout instead of the video canvas');

@@ -24,6 +24,8 @@
     'info-filled': ['M512 64a448 448 0 1 1 0 896.064A448 448 0 0 1 512 64m67.2 275.072c33.28 0 60.288-23.104 60.288-57.344s-27.072-57.344-60.288-57.344c-33.28 0-60.16 23.104-60.16 57.344s26.88 57.344 60.16 57.344M590.912 699.2c0-6.848 2.368-24.64 1.024-34.752l-52.608 60.544c-10.88 11.456-24.512 19.392-30.912 17.28a12.99 12.99 0 0 1-8.256-14.72l87.68-276.992c7.168-35.136-12.544-67.2-54.336-71.296-44.096 0-108.992 44.736-148.48 101.504 0 6.784-1.28 23.68.064 33.792l52.544-60.608c10.88-11.328 23.552-19.328 29.952-17.152a12.8 12.8 0 0 1 7.808 16.128L388.48 728.576c-10.048 32.256 8.96 63.872 55.04 71.04 67.84 0 107.904-43.648 147.456-100.416z'],
     lock: ['M224 448a32 32 0 0 0-32 32v384a32 32 0 0 0 32 32h576a32 32 0 0 0 32-32V480a32 32 0 0 0-32-32zm0-64h576a96 96 0 0 1 96 96v384a96 96 0 0 1-96 96H224a96 96 0 0 1-96-96V480a96 96 0 0 1 96-96', 'M512 544a32 32 0 0 1 32 32v192a32 32 0 1 1-64 0V576a32 32 0 0 1 32-32m192-160v-64a192 192 0 1 0-384 0v64zM512 64a256 256 0 0 1 256 256v128H256V320A256 256 0 0 1 512 64'],
     monitor: ['M544 768v128h192a32 32 0 1 1 0 64H288a32 32 0 1 1 0-64h192V768H192A128 128 0 0 1 64 640V256a128 128 0 0 1 128-128h640a128 128 0 0 1 128 128v384a128 128 0 0 1-128 128zM192 192a64 64 0 0 0-64 64v384a64 64 0 0 0 64 64h640a64 64 0 0 0 64-64V256a64 64 0 0 0-64-64z'],
+    send: [],
+    sliders: [],
     minus: ['M128 544h768a32 32 0 1 0 0-64H128a32 32 0 0 0 0 64'],
     pause: ['M288 160a32 32 0 0 1 32-32h96a32 32 0 0 1 32 32v704a32 32 0 0 1-32 32h-96a32 32 0 0 1-32-32zm288 0a32 32 0 0 1 32-32h96a32 32 0 0 1 32 32v704a32 32 0 0 1-32 32h-96a32 32 0 0 1-32-32z'],
     plus: ['M480 480V128a32 32 0 0 1 64 0v352h352a32 32 0 1 1 0 64H544v352a32 32 0 1 1-64 0V544H128a32 32 0 0 1 0-64z'],
@@ -56,6 +58,12 @@
     const iconPaths = paths[name];
     if (!iconPaths) return '';
     const classes = className ? ` class="${escapeAttribute(className)}"` : '';
+    if (name === 'send') {
+      return `<svg${classes} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h11"></path><path d="m11 8 4 4-4 4"></path><path d="M15 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4"></path></svg>`;
+    }
+    if (name === 'sliders') {
+      return `<svg${classes} viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h5"></path><path d="M15 6h5"></path><circle cx="12" cy="6" r="3"></circle><path d="M4 18h5"></path><path d="M15 18h5"></path><circle cx="12" cy="18" r="3"></circle></svg>`;
+    }
     // Keep the settings glyph deliberately simple. The previous compound,
     // filled path intermittently disappeared in Electron on Windows 11 while
     // the surrounding button and tooltip still rendered. A small stroked SVG

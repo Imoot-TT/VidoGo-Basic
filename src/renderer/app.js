@@ -669,42 +669,42 @@ const LIBRARY_TEXT = {
   'zh-CN': {
     library: '素材库', libraryTitle: '素材库', libraryDescription: '视频、MP3、封面和字幕按来源归入同一个媒体项目。',
     libraryProjects: '媒体项目', libraryAllAssets: '全部素材', libraryRefresh: '刷新', libraryRefreshing: '正在刷新…',
-    librarySearch: '搜索素材库', librarySearchPlaceholder: '搜索标题、平台或媒体 ID', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部类型',
+    librarySearch: '搜索素材库', librarySearchPlaceholder: '搜索标题、文件名或平台', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部类型',
     librarySortRecent: '最近下载', librarySortTitle: '按标题', librarySortSize: '按大小', libraryGridView: '网格视图', libraryListView: '列表视图',
     libraryLoading: '正在读取素材库…', libraryLoadFailed: '素材库读取失败：{message}', libraryEmptyTitle: '素材库还是空的',
     libraryEmptyBody: '下载视频、MP3、封面或字幕后，会自动整理到这里。', libraryNoResultsTitle: '没有匹配的素材', libraryNoResultsBody: '试试清空搜索或更换筛选条件。', libraryBrowse: '去浏览下载',
     libraryProjectSummary: '共 {count} 个媒体项目', libraryAssetSummary: '共 {count} 个素材', libraryProjectAssets: '{count} 个素材 · {size}',
     libraryOpenProject: '查看项目', libraryOpenFolder: '打开项目文件夹', libraryOpenSource: '打开来源网页', libraryPreview: '预览', libraryOpenSystem: '系统打开', libraryReveal: '定位文件',
-    libraryImportEditor: '导入 {editor}', libraryImportProject: '导入全部素材到 {editor}', libraryImportEditorDone: '已导入 {editor}', libraryImportProjectDone: '已向 {editor} 导入 {count} 个素材', libraryImportEditorMissing: '请先在偏好设置中扫描或选择剪辑软件。', libraryImportEditorNotReady: '未能打开 {editor} 的导入窗口，请确认软件处于编辑界面后重试。', libraryImportEditorBackgroundUnsupported: '当前版本尚未完成 {editor} 的导入适配。', libraryImportEditorFailed: '无法导入 {editor}', libraryEditorGeneric: '剪辑软件',
-    libraryProvider: '平台', libraryMediaId: '媒体 ID', libraryDownloadedAt: '下载时间', libraryFolder: '项目文件夹', librarySize: '大小',
+    libraryImportEditor: '导入 {editor}', libraryImportProject: '导入全部素材到 {editor}', libraryImportingEditor: '正在启动并导入 {editor}…', libraryImportEditorDone: '已导入 {editor}', libraryImportProjectDone: '已向 {editor} 导入 {count} 个素材', libraryImportEditorMissing: '请先在偏好设置中扫描或选择剪辑软件。', libraryImportEditorNotReady: '未能打开 {editor} 的导入窗口，请确认软件处于编辑界面后重试。', libraryImportEditorBackgroundUnsupported: '当前版本尚未完成 {editor} 的导入适配。', libraryImportEditorFailed: '无法导入 {editor}', libraryEditorGeneric: '剪辑软件',
+    libraryProvider: '平台', libraryDownloadedAt: '下载时间', libraryFolder: '项目文件夹', librarySize: '大小',
     libraryStatusAvailable: '完整', libraryStatusPartial: '部分文件缺失', libraryStatusMissing: '文件缺失', libraryMissing: '缺失', libraryUnknownProvider: '其他平台',
     libraryVideo: '视频', libraryAudio: 'MP3', libraryImage: '图片', librarySubtitle: '字幕', librarySharedCover: '共享封面', libraryRefreshDone: '素材库已刷新',
   },
   'zh-TW': {
     library: '素材庫', libraryTitle: '素材庫', libraryDescription: '影片、MP3、封面與字幕會依來源歸入同一個媒體專案。',
     libraryProjects: '媒體專案', libraryAllAssets: '全部素材', libraryRefresh: '重新整理', libraryRefreshing: '正在重新整理…',
-    librarySearch: '搜尋素材庫', librarySearchPlaceholder: '搜尋標題、平台或媒體 ID', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部類型',
+    librarySearch: '搜尋素材庫', librarySearchPlaceholder: '搜尋標題、檔名或平台', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部類型',
     librarySortRecent: '最近下載', librarySortTitle: '依標題', librarySortSize: '依大小', libraryGridView: '網格檢視', libraryListView: '清單檢視',
     libraryLoading: '正在讀取素材庫…', libraryLoadFailed: '素材庫讀取失敗：{message}', libraryEmptyTitle: '素材庫還是空的',
     libraryEmptyBody: '下載影片、MP3、封面或字幕後，會自動整理到這裡。', libraryNoResultsTitle: '沒有符合的素材', libraryNoResultsBody: '請清除搜尋或更換篩選條件。', libraryBrowse: '前往瀏覽下載',
     libraryProjectSummary: '共 {count} 個媒體專案', libraryAssetSummary: '共 {count} 個素材', libraryProjectAssets: '{count} 個素材 · {size}',
     libraryOpenProject: '查看專案', libraryOpenFolder: '開啟專案資料夾', libraryOpenSource: '開啟來源網頁', libraryPreview: '預覽', libraryOpenSystem: '系統開啟', libraryReveal: '顯示檔案位置',
-    libraryImportEditor: '匯入 {editor}', libraryImportProject: '將全部素材匯入 {editor}', libraryImportEditorDone: '已匯入 {editor}', libraryImportProjectDone: '已向 {editor} 匯入 {count} 個素材', libraryImportEditorMissing: '請先在偏好設定中掃描或選擇剪輯軟體。', libraryImportEditorNotReady: '無法開啟 {editor} 的匯入視窗，請確認軟體位於編輯介面後重試。', libraryImportEditorBackgroundUnsupported: '目前版本尚未完成 {editor} 的匯入適配。', libraryImportEditorFailed: '無法匯入 {editor}', libraryEditorGeneric: '剪輯軟體',
-    libraryProvider: '平台', libraryMediaId: '媒體 ID', libraryDownloadedAt: '下載時間', libraryFolder: '專案資料夾', librarySize: '大小',
+    libraryImportEditor: '匯入 {editor}', libraryImportProject: '將全部素材匯入 {editor}', libraryImportingEditor: '正在啟動並匯入 {editor}…', libraryImportEditorDone: '已匯入 {editor}', libraryImportProjectDone: '已向 {editor} 匯入 {count} 個素材', libraryImportEditorMissing: '請先在偏好設定中掃描或選擇剪輯軟體。', libraryImportEditorNotReady: '無法開啟 {editor} 的匯入視窗，請確認剪輯軟體位於編輯介面後重試。', libraryImportEditorBackgroundUnsupported: '目前版本尚未完成 {editor} 的匯入適配。', libraryImportEditorFailed: '無法匯入 {editor}', libraryEditorGeneric: '剪輯軟體',
+    libraryProvider: '平台', libraryDownloadedAt: '下載時間', libraryFolder: '專案資料夾', librarySize: '大小',
     libraryStatusAvailable: '完整', libraryStatusPartial: '部分檔案遺失', libraryStatusMissing: '檔案遺失', libraryMissing: '遺失', libraryUnknownProvider: '其他平台',
     libraryVideo: '影片', libraryAudio: 'MP3', libraryImage: '圖片', librarySubtitle: '字幕', librarySharedCover: '共用封面', libraryRefreshDone: '素材庫已重新整理',
   },
   en: {
     library: 'Library', libraryTitle: 'Media library', libraryDescription: 'Video, MP3, covers and subtitles are grouped into one source project.',
     libraryProjects: 'Media projects', libraryAllAssets: 'All assets', libraryRefresh: 'Refresh', libraryRefreshing: 'Refreshing…',
-    librarySearch: 'Search library', librarySearchPlaceholder: 'Search title, platform, or media ID', libraryAllPlatforms: 'All platforms', libraryAllTypes: 'All types',
+    librarySearch: 'Search library', librarySearchPlaceholder: 'Search title, file name, or platform', libraryAllPlatforms: 'All platforms', libraryAllTypes: 'All types',
     librarySortRecent: 'Most recent', librarySortTitle: 'By title', librarySortSize: 'By size', libraryGridView: 'Grid view', libraryListView: 'List view',
     libraryLoading: 'Loading the media library…', libraryLoadFailed: 'Could not load the media library: {message}', libraryEmptyTitle: 'Your library is empty',
     libraryEmptyBody: 'Downloaded video, MP3, covers, and subtitles will be organized here automatically.', libraryNoResultsTitle: 'No matching assets', libraryNoResultsBody: 'Clear the search or change a filter.', libraryBrowse: 'Browse and download',
     libraryProjectSummary: '{count} media projects', libraryAssetSummary: '{count} assets', libraryProjectAssets: '{count} assets · {size}',
     libraryOpenProject: 'View project', libraryOpenFolder: 'Open project folder', libraryOpenSource: 'Open source page', libraryPreview: 'Preview', libraryOpenSystem: 'Open in system', libraryReveal: 'Show in folder',
-    libraryImportEditor: 'Import into {editor}', libraryImportProject: 'Import all assets into {editor}', libraryImportEditorDone: 'Imported into {editor}', libraryImportProjectDone: 'Imported {count} assets into {editor}', libraryImportEditorMissing: 'Scan for or choose an editing app in Preferences first.', libraryImportEditorNotReady: 'Could not open the {editor} import window. Keep the app in its editing workspace and try again.', libraryImportEditorBackgroundUnsupported: 'Import support for {editor} is not available in this version.', libraryImportEditorFailed: 'Could not import into {editor}', libraryEditorGeneric: 'editing app',
-    libraryProvider: 'Platform', libraryMediaId: 'Media ID', libraryDownloadedAt: 'Downloaded', libraryFolder: 'Project folder', librarySize: 'Size',
+    libraryImportEditor: 'Import into {editor}', libraryImportProject: 'Import all assets into {editor}', libraryImportingEditor: 'Starting and importing into {editor}…', libraryImportEditorDone: 'Imported into {editor}', libraryImportProjectDone: 'Imported {count} assets into {editor}', libraryImportEditorMissing: 'Scan for or choose an editing app in Preferences first.', libraryImportEditorNotReady: 'Could not open the {editor} import window. Keep the app in its editing workspace and try again.', libraryImportEditorBackgroundUnsupported: 'Import support for {editor} is not available in this version.', libraryImportEditorFailed: 'Could not import into {editor}', libraryEditorGeneric: 'editing app',
+    libraryProvider: 'Platform', libraryDownloadedAt: 'Downloaded', libraryFolder: 'Project folder', librarySize: 'Size',
     libraryStatusAvailable: 'Complete', libraryStatusPartial: 'Some files are missing', libraryStatusMissing: 'Files missing', libraryMissing: 'Missing', libraryUnknownProvider: 'Other',
     libraryVideo: 'Video', libraryAudio: 'MP3', libraryImage: 'Image', librarySubtitle: 'Subtitle', librarySharedCover: 'Shared cover', libraryRefreshDone: 'Media library refreshed',
   },
@@ -1184,7 +1184,7 @@ const state = {
   externalLoginBusy: false,
   externalLoginCanSync: false,
   previewItem: null,
-  editor: { selected: null, editors: [], scanning: false },
+  editor: { selected: null, editors: [], scanning: false, importing: false },
   library: {
     loaded: false,
     loading: false,
@@ -2803,6 +2803,44 @@ function selectedEditorName() {
   return state.editor.selected?.name || text('libraryEditorGeneric');
 }
 
+function beginLibraryEditorImport(triggerButton) {
+  if (state.editor.importing) return false;
+  state.editor.importing = true;
+  const controls = document.querySelectorAll('[data-library-asset-action="import-editor"], [data-library-project-import]');
+  controls.forEach((control) => {
+    control.dataset.importWasDisabled = control.disabled ? 'true' : 'false';
+    control.disabled = true;
+  });
+  if (triggerButton) {
+    triggerButton.dataset.importIdleHtml = triggerButton.innerHTML;
+    triggerButton.dataset.importIdleTitle = triggerButton.title || '';
+    const loadingLabel = text('libraryImportingEditor', { editor: selectedEditorName() });
+    triggerButton.innerHTML = iconSvg('refresh');
+    triggerButton.title = loadingLabel;
+    triggerButton.setAttribute('aria-label', loadingLabel);
+    triggerButton.setAttribute('aria-busy', 'true');
+    triggerButton.classList.add('is-loading');
+  }
+  return true;
+}
+
+function finishLibraryEditorImport() {
+  state.editor.importing = false;
+  document.querySelectorAll('[data-import-was-disabled]').forEach((control) => {
+    control.disabled = control.dataset.importWasDisabled === 'true';
+    if (control.classList.contains('is-loading')) {
+      control.innerHTML = control.dataset.importIdleHtml || iconSvg('send');
+      control.title = control.dataset.importIdleTitle || '';
+      control.setAttribute('aria-label', control.title);
+      control.removeAttribute('aria-busy');
+      control.classList.remove('is-loading');
+    }
+    delete control.dataset.importWasDisabled;
+    delete control.dataset.importIdleHtml;
+    delete control.dataset.importIdleTitle;
+  });
+}
+
 function applyEditorConfiguration(configuration) {
   state.editor.editors = Array.isArray(configuration?.editors) ? configuration.editors : [];
   state.editor.selected = configuration?.selected || null;
@@ -2879,7 +2917,7 @@ function libraryAssetPresentation(assetType) {
 
 function libraryProviderLabel(provider) {
   const key = libraryProviderKey(provider);
-  const configured = state.platformConfig.platforms.find((platform) => libraryProviderKey(platform.id) === key);
+  const configured = state.platformConfig.platforms.find((platform) => libraryPlatformProviderKey(platform) === key);
   if (configured?.name) return configured.name;
   const labels = {
     youtube: 'YouTube', tiktok: 'TikTok', douyin: 'Douyin', agedm: 'AGE', vimeo: 'Vimeo',
@@ -2893,6 +2931,12 @@ function libraryProviderKey(provider) {
   const key = String(provider || 'web').trim().toLowerCase();
   if (['twitter', 'x-twitter', 'x/twitter'].includes(key)) return 'x';
   return key;
+}
+
+function libraryPlatformProviderKey(platform = {}) {
+  let detected = '';
+  try { detected = MEDIA_RULES?.providerSiteForUrl?.(platform.url) || ''; } catch { /* fall back to its configured ID */ }
+  return libraryProviderKey(detected || platform.id);
 }
 
 function libraryFilterPlatforms() {
@@ -2925,7 +2969,7 @@ function libraryProjectForAsset(assetId) {
 }
 
 function librarySearchText(project) {
-  return [project.title, project.provider, project.mediaId, project.sourceUrl, project.folderPath]
+  return [project.title, project.provider, libraryProviderLabel(project.provider), project.sourceUrl, project.folderPath]
     .concat((project.assets || []).flatMap((asset) => [asset.title, asset.filePath, asset.language]))
     .filter(Boolean)
     .join(' ')
@@ -2953,7 +2997,7 @@ function filteredLibraryAssets() {
     for (const asset of project.assets || []) {
       if (state.library.assetType !== 'all' && asset.assetType !== state.library.assetType) continue;
       if (!isInRange(asset.downloadedAt, state.library.timeRange)) continue;
-      const searchable = [project.title, project.provider, project.mediaId, asset.title, asset.filePath, asset.language]
+      const searchable = [project.title, project.provider, libraryProviderLabel(project.provider), asset.title, asset.filePath, asset.language]
         .filter(Boolean).join(' ').toLocaleLowerCase(state.locale);
       if (query && !searchable.includes(query)) continue;
       assets.push({ asset, project });
@@ -2967,7 +3011,7 @@ function filteredLibraryAssets() {
 function renderLibraryFilters() {
   if (!els.libraryProviderFilter) return;
   const providers = libraryFilterPlatforms()
-    .map((platform) => ({ value: libraryProviderKey(platform.id), label: platform.name }))
+    .map((platform) => ({ value: libraryPlatformProviderKey(platform), label: platform.name }))
     .filter((platform, index, items) => platform.value && items.findIndex((item) => item.value === platform.value) === index);
   els.libraryProviderFilter.innerHTML = [
     `<option value="all">${escapeHtml(text('libraryAllPlatforms'))}</option>`,
@@ -3004,12 +3048,12 @@ function libraryProjectCard(project) {
     return `<article class="library-project-row-shell">
       <button class="library-project-row" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
         <span class="library-row-cover" ${cover}>${iconSvg('folder-opened')}</span>
-        <span class="library-row-primary"><b>${escapeHtml(project.title)}</b><span>${escapeHtml(project.mediaId || project.sourceGroupId || '')}</span></span>
+        <span class="library-row-primary"><b>${escapeHtml(project.title)}</b></span>
         <span class="library-row-secondary">${escapeHtml(libraryProviderLabel(project.provider))}</span>
         <span class="library-project-counts">${libraryCountChips(project)}</span>
         <span class="library-row-secondary">${escapeHtml(formatBytes(project.totalSize))}</span>
       </button>
-      <button class="library-project-import" type="button" data-library-project-import="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}" aria-label="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}">${iconSvg('monitor')}</button>
+      <button class="library-project-import" type="button" data-library-project-import="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}" aria-label="${escapeHtml(text('libraryImportProject', { editor: selectedEditorName() }))}">${iconSvg('send')}</button>
     </article>`;
   }
   return `<button class="library-project-card" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
@@ -3029,7 +3073,7 @@ function libraryAssetActions(asset, compact = false) {
   const openLabel = escapeHtml(downloadAssetPresentation(asset.assetType).openLabel);
   const revealLabel = escapeHtml(text('libraryReveal'));
   const importLabel = escapeHtml(text('libraryImportEditor', { editor: selectedEditorName() }));
-  const importAction = `<button class="library-asset-action is-editor-action${missingClass}" type="button" data-library-asset-action="import-editor" data-library-asset-id="${escapeHtml(asset.id)}" title="${importLabel}" aria-label="${importLabel}"${disabled}>${iconSvg('monitor')}</button>`;
+  const importAction = `<button class="library-asset-action is-editor-action${missingClass}" type="button" data-library-asset-action="import-editor" data-library-asset-id="${escapeHtml(asset.id)}" title="${importLabel}" aria-label="${importLabel}"${disabled}>${iconSvg('send')}</button>`;
   return `<span class="${compact ? 'library-detail-asset-actions' : 'library-asset-actions'}">
     <button class="library-asset-action is-type-action${missingClass}" style="--asset-color:${presentation.color}" type="button" data-library-asset-action="preview" data-library-asset-id="${escapeHtml(asset.id)}" title="${openLabel}" aria-label="${openLabel}"${disabled}>${iconSvg(presentation.icon)}</button>
     ${importAction}
@@ -3133,7 +3177,7 @@ async function renderLibraryCoverPreviews(root) {
 function renderLibraryDetail() {
   const project = libraryProjectForId(state.library.selectedProjectId);
   if (!project) return closeLibraryDetail();
-  els.libraryDetailEyebrow.textContent = `${libraryProviderLabel(project.provider)} · ${project.mediaId || text('libraryProjects')}`;
+  els.libraryDetailEyebrow.textContent = libraryProviderLabel(project.provider);
   els.libraryDetailTitle.textContent = project.title;
   els.libraryDetailCover.innerHTML = iconSvg('folder-opened');
   if (project.coverPath) {
@@ -3145,7 +3189,7 @@ function renderLibraryDetail() {
     project.sourceUrl ? `<button class="library-detail-action" type="button" data-library-project-action="source">${iconSvg('view')}<span>${escapeHtml(text('libraryOpenSource'))}</span></button>` : '',
   ].join('');
   const fields = [
-    [text('libraryProvider'), libraryProviderLabel(project.provider), false], [text('libraryMediaId'), project.mediaId || '-', false],
+    [text('libraryProvider'), libraryProviderLabel(project.provider), false],
     [text('libraryDownloadedAt'), formatTime(project.updatedAt), false], [text('librarySize'), formatBytes(project.totalSize), false],
     [text('libraryFolder'), project.folderPath || '-', true],
   ];
@@ -3177,13 +3221,19 @@ function closeLibraryDetail() {
   state.library.selectedProjectId = null;
 }
 
-async function handleLibraryAction(action, assetId) {
+async function handleLibraryAction(action, assetId, triggerButton = null) {
   const asset = libraryAssetForId(assetId);
   if (!asset || asset.status === 'missing') return;
   const item = libraryAssetBridgeItem(asset);
   if (action === 'preview') return showMediaPreview(item);
   if (action === 'import-editor') {
-    const result = await window.mediaDeck.importIntoEditor(item).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+    if (!beginLibraryEditorImport(triggerButton)) return;
+    let result;
+    try {
+      result = await window.mediaDeck.importIntoEditor(item).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+    } finally {
+      finishLibraryEditorImport();
+    }
     const editorName = result?.editorName || selectedEditorName();
     if (result?.ok) return toast(text('libraryImportEditorDone', { editor: editorName }), 'success');
     if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
@@ -3198,13 +3248,19 @@ async function handleLibraryAction(action, assetId) {
   }
 }
 
-async function handleLibraryProjectImport(projectId) {
+async function handleLibraryProjectImport(projectId, triggerButton = null) {
   const project = libraryProjectForId(projectId);
   const items = (project?.assets || [])
     .filter((asset) => asset.status !== 'missing')
     .map((asset) => libraryAssetBridgeItem(asset));
   if (!items.length) return toast(text('openFileFailed'), 'error');
-  const result = await window.mediaDeck.importManyIntoEditor(items).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+  if (!beginLibraryEditorImport(triggerButton)) return;
+  let result;
+  try {
+    result = await window.mediaDeck.importManyIntoEditor(items).catch(() => ({ ok: false, reason: 'editor-launch-failed' }));
+  } finally {
+    finishLibraryEditorImport();
+  }
   const editorName = result?.editorName || selectedEditorName();
   if (result?.ok) return toast(text('libraryImportProjectDone', { editor: editorName, count: result.count || items.length }), 'success');
   if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
@@ -7338,12 +7394,12 @@ function bindEvents() {
   els.libraryContent.addEventListener('click', (event) => {
     const action = event.target.closest('[data-library-asset-action]');
     if (action) {
-      void handleLibraryAction(action.dataset.libraryAssetAction, action.dataset.libraryAssetId);
+      void handleLibraryAction(action.dataset.libraryAssetAction, action.dataset.libraryAssetId, action);
       return;
     }
     const projectImport = event.target.closest('[data-library-project-import]');
     if (projectImport) {
-      void handleLibraryProjectImport(projectImport.dataset.libraryProjectImport);
+      void handleLibraryProjectImport(projectImport.dataset.libraryProjectImport, projectImport);
       return;
     }
     const project = event.target.closest('[data-library-project]');
@@ -7353,7 +7409,7 @@ function bindEvents() {
   els.libraryDetailBody.addEventListener('click', (event) => {
     const assetAction = event.target.closest('[data-library-asset-action]');
     if (assetAction) {
-      void handleLibraryAction(assetAction.dataset.libraryAssetAction, assetAction.dataset.libraryAssetId);
+      void handleLibraryAction(assetAction.dataset.libraryAssetAction, assetAction.dataset.libraryAssetId, assetAction);
       return;
     }
     const projectAction = event.target.closest('[data-library-project-action]');
