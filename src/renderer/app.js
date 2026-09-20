@@ -3569,9 +3569,7 @@ function libraryProjectCard(project) {
   const status = libraryStatusPresentation(project.status);
   const statusBadge = project.status === 'available' ? '' : `<span class="library-status-badge ${status.className}">${escapeHtml(status.label)}</span>`;
   const cover = project.coverPath ? `data-library-cover-path="${escapeHtml(project.coverPath)}"` : '';
-  const projectTags = state.library.view === 'grid'
-    ? libraryProjectRowTags(project, { compact: true })
-    : libraryProjectRowTags(project);
+  const projectTags = libraryProjectRowTags(project);
   if (state.library.view === 'list') {
     return `<article class="library-project-row-shell">
       <button class="library-project-row" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
@@ -9326,9 +9324,9 @@ async function runRendererSelfTest() {
   const smokeProjectMeta = smokeProjectCard?.querySelector('.library-project-meta');
   const smokeProjectCounts = smokeProjectCard?.querySelector('.library-project-counts');
   assert(smokeProjectCard?.querySelectorAll('.library-row-project-tag').length === 2, 'Media-project cards must render their project tags');
-  assert(smokeProjectTitle && getComputedStyle(smokeProjectTitle).whiteSpace === 'normal' && getComputedStyle(smokeProjectTitle).webkitLineClamp === '2', 'Media-project card titles must allow two readable lines');
-  assert(smokeProjectCard && smokeProjectCover && Math.abs((smokeProjectCover?.getBoundingClientRect().width || 0) - smokeProjectCard.clientWidth) <= 2, 'Media-project grid cards must keep a full-bleed 16:9 cover');
-  assert((smokeProjectProviderBadge?.getBoundingClientRect().left || 0) - (smokeProjectCover?.getBoundingClientRect().left || 0) >= 6 && (smokeProjectProviderBadge?.getBoundingClientRect().top || 0) - (smokeProjectCover?.getBoundingClientRect().top || 0) >= 6, 'Media-project source badges must use a smaller inset treatment');
+  assert(smokeProjectTitle && getComputedStyle(smokeProjectTitle).whiteSpace === 'nowrap' && getComputedStyle(smokeProjectTitle).textOverflow === 'ellipsis', 'Media-project card titles must stay on one ellipsized line');
+  assert(smokeProjectCard?.getBoundingClientRect().width < 220 && Math.abs((smokeProjectCover?.getBoundingClientRect().width || 0) - smokeProjectCard.clientWidth) <= 2, 'Media-project grid cards must narrow around a full-bleed 16:9 cover');
+  assert(Math.abs((smokeProjectProviderBadge?.getBoundingClientRect().left || 0) - (smokeProjectCover?.getBoundingClientRect().left || 0)) <= 1 && Math.abs((smokeProjectProviderBadge?.getBoundingClientRect().top || 0) - (smokeProjectCover?.getBoundingClientRect().top || 0)) <= 1, 'Media-project source badges must sit directly in the cover corner');
   assert(smokeProjectMeta?.querySelector('time')?.textContent === formatTime(smokeProject.updatedAt) && smokeProjectMeta.textContent.includes(formatBytes(smokeProject.totalSize)) && !smokeProjectCounts?.querySelector('.library-project-size'), 'Media-project time must follow the asset count and size, leaving the footer for asset icons');
   await clickControl('library:open-project', els.libraryContent.querySelector('[data-library-project]'));
   assert(!els.libraryDetailOverlay.hidden && els.libraryDetailBody.querySelectorAll('.library-detail-asset').length === 4, 'Media project detail did not group all assets');
@@ -9356,7 +9354,7 @@ async function runRendererSelfTest() {
   await clickControl('library:all-assets', els.libraryTabs.querySelector('[data-library-tab="assets"]'));
   assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'All-assets view did not expose each logical asset');
   const smokeAssetCards = Array.from(els.libraryContent.querySelectorAll('.library-asset-card'));
-  assert(smokeAssetCards.every((card) => card.getBoundingClientRect().width >= 160 && card.querySelector('.library-asset-project-tags-label')?.textContent === text('libraryTags') && card.querySelectorAll('.library-asset-project-tags .library-row-project-tag').length === 2), 'All-assets cards must share the readable project width and identify inherited project tags explicitly');
+  assert(smokeAssetCards.every((card) => card.getBoundingClientRect().width < 220 && card.querySelector('.library-asset-project-tags-label')?.textContent === text('libraryTags') && card.querySelectorAll('.library-asset-project-tags .library-row-project-tag').length === 2), 'All-assets cards must share the compact project width and identify inherited project tags explicitly');
   const smokeAssetCover = smokeAssetCards[0].querySelector('.library-asset-cover');
   const smokeAssetTypeBadge = smokeAssetCover?.querySelector('.library-asset-type-badge');
   assert(Math.abs((smokeAssetTypeBadge?.getBoundingClientRect().right || 0) - (smokeAssetCover?.getBoundingClientRect().right || 0)) <= 1 && Math.abs((smokeAssetTypeBadge?.getBoundingClientRect().top || 0) - (smokeAssetCover?.getBoundingClientRect().top || 0)) <= 1, 'All-assets type badges must sit directly in the cover top-right corner');
