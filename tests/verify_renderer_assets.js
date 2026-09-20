@@ -18,7 +18,6 @@ const updateCheck = fs.readFileSync(path.join(root, 'src', 'update-check.js'), '
 const manifestRules = fs.readFileSync(path.join(root, 'src', 'manifest-rules.js'), 'utf8');
 const analytics = fs.readFileSync(path.join(root, 'src', 'analytics.js'), 'utf8');
 const releaseWorkflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'release-basic.yml'), 'utf8');
-const signedReleaseScript = fs.readFileSync(path.join(root, 'scripts', 'build_signed_release.ps1'), 'utf8');
 const betaValidation = fs.readFileSync(path.join(root, 'docs', 'BETA_VALIDATION_0.2.0.md'), 'utf8');
 const downloaderCore = fs.readFileSync(path.join(root, 'backend', 'downloader_core.py'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
