@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VidoGo</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Microsoft YaHei UI", "Segoe UI", sans-serif;
+      background: transparent;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: transparent; }
+    body { padding: 7px; }
+    body {
+      --card-bg: #101a2b;
+      --card-border: #2b4569;
+      --text: #eaf4ff;
+      --muted: #7f9abe;
+      --divider: #263b5d;
+      --hover: #1b3557;
+      --active: #254b78;
+      --switch-off: #263b5d;
+      --switch-knob: #c6d6ea;
+      --accent: #2e9ce7;
+      --danger: #ffc5c5;
+      --danger-hover: #4b2633;
+    }
+    body[data-theme="light"] {
+      color-scheme: light;
+      --card-bg: #ffffff;
+      --card-border: #d4dfed;
+      --text: #20324b;
+      --muted: #73839a;
+      --divider: #e2eaf4;
+      --hover: #edf5ff;
+      --active: #dcecff;
+      --switch-off: #c8d5e5;
+      --switch-knob: #ffffff;
+      --accent: #3d8df2;
+      --danger: #c04b52;
+      --danger-hover: #fff0f1;
+    }
+    .tray-card {
+      width: 184px;
+      padding: 8px;
+      color: var(--text);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 13px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, .34), 0 2px 7px rgba(0, 0, 0, .24);
+    }
+    .tray-divider { height: 1px; margin: 4px 2px; background: var(--divider); }
+    .tray-item, .tray-toggle {
+      width: 100%;
+      height: 30px;
+      border: 0;
+      border-radius: 7px;
+      color: var(--text);
+      background: transparent;
+      font: inherit;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .tray-item { padding: 0 9px; }
+    .tray-item:hover, .tray-toggle:hover { background: var(--hover); color: var(--text); }
+    .tray-item:active, .tray-toggle:active { background: var(--active); }
+    .tray-toggle { display: flex; align-items: center; justify-content: space-between; padding: 0 9px; }
+    .tray-switch {
+      position: relative;
+      width: 29px;
+      height: 16px;
+      border-radius: 9px;
+      background: var(--switch-off);
+      transition: background .15s ease;
+    }
+    .tray-switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--switch-knob);
+      transition: transform .15s ease;
+    }
+    .tray-toggle.is-on .tray-switch { background: var(--accent); }
+    .tray-toggle.is-on .tray-switch::after { transform: translateX(13px); background: #fff; }
+    .tray-item.danger { color: var(--danger); }
+    .tray-item.danger:hover { background: var(--danger-hover); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <main class="tray-card" role="menu" aria-label="VidoGo 快捷菜单">
+    <button class="tray-item" data-command="show-window">显示窗口</button>
+    <button class="tray-item" data-command="new-download">新建下载</button>
+    <button class="tray-item" data-command="navigate" data-section="downloads">下载任务</button>
+    <button class="tray-item" data-command="navigate" data-section="library">素材库</button>
+    <button class="tray-item" data-command="open-download-folder">下载目录</button>
+    <button class="tray-item" data-command="check-updates">检查更新</button>
+    <div class="tray-divider"></div>
+    <button class="tray-toggle" id="tray-close-toggle" type="button" aria-pressed="false">
+      <span>留在托盘</span><span class="tray-switch" aria-hidden="true"></span>
+    </button>
+    <div class="tray-divider"></div>
+    <button class="tray-item danger" data-command="exit">退出</button>
+  </main>
+  <script>
+    const toggle = document.getElementById('tray-close-toggle');
+    const setTheme = (theme) => {
+      document.body.dataset.theme = theme === 'light' ? 'light' : 'dark';
+    };
+    const setCloseToTray = (enabled) => {
+      toggle.classList.toggle('is-on', enabled === true);
+      toggle.setAttribute('aria-pressed', enabled === true ? 'true' : 'false');
+    };
+    document.querySelectorAll('[data-command]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const payload = {};
+        if (button.dataset.section) payload.section = button.dataset.section;
+        window.trayMenu.invoke(button.dataset.command, payload);
+      });
+    });
+    toggle.addEventListener('click', () => {
+      const enabled = toggle.getAttribute('aria-pressed') !== 'true';
+      setCloseToTray(enabled);
+      window.trayMenu.invoke('set-close-to-tray', { enabled });
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') window.trayMenu.invoke('hide');
+    });
+    window.trayMenu.onState((state) => {
+      setTheme(state?.theme);
+      setCloseToTray(state?.closeToTray === true);
+    });
+  </script>
+</body>
+</html>

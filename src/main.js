@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, net, safeStorage, session, shell, Tray, webContents } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, nativeImage, net, safeStorage, screen, session, shell, Tray, webContents } = require('electron');
 const crypto = require('node:crypto');
 const fsSync = require('fs');
 const fs = require('fs/promises');
@@ -286,9 +286,11 @@ let appUpdaterInitialized = false;
 let backgroundUpdateTimer = null;
 let backgroundUpdateCheckStarted = false;
 let tray = null;
-let trayCloseToTrayItem = null;
+let trayWindow = null;
+let trayMenuPending = false;
 let isQuitting = false;
 let closeToTray = false;
+let trayTheme = 'dark';
 let appUpdateState = {
   ok: true,
   status: 'idle',
@@ -1055,42 +1057,106 @@ function sendTrayCommand(command, payload = {}) {
   return true;
 }
 
+function sendTrayState() {
+  if (!trayWindow || trayWindow.isDestroyed() || trayWindow.webContents.isLoading()) return;
+  trayWindow.webContents.send('tray:state', { closeToTray, theme: trayTheme });
+}
+
+function hideTrayMenu() {
+  trayMenuPending = false;
+  if (trayWindow && !trayWindow.isDestroyed()) trayWindow.hide();
+}
+
+function trayMenuPosition() {
+  const width = 198;
+  const height = 292;
+  const trayBounds = tray?.getBounds?.() || { x: 0, y: 0, width: 0, height: 0 };
+  const anchor = {
+    x: Math.round(trayBounds.x + trayBounds.width / 2),
+    y: Math.round(trayBounds.y + trayBounds.height / 2),
+  };
+  const workArea = screen.getDisplayNearestPoint(anchor).workArea;
+  const x = Math.max(workArea.x + 8, Math.min(
+    anchor.x - Math.round(width / 2),
+    workArea.x + workArea.width - width - 8,
+  ));
+  const opensAbove = anchor.y >= workArea.y + workArea.height / 2;
+  const preferredY = opensAbove
+    ? trayBounds.y - height - 8
+    : trayBounds.y + trayBounds.height + 8;
+  const y = Math.max(workArea.y + 8, Math.min(
+    preferredY,
+    workArea.y + workArea.height - height - 8,
+  ));
+  return { x, y, width, height };
+}
+
+function createTrayMenuWindow() {
+  if (trayWindow && !trayWindow.isDestroyed()) return trayWindow;
+  trayWindow = new BrowserWindow({
+    width: 198,
+    height: 292,
+    show: false,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: true,
+    backgroundColor: '#00000000',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'tray-preload.js'),
+    },
+  });
+  trayWindow.on('blur', () => {
+    if (!isQuitting) hideTrayMenu();
+  });
+  trayWindow.on('closed', () => {
+    trayWindow = null;
+    trayMenuPending = false;
+  });
+  trayWindow.webContents.on('did-finish-load', () => {
+    sendTrayState();
+    if (trayMenuPending) showTrayMenu();
+  });
+  void trayWindow.loadFile(path.join(__dirname, 'tray.html'));
+  return trayWindow;
+}
+
+function showTrayMenu() {
+  if (IS_SMOKE_TEST || !tray) return false;
+  trayMenuPending = true;
+  const menuWindow = createTrayMenuWindow();
+  if (menuWindow.webContents.isLoading()) return false;
+  trayMenuPending = false;
+  menuWindow.setBounds(trayMenuPosition());
+  sendTrayState();
+  menuWindow.show();
+  menuWindow.focus();
+  return true;
+}
+
 function createTray() {
   if (IS_SMOKE_TEST || tray) return;
   const trayIcon = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-16.png'));
   if (trayIcon.isEmpty()) return;
   tray = new Tray(trayIcon);
   tray.setToolTip(APP_NAME);
-  const closeToTrayTemplate = {
-    label: '留在托盘',
-    type: 'checkbox',
-    checked: closeToTray,
-    click: (item) => {
-      closeToTray = item.checked === true;
-      if (trayCloseToTrayItem) trayCloseToTrayItem.checked = closeToTray;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('tray:command', { command: 'set-close-to-tray', enabled: closeToTray });
-      }
-    },
-  };
-  const trayMenu = Menu.buildFromTemplate([
-    { label: '显示窗口', click: () => showMainWindow() },
-    { label: '新建下载', click: () => sendTrayCommand('new-download') },
-    { label: '下载任务', click: () => sendTrayCommand('navigate', { section: 'downloads' }) },
-    { label: '素材库', click: () => sendTrayCommand('navigate', { section: 'library' }) },
-    { label: '下载目录', click: () => sendTrayCommand('open-download-folder') },
-    { label: '检查更新', click: () => sendTrayCommand('check-updates') },
-    { type: 'separator' },
-    closeToTrayTemplate,
-    { type: 'separator' },
-    { label: '退出', click: () => { isQuitting = true; app.quit(); } },
-  ]);
-  trayCloseToTrayItem = trayMenu.items.find((item) => item.label === closeToTrayTemplate.label) || null;
-  tray.setContextMenu(trayMenu);
   tray.on('click', () => {
+    if (trayWindow?.isVisible()) {
+      hideTrayMenu();
+      return;
+    }
     if (mainWindow?.isVisible()) mainWindow.hide();
     else showMainWindow();
   });
+  tray.on('right-click', () => showTrayMenu());
 }
 
 async function ensureUserDataPath() {
@@ -3702,6 +3768,8 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   isQuitting = true;
+  trayWindow?.destroy();
+  trayWindow = null;
   tray?.destroy();
   tray = null;
   if (analyticsFlushTimer) clearTimeout(analyticsFlushTimer);
@@ -4534,8 +4602,32 @@ ipcMain.handle('window:close', () => {
 
 ipcMain.handle('window:set-close-to-tray', (_event, enabled) => {
   closeToTray = enabled === true;
-  if (trayCloseToTrayItem) trayCloseToTrayItem.checked = closeToTray;
+  sendTrayState();
   return closeToTray;
+});
+
+ipcMain.on('tray:invoke', (_event, payload = {}) => {
+  hideTrayMenu();
+  const command = String(payload?.command || '');
+  if (command === 'hide') return;
+  if (command === 'show-window') {
+    showMainWindow();
+    return;
+  }
+  if (command === 'exit') {
+    isQuitting = true;
+    app.quit();
+    return;
+  }
+  if (command === 'set-close-to-tray') {
+    closeToTray = payload.enabled === true;
+    sendTrayState();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('tray:command', { command, enabled: closeToTray });
+    }
+    return;
+  }
+  sendTrayCommand(command, payload);
 });
 
 ipcMain.handle('download:verify-output', async (_event, item) => {
@@ -4879,8 +4971,10 @@ ipcMain.handle('download:start', async (_event, task) => {
 });
 
 ipcMain.handle('theme:update-title-bar', (_event, theme) => {
+  trayTheme = TITLE_BAR_THEMES[theme] ? theme : 'dark';
+  sendTrayState();
   if (!mainWindow || mainWindow.isDestroyed() || process.platform === 'darwin') return false;
-  const palette = TITLE_BAR_THEMES[theme] || TITLE_BAR_THEMES.dark;
+  const palette = TITLE_BAR_THEMES[trayTheme];
   mainWindow.setTitleBarOverlay({ ...palette, height: TITLE_BAR_HEIGHT });
   return true;
 });
