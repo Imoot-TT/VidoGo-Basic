@@ -1106,7 +1106,7 @@ function createTrayMenuWindow() {
     fullscreenable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    hasShadow: true,
+    hasShadow: false,
     backgroundColor: '#00000000',
     webPreferences: {
       contextIsolation: true,
@@ -1365,6 +1365,14 @@ function createWindow(url = null) {
   });
   mainWindow.on('closed', () => {
     mainWindow = null;
+    if (!IS_SMOKE_TEST && !closeToTray && !isQuitting) {
+      hideTrayMenu();
+      trayWindow?.destroy();
+      trayWindow = null;
+      tray?.destroy();
+      tray = null;
+      app.quit();
+    }
   });
 }
 
