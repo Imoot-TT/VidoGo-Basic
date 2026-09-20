@@ -8899,6 +8899,9 @@ async function bootstrap() {
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
   state.settings.closeToTray = state.settings.closeToTray === true;
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
+  // Register navigation and window controls before any remote/bootstrap work.
+  // The first frame must remain interactive while account/update data loads.
+  bindEvents();
   const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration, updateInfo, analyticsState, rememberedLogin] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
     window.mediaDeck.getDefaultDownloadDir(),
@@ -8933,7 +8936,6 @@ async function bootstrap() {
   await window.mediaDeck.setAdBlockerEnabled(state.settings.adBlocker !== false);
   applyTheme();
   renderQuickSites();
-  bindEvents();
   startSystemNetworkSpeedPolling();
   applyLocale();
   syncSettingsControls();

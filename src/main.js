@@ -1148,6 +1148,8 @@ function createTray() {
   if (trayIcon.isEmpty()) return;
   tray = new Tray(trayIcon);
   tray.setToolTip(APP_NAME);
+  // Preload the lightweight custom panel so the first right-click only needs to show it.
+  createTrayMenuWindow();
   tray.on('click', () => {
     if (trayWindow?.isVisible()) {
       hideTrayMenu();
