@@ -3384,6 +3384,10 @@ html[dir="rtl"] .library-detail-tag-form input { padding: 0 9px 0 2px; }
   to { transform: translateX(calc(-1 * var(--library-title-distance))); }
 }
 
+@media (max-width: 1400px) {
+  .library-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}
+
 @media (max-width: 1240px) {
   .browser-split { grid-template-columns: minmax(0, 1fr) 280px; }
   .browser-side { border-left: 1px solid var(--app-border); border-top: 0; }
