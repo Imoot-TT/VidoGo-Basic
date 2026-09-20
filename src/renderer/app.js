@@ -10073,6 +10073,8 @@ async function runRendererSelfTest() {
   state.account.plan = 'pro';
   const selfTestUser = findLocalUser('selftest@example.com');
   if (selfTestUser) upsertLocalUser({ ...selfTestUser, plan: 'pro' });
+  const creatorSmokeEntitlements = await window.mediaDeck.configureEntitlements({ accountId: state.account?.email || 'selftest@example.com', planLevel: 'creator' });
+  if (creatorSmokeEntitlements) applyEntitlementState(creatorSmokeEntitlements);
   await syncRecordingConfiguration();
   assert(state.entitlements?.planLevel === 'creator', 'Legacy Pro plan did not migrate to Creator entitlements');
   assert(state.entitlements?.maxConcurrentDownloads === 5, 'Creator concurrency entitlement must be 5');
