@@ -3429,7 +3429,7 @@ html[dir="rtl"] .library-detail-tag-form input { padding: 0 9px 0 2px; }
   .library-filter-row { grid-column: auto; overflow-x: auto; padding-bottom: 2px; }
   .library-filter-row select { flex: 0 0 128px; }
   .library-content { padding: 14px; }
-  .library-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+  .library-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   .library-project-row { grid-template-columns: 64px minmax(0, 1fr) 90px 132px 70px; }
   .library-row-project-title { max-width: 148px; flex-basis: 148px; }
   .library-detail-overlay { grid-template-columns: minmax(0, 1fr) min(468px, 68vw); }
