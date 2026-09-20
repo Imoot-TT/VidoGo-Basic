@@ -286,6 +286,7 @@ let appUpdaterInitialized = false;
 let backgroundUpdateTimer = null;
 let backgroundUpdateCheckStarted = false;
 let tray = null;
+let trayCloseToTrayItem = null;
 let isQuitting = false;
 let closeToTray = false;
 let appUpdateState = {
@@ -1048,17 +1049,62 @@ function showMainWindow() {
   return true;
 }
 
+function sendTrayCommand(command, payload = {}) {
+  if (!showMainWindow() || !mainWindow || mainWindow.webContents.isDestroyed()) return false;
+  mainWindow.webContents.send('tray:command', { command, ...payload });
+  return true;
+}
+
 function createTray() {
   if (IS_SMOKE_TEST || tray) return;
   const trayIcon = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-16.png'));
   if (trayIcon.isEmpty()) return;
   tray = new Tray(trayIcon);
   tray.setToolTip(APP_NAME);
-  tray.setContextMenu(Menu.buildFromTemplate([
-    { label: '显示 VidoGo', click: () => showMainWindow() },
+  const closeToTrayTemplate = {
+    label: '关闭时留在托盘',
+    type: 'checkbox',
+    checked: closeToTray,
+    click: (item) => {
+      closeToTray = item.checked === true;
+      if (trayCloseToTrayItem) trayCloseToTrayItem.checked = closeToTray;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('tray:command', { command: 'set-close-to-tray', enabled: closeToTray });
+      }
+    },
+  };
+  const trayMenu = Menu.buildFromTemplate([
+    { label: '打开窗口', click: () => showMainWindow() },
     { type: 'separator' },
-    { label: '退出 VidoGo', click: () => { isQuitting = true; app.quit(); } },
-  ]));
+    {
+      label: '快速入口',
+      submenu: [
+        { label: '新建下载', click: () => sendTrayCommand('new-download') },
+        { type: 'separator' },
+        { label: '浏览器', click: () => sendTrayCommand('navigate', { section: 'browser' }) },
+        { label: '下载任务', click: () => sendTrayCommand('navigate', { section: 'downloads' }) },
+        { label: '素材库', click: () => sendTrayCommand('navigate', { section: 'library' }) },
+        { label: '历史记录', click: () => sendTrayCommand('navigate', { section: 'history' }) },
+        { label: '收藏夹', click: () => sendTrayCommand('navigate', { section: 'favorites' }) },
+        { label: '账户', click: () => sendTrayCommand('navigate', { section: 'account' }) },
+        { label: '设置', click: () => sendTrayCommand('navigate', { section: 'settings' }) },
+      ],
+    },
+    {
+      label: '工具',
+      submenu: [
+        { label: '下载目录', click: () => sendTrayCommand('open-download-folder') },
+        { label: '检查更新', click: () => sendTrayCommand('check-updates') },
+      ],
+    },
+    { type: 'separator' },
+    closeToTrayTemplate,
+    { label: `版本 v${app.getVersion()}`, enabled: false },
+    { type: 'separator' },
+    { label: '退出', click: () => { isQuitting = true; app.quit(); } },
+  ]);
+  trayCloseToTrayItem = trayMenu.items.find((item) => item.label === closeToTrayTemplate.label) || null;
+  tray.setContextMenu(trayMenu);
   tray.on('click', () => {
     if (mainWindow?.isVisible()) mainWindow.hide();
     else showMainWindow();
@@ -4506,6 +4552,7 @@ ipcMain.handle('window:close', () => {
 
 ipcMain.handle('window:set-close-to-tray', (_event, enabled) => {
   closeToTray = enabled === true;
+  if (trayCloseToTrayItem) trayCloseToTrayItem.checked = closeToTray;
   return closeToTray;
 });
 

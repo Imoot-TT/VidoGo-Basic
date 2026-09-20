@@ -8845,6 +8845,43 @@ function bindEvents() {
   });
   window.mediaDeck.onEntitlementsChanged(applyEntitlementState);
   window.mediaDeck.onRecordingEvent(handleRecordingEvent);
+  window.mediaDeck.onTrayCommand((payload) => {
+    const command = String(payload?.command || '');
+    if (command === 'navigate') {
+      const section = ['home', 'browser', 'downloads', 'library', 'history', 'favorites', 'plans', 'account', 'settings'].includes(payload?.section)
+        ? payload.section
+        : 'home';
+      setSection(section);
+      return;
+    }
+    if (command === 'new-download') {
+      setSection('home');
+      window.requestAnimationFrame(() => els.homeAssetPackUrl?.focus());
+      return;
+    }
+    if (command === 'open-download-folder') {
+      const target = state.settings.outputDir || '';
+      if (target) {
+        void window.mediaDeck.openPath(target);
+      } else {
+        void window.mediaDeck.getDefaultDownloadDir().then((directory) => {
+          if (directory) void window.mediaDeck.openPath(directory);
+        });
+      }
+      return;
+    }
+    if (command === 'check-updates') {
+      setSection('settings');
+      setSettingsSection('about');
+      void handleUpdateCheck({ showDialog: true });
+      return;
+    }
+    if (command === 'set-close-to-tray') {
+      state.settings.closeToTray = payload.enabled === true;
+      saveState();
+      syncSettingsControls();
+    }
+  });
   window.mediaDeck.onUpdateState((update) => {
     if (!update || typeof update !== 'object') return;
     const previousStatus = state.updateInfo?.status;

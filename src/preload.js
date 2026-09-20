@@ -90,6 +90,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   onEntitlementsChanged: (callback) => bind('entitlements:changed', callback),
   onRecordingEvent: (callback) => bind('recording:event', callback),
   onUpdateState: (callback) => bind('app:update-state', callback),
+  onTrayCommand: (callback) => bind('tray:command', callback),
 });
 
 contextBridge.exposeInMainWorld('mediaDeckSmokeExpectedBackend', process.env.ELECTRON_SMOKE_EXPECT_BACKEND || '');
