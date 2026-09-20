@@ -3108,6 +3108,8 @@ html[dir="rtl"] select:not([multiple]) {
   position: relative;
   display: grid;
   min-width: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: 260px;
   overflow: hidden;
   border: 1px solid var(--app-border);
   border-radius: 6px;
@@ -3229,6 +3231,9 @@ html[dir="rtl"] select:not([multiple]) {
 .library-row-project-tags-more { display: inline-flex; height: 22px; flex: 0 0 auto; align-items: center; padding: 0 8px; border: 1px solid color-mix(in srgb, var(--app-accent) 28%, var(--app-border)); border-radius: 999px; color: var(--app-accent); background: color-mix(in srgb, var(--app-accent) 7%, var(--app-panel)); font-size: 9px; font-weight: 650; }
 .library-row-project-tags-more { padding: 0 7px; color: var(--app-muted); border-color: var(--app-border); background: transparent; }
 .library-row-project-tags .is-overflow-hidden { display: none; }
+.library-asset-project-tags .library-row-project-tags.is-compact { flex: 1 1 auto; overflow: hidden; }
+.library-asset-project-tags .library-row-project-tags.is-compact .library-row-project-tag,
+.library-asset-project-tags .library-row-project-tags.is-compact .library-row-project-tags-more { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .library-project-row .library-project-counts { min-height: 0; flex-wrap: nowrap; gap: 8px; margin-top: 0; padding-top: 0; border-top: 0; }
 .library-project-import {
   display: grid;

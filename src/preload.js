@@ -36,6 +36,7 @@ contextBridge.exposeInMainWorld('mediaDeck', {
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
   toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
   closeWindow: () => ipcRenderer.invoke('window:close'),
+  setCloseToTray: (enabled) => ipcRenderer.invoke('window:set-close-to-tray', enabled === true),
   rendererReady: () => ipcRenderer.invoke('window:renderer-ready'),
   setTitleBarTheme: (theme) => ipcRenderer.invoke('theme:update-title-bar', theme),
   resetBrowserSession: () => ipcRenderer.invoke('session:reset-browser'),

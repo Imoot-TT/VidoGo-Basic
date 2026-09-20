@@ -299,6 +299,8 @@ const TEXT = {
     maxConcurrentDownloadsDescription: '控制可同时进行的下载与录制任务；数量上限由当前套餐决定。',
     recordingFeature: '网页录制',
     recordingFeatureDescription: '在网页视频上显示录制工具栏。该功能默认关闭。',
+    closeToTray: '关闭时最小化到托盘',
+    closeToTrayDescription: '点击右上角关闭时保留后台运行，可从系统托盘重新打开。',
     owner: '所有者',
     ownerConcurrency: '所有者账户 · 不限并发',
     concurrencyLimitLabel: '{plan}上限 {count}',
@@ -544,6 +546,8 @@ const TEXT = {
     maxConcurrentDownloadsDescription: 'Control concurrent downloads and recordings. The current plan sets the maximum.',
     recordingFeature: 'Web recording',
     recordingFeatureDescription: 'Show the recording toolbar on web videos. This feature is off by default.',
+    closeToTray: 'Minimize to tray on close',
+    closeToTrayDescription: 'Keep VidoGo running when you close the window, and reopen it from the system tray.',
     owner: 'Owner',
     ownerConcurrency: 'Owner account · Unlimited concurrency',
     concurrencyLimitLabel: '{plan} limit {count}',
@@ -1222,6 +1226,8 @@ const els = {
   settingsRecordingState: document.getElementById('settings-recording-state'),
   settingsAnalytics: document.getElementById('settings-analytics-control'),
   settingsAnalyticsState: document.getElementById('settings-analytics-state'),
+  settingsCloseToTray: document.getElementById('settings-close-to-tray-control'),
+  settingsCloseToTrayState: document.getElementById('settings-close-to-tray-state'),
   settingsEditor: document.getElementById('settings-editor-control'),
   settingsEditorPath: document.getElementById('settings-editor-path'),
   settingsEditorScan: document.getElementById('settings-editor-scan'),
@@ -1334,6 +1340,7 @@ const state = {
     searchEngine: 'google',
     adBlocker: true,
     recordingEnabled: false,
+    closeToTray: false,
   },
   runtimeInfo: null,
   entitlements: null,
@@ -1382,6 +1389,7 @@ let systemNetworkSpeedRefreshPending = false;
 let browserLoadingShowTimer = 0;
 let browserLoadingHideTimer = 0;
 let browserLoadingShownAt = 0;
+let libraryCoverObserver = null;
 
 function readArray(key) {
   try {
@@ -1640,6 +1648,8 @@ function updateSettingsCopy() {
   els.settingsRecordingState.textContent = text(state.settings.recordingEnabled === true ? 'on' : 'off');
   document.getElementById('settings-analytics-title').textContent = text('analyticsTitle');
   document.getElementById('settings-analytics-description').textContent = text('analyticsDescription');
+  document.getElementById('settings-close-to-tray-title').textContent = text('closeToTray');
+  document.getElementById('settings-close-to-tray-description').textContent = text('closeToTrayDescription');
   document.getElementById('analytics-consent-title').textContent = text('analyticsConsentTitle');
   document.getElementById('analytics-consent-copy').textContent = text('analyticsConsentCopy');
   els.analyticsConsentAllow.textContent = text('analyticsAllow');
@@ -1877,6 +1887,8 @@ function syncSettingsControls() {
   els.settingsRecordingState.textContent = text(els.settingsRecording.checked ? 'on' : 'off');
   els.settingsAnalytics.checked = state.analytics.consent === true;
   els.settingsAnalyticsState.textContent = text(els.settingsAnalytics.checked ? 'on' : 'off');
+  els.settingsCloseToTray.checked = state.settings.closeToTray === true;
+  els.settingsCloseToTrayState.textContent = text(els.settingsCloseToTray.checked ? 'on' : 'off');
   renderEditorSettings();
   updateBrowserStatusBar();
   els.settingsVersion.textContent = `${state.runtimeInfo?.appName || text('title')} ${state.runtimeInfo?.version || '-'}`;
@@ -3469,10 +3481,18 @@ function libraryCountChips(project) {
   }).join('');
 }
 
-function libraryProjectRowTags(project) {
+function libraryProjectRowTags(project, { compact = false } = {}) {
   const tags = normalizeLibraryDetailTags(project?.tags);
   if (!tags.length) return '';
   const label = `${text('libraryTags')}: ${tags.map((tag) => `#${tag}`).join(' ')}`;
+  if (compact) {
+    const visibleTags = tags.slice(0, 2);
+    const hiddenCount = Math.max(0, tags.length - visibleTags.length);
+    return `<span class="library-row-project-tags is-compact" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+      ${visibleTags.map((tag) => `<span class="library-row-project-tag" data-library-row-tag>#${escapeHtml(tag)}</span>`).join('')}
+      ${hiddenCount ? `<span class="library-row-project-tags-more">+${hiddenCount}</span>` : ''}
+    </span>`;
+  }
   return `<span class="library-row-project-tags" data-library-row-tags title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
     ${tags.map((tag) => `<span class="library-row-project-tag" data-library-row-tag>#${escapeHtml(tag)}</span>`).join('')}
     <span class="library-row-project-tags-more is-overflow-hidden" data-library-row-tags-more></span>
@@ -3484,7 +3504,7 @@ function libraryAssetProjectTags(project) {
   if (!tags.length) return '<div class="library-asset-project-tags is-empty" aria-hidden="true"></div>';
   return `<div class="library-asset-project-tags">
     <span class="library-asset-project-tags-label">${escapeHtml(text('libraryTags'))}</span>
-    ${libraryProjectRowTags(project)}
+    ${libraryProjectRowTags(project, { compact: true })}
   </div>`;
 }
 
@@ -3526,6 +3546,8 @@ function syncLibraryProjectRowTags(root = els.libraryContent) {
 }
 
 function scheduleLibraryProjectRowTagSync(root = els.libraryContent) {
+  const shouldSync = root?.querySelector?.('.library-list, .library-grid.is-projects');
+  if (!shouldSync) return;
   syncLibraryProjectRowTags(root);
   window.requestAnimationFrame(() => syncLibraryProjectRowTags(root));
   if (document.fonts?.ready) void document.fonts.ready.then(() => syncLibraryProjectRowTags(root));
@@ -3650,24 +3672,42 @@ function renderLibrary() {
   void renderLibraryCoverPreviews(els.libraryContent);
 }
 
-async function renderLibraryCoverPreviews(root) {
+async function loadLibraryCoverPreview(target) {
+  const coverPath = target?.dataset?.libraryCoverPath;
+  if (!coverPath || !target.isConnected || target.querySelector('img')) return;
+  let url = state.library.previewUrls.get(coverPath);
+  if (!url) {
+    const result = await window.mediaDeck.previewDownloadedFile({ path: coverPath, fileName: getFileName(coverPath), assetType: 'image' }).catch(() => null);
+    if (!result?.ok || !result.url) return;
+    url = result.url;
+    state.library.previewUrls.set(coverPath, url);
+  }
+  if (!target.isConnected || target.dataset.libraryCoverPath !== coverPath || target.querySelector('img')) return;
+  const image = document.createElement('img');
+  image.src = url;
+  image.alt = '';
+  image.loading = 'lazy';
+  target.appendChild(image);
+}
+
+function renderLibraryCoverPreviews(root) {
+  libraryCoverObserver?.disconnect();
+  libraryCoverObserver = null;
   const targets = Array.from(root?.querySelectorAll?.('[data-library-cover-path]') || []);
-  await Promise.all(targets.map(async (target) => {
-    const coverPath = target.dataset.libraryCoverPath;
-    if (!coverPath) return;
-    let url = state.library.previewUrls.get(coverPath);
-    if (!url) {
-      const result = await window.mediaDeck.previewDownloadedFile({ path: coverPath, fileName: getFileName(coverPath), assetType: 'image' }).catch(() => null);
-      if (!result?.ok || !result.url) return;
-      url = result.url;
-      state.library.previewUrls.set(coverPath, url);
-    }
-    if (!target.isConnected || target.dataset.libraryCoverPath !== coverPath || target.querySelector('img')) return;
-    const image = document.createElement('img');
-    image.src = url;
-    image.alt = '';
-    target.appendChild(image);
-  }));
+  if (!targets.length) return;
+  if ('IntersectionObserver' in window) {
+    libraryCoverObserver = new IntersectionObserver((entries, observer) => {
+      entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
+        observer.unobserve(entry.target);
+        void loadLibraryCoverPreview(entry.target);
+      });
+    }, { root: els.libraryContent, rootMargin: '240px 0px' });
+    targets.forEach((target) => libraryCoverObserver.observe(target));
+    return;
+  }
+  const firstBatch = targets.slice(0, 8);
+  const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 0));
+  schedule(() => { firstBatch.forEach((target) => void loadLibraryCoverPreview(target)); });
 }
 
 function normalizeLibraryDetailTags(tags) {
@@ -8237,6 +8277,13 @@ function bindEvents() {
   els.analyticsConsentAllow.addEventListener('click', () => void updateAnalyticsConsent(true));
   els.analyticsConsentDecline.addEventListener('click', () => void updateAnalyticsConsent(false));
   els.settingsAnalytics.addEventListener('change', () => void updateAnalyticsConsent(els.settingsAnalytics.checked));
+  els.settingsCloseToTray.addEventListener('change', () => {
+    state.settings.closeToTray = els.settingsCloseToTray.checked;
+    void window.mediaDeck.setCloseToTray(state.settings.closeToTray);
+    saveState();
+    syncSettingsControls();
+    toast(text('saved'));
+  });
   els.browserLoginButton.addEventListener('click', () => void beginExternalLogin());
   els.externalLoginClose.addEventListener('click', hideExternalLoginDialog);
   els.externalLoginReopen.addEventListener('click', () => void beginExternalLogin());
@@ -8801,6 +8848,7 @@ function bindEvents() {
 async function bootstrap() {
   if (!PLAN_PRODUCTS[state.selectedPlan]) state.selectedPlan = 'creator_year';
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
+  state.settings.closeToTray = state.settings.closeToTray === true;
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
   const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration, updateInfo, analyticsState, rememberedLogin] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
@@ -8825,6 +8873,7 @@ async function bootstrap() {
   state.editor.selected = editorConfiguration?.selected || null;
   state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
   applyRememberedLogin(rememberedLogin, { fill: true });
+  await window.mediaDeck.setCloseToTray(state.settings.closeToTray).catch(() => false);
   try {
     await refreshRemoteAccount();
   } catch {
@@ -10096,6 +10145,11 @@ async function runRendererSelfTest() {
   els.settingsConcurrency.dispatchEvent(new Event('change'));
   clicked.push('settings:concurrency');
   await clickControl('settings:section-preferences', document.querySelector('[data-settings-section="preferences"]'));
+  assert(els.settingsCloseToTray && els.settingsCloseToTrayState, 'Close-to-tray setting is missing from Preferences');
+  await changeControl('settings:close-to-tray-on', els.settingsCloseToTray, true);
+  assert(state.settings.closeToTray === true, 'Close-to-tray setting did not enable');
+  await changeControl('settings:close-to-tray-off', els.settingsCloseToTray, false);
+  assert(state.settings.closeToTray === false, 'Close-to-tray setting did not disable');
   await changeControl('settings:search-bing', els.settingsSearchEngine, 'bing');
   assert(state.settings.searchEngine === 'bing', 'Default search engine setting was not restored');
   assert(els.settingsEditor.options.length === 2 && state.editor.selected?.name, 'Detected editing apps did not render in settings');
@@ -10154,6 +10208,7 @@ async function runRendererSelfTest() {
   applyTheme();
   applyLocale();
   syncSettingsControls();
+  await window.mediaDeck.setCloseToTray(state.settings.closeToTray).catch(() => false);
   await syncRecordingConfiguration();
   await wait(220);
   document.querySelector('.downloads-url-panel')?.removeAttribute('open');

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, nativeImage, net, safeStorage, session, shell, webContents } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, net, safeStorage, session, shell, Tray, webContents } = require('electron');
 const crypto = require('node:crypto');
 const fsSync = require('fs');
 const fs = require('fs/promises');
@@ -270,7 +270,7 @@ const TITLE_BAR_THEMES = {
 const UPDATE_RELEASE_API_URL = process.env.VIDOGO_UPDATE_API_URL
   || 'https://api.github.com/repos/Imoot-TT/VidoGo-Basic/releases?per_page=30';
 const UPDATE_RELEASE_BASE_URL = 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag';
-const UPDATE_AUTO_CHECK_DELAY_MS = 12_000;
+const UPDATE_AUTO_CHECK_DELAY_MS = 0;
 let metadataRequestCounter = 0;
 let metadataGeneration = 0;
 let currentEntitlementProfile = normalizeEntitlementProfile({});
@@ -284,6 +284,10 @@ let systemNetworkSampling = false;
 let previousSystemNetworkTotals = null;
 let appUpdaterInitialized = false;
 let backgroundUpdateTimer = null;
+let backgroundUpdateCheckStarted = false;
+let tray = null;
+let isQuitting = false;
+let closeToTray = false;
 let appUpdateState = {
   ok: true,
   status: 'idle',
@@ -1022,7 +1026,8 @@ function installDownloadedAppUpdate(force = false) {
 }
 
 function scheduleBackgroundUpdateCheck() {
-  if (IS_SMOKE_TEST || !app.isPackaged || backgroundUpdateTimer) return;
+  if (IS_SMOKE_TEST || !app.isPackaged || backgroundUpdateTimer || backgroundUpdateCheckStarted) return;
+  backgroundUpdateCheckStarted = true;
   backgroundUpdateTimer = setTimeout(() => {
     backgroundUpdateTimer = null;
     void checkForAppUpdates();
@@ -1033,6 +1038,31 @@ function scheduleBackgroundUpdateCheck() {
 function createAppIcon() {
   const image = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-256.png'));
   return image.isEmpty() ? undefined : image;
+}
+
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return false;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+  return true;
+}
+
+function createTray() {
+  if (IS_SMOKE_TEST || tray) return;
+  const trayIcon = nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-16.png'));
+  if (trayIcon.isEmpty()) return;
+  tray = new Tray(trayIcon);
+  tray.setToolTip(APP_NAME);
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: '显示 VidoGo', click: () => showMainWindow() },
+    { type: 'separator' },
+    { label: '退出 VidoGo', click: () => { isQuitting = true; app.quit(); } },
+  ]));
+  tray.on('click', () => {
+    if (mainWindow?.isVisible()) mainWindow.hide();
+    else showMainWindow();
+  });
 }
 
 async function ensureUserDataPath() {
@@ -1229,12 +1259,16 @@ function createWindow(url = null) {
 
   if (!IS_SMOKE_TEST) {
     mainWindow.webContents.once('did-finish-load', () => {
-      setTimeout(() => {
-        if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) mainWindow.show();
-      }, 4000);
+      showMainWindow();
     });
   }
 
+  mainWindow.on('close', (event) => {
+    if (!IS_SMOKE_TEST && closeToTray && !isQuitting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -3622,8 +3656,15 @@ app.whenReady().then(async () => {
   registerBrowserRequestFeatures();
   startSystemNetworkMonitor();
   createWindow();
+  createTray();
+  scheduleBackgroundUpdateCheck();
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+      createTray();
+    } else {
+      showMainWindow();
+    }
   });
 });
 
@@ -3632,6 +3673,9 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  isQuitting = true;
+  tray?.destroy();
+  tray = null;
   if (analyticsFlushTimer) clearTimeout(analyticsFlushTimer);
   analyticsFlushTimer = null;
   if (backgroundUpdateTimer) clearTimeout(backgroundUpdateTimer);
@@ -4458,6 +4502,11 @@ ipcMain.handle('window:close', () => {
   if (IS_SMOKE_TEST) return true;
   mainWindow.close();
   return true;
+});
+
+ipcMain.handle('window:set-close-to-tray', (_event, enabled) => {
+  closeToTray = enabled === true;
+  return closeToTray;
 });
 
 ipcMain.handle('download:verify-output', async (_event, item) => {
