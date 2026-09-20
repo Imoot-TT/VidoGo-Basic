@@ -757,12 +757,12 @@ async function fetchLatestReleaseResponse() {
     return {
       status: 200,
       data: [{
-        tag_name: 'basic-v0.2.1',
-        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.1',
+        tag_name: 'basic-v0.2.2',
+        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.2',
         published_at: '2026-08-23T12:00:00Z',
         assets: [{
-          name: 'VidoGo-Basic-0.2.1-x64-Setup.exe',
-          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.1/VidoGo-Basic-0.2.1-x64-Setup.exe',
+          name: 'VidoGo-Basic-0.2.2-x64-Setup.exe',
+          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.2/VidoGo-Basic-0.2.2-x64-Setup.exe',
         }],
       }],
     };

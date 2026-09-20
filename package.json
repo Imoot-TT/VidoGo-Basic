@@ -1,6 +1,6 @@
 {
   "name": "vidogo-basic",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "VidoGo Basic video browser and downloader",
   "main": "./src/main.js",
@@ -14,7 +14,8 @@
     "build:icon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\build_icon.ps1",
     "build:backend": "python scripts/build_backend.py",
     "pack:win": "npm run build:icon && npm run build:backend && electron-builder --win dir --config.electronDist=node_modules/electron/dist",
-    "dist:win": "npm run build:icon && npm run build:backend && electron-builder --win nsis --config.electronDist=node_modules/electron/dist"
+    "dist:win": "npm run build:icon && npm run build:backend && electron-builder --win nsis --config.electronDist=node_modules/electron/dist",
+    "dist:signed": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts\\build_signed_release.ps1"
   },
   "devDependencies": {
     "electron": "39.8.10",

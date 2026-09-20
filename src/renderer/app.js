@@ -9170,7 +9170,7 @@ async function runRendererSelfTest() {
   });
   assert(recordingConfiguration?.outputDir === state.settings.outputDir, 'Recording output configuration mismatch');
   const updateState = await window.mediaDeck.checkForUpdates();
-  assert(updateState?.available === true && updateState?.latestVersion === '0.2.1' && updateState?.source === 'github', 'Update check IPC did not return the simulated GitHub release state');
+  assert(updateState?.available === true && updateState?.latestVersion === '0.2.2' && updateState?.source === 'github', 'Update check IPC did not return the simulated GitHub release state');
   const analyticsState = await window.mediaDeck.getAnalyticsState();
   assert(analyticsState && Object.prototype.hasOwnProperty.call(analyticsState, 'consent'), 'Anonymous analytics state is unavailable');
   const analyticsEnabled = await window.mediaDeck.setAnalyticsConsent(true);
@@ -10223,7 +10223,7 @@ async function runRendererSelfTest() {
   assert(state.settings.adBlocker === true, 'Ad blocker setting did not enable');
   await clickControl('settings:section-about', document.querySelector('[data-settings-section="about"]'));
   assert(els.settingsVersion.textContent.includes('VidoGo'), 'Settings version did not render');
-  assert(els.settingsLatestVersion.textContent === '0.2.1', 'Latest GitHub release version did not render after update check');
+  assert(els.settingsLatestVersion.textContent === '0.2.2', 'Latest GitHub release version did not render after update check');
   assert(state.updateInfo?.available === true && state.updateInfo?.source === 'github', 'Available GitHub update state was not retained');
   assert(els.settingsCheckUpdate.textContent === text('downloadUpdate'), `Available update did not expose its background download action: ${els.settingsCheckUpdate.textContent} / ${JSON.stringify(state.updateInfo)}`);
   assert(els.appUpdateOverlay.hidden === false && els.appUpdatePrimary.textContent === text('downloadUpdate'), `Available update dialog did not open: hidden=${els.appUpdateOverlay.hidden}, action=${els.appUpdatePrimary.textContent}`);

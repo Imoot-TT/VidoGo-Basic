@@ -114,7 +114,7 @@ assert(html.includes('src="./assets/vidogo-app-icon-16.png"') && html.includes('
 assert(main.includes("nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-256.png'))"), 'Electron runtime icon must load the official renderer asset');
 assert(packageJson.build?.win?.icon === 'app-icon.ico', 'Windows packaging must use the official app-icon.ico');
 assert(packageJson.scripts?.['pack:win']?.includes('--config.electronDist=node_modules/electron/dist'), 'Windows packaging must use the installed Electron distribution reliably');
-assert(packageJson.version === '0.2.0', 'Package version must match the productized release version');
+assert(packageJson.version === '0.2.1', 'Package version must match the productized release version');
 assert(packageJson.dependencies?.['electron-updater'] === '6.8.9', 'electron-updater must be pinned as a packaged runtime dependency');
 assert(packageJson.build?.publish?.provider === 'github'
   && packageJson.build.publish.owner === 'Imoot-TT'
