@@ -565,6 +565,18 @@ const TEXT = {
 const I18N = window.VidoGoI18n;
 if (!I18N) throw new Error('VidoGo locale module did not load');
 const TEXT_TABLES = I18N.createTextTables(TEXT);
+Object.assign(TEXT_TABLES['zh-CN'], {
+  closeToTray: '关闭时最小化到托盘',
+  closeToTrayDescription: '点击右上角关闭时保留后台运行，可从系统托盘重新打开。',
+});
+Object.assign(TEXT_TABLES['zh-TW'], {
+  closeToTray: '關閉時最小化到系統匣',
+  closeToTrayDescription: '關閉視窗時保留 VidoGo 在背景執行，可從系統匣重新開啟。',
+});
+Object.assign(TEXT_TABLES.en, {
+  closeToTray: 'Minimize to tray on close',
+  closeToTrayDescription: 'Keep VidoGo running when you close the window, and reopen it from the system tray.',
+});
 TEXT_TABLES['zh-CN'].resultDetails = TEXT.zh.resultDetails;
 TEXT_TABLES['zh-TW'].resultDetails = '結果詳情';
 const PLATFORM_MANAGER_TEXT = {
