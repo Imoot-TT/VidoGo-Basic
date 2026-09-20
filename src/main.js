@@ -1062,7 +1062,7 @@ function createTray() {
   tray = new Tray(trayIcon);
   tray.setToolTip(APP_NAME);
   const closeToTrayTemplate = {
-    label: '关闭时留在托盘',
+    label: '留在托盘',
     type: 'checkbox',
     checked: closeToTray,
     click: (item) => {
@@ -1074,32 +1074,14 @@ function createTray() {
     },
   };
   const trayMenu = Menu.buildFromTemplate([
-    { label: '打开窗口', click: () => showMainWindow() },
-    { type: 'separator' },
-    {
-      label: '快速入口',
-      submenu: [
-        { label: '新建下载', click: () => sendTrayCommand('new-download') },
-        { type: 'separator' },
-        { label: '浏览器', click: () => sendTrayCommand('navigate', { section: 'browser' }) },
-        { label: '下载任务', click: () => sendTrayCommand('navigate', { section: 'downloads' }) },
-        { label: '素材库', click: () => sendTrayCommand('navigate', { section: 'library' }) },
-        { label: '历史记录', click: () => sendTrayCommand('navigate', { section: 'history' }) },
-        { label: '收藏夹', click: () => sendTrayCommand('navigate', { section: 'favorites' }) },
-        { label: '账户', click: () => sendTrayCommand('navigate', { section: 'account' }) },
-        { label: '设置', click: () => sendTrayCommand('navigate', { section: 'settings' }) },
-      ],
-    },
-    {
-      label: '工具',
-      submenu: [
-        { label: '下载目录', click: () => sendTrayCommand('open-download-folder') },
-        { label: '检查更新', click: () => sendTrayCommand('check-updates') },
-      ],
-    },
+    { label: '显示窗口', click: () => showMainWindow() },
+    { label: '新建下载', click: () => sendTrayCommand('new-download') },
+    { label: '下载任务', click: () => sendTrayCommand('navigate', { section: 'downloads' }) },
+    { label: '素材库', click: () => sendTrayCommand('navigate', { section: 'library' }) },
+    { label: '下载目录', click: () => sendTrayCommand('open-download-folder') },
+    { label: '检查更新', click: () => sendTrayCommand('check-updates') },
     { type: 'separator' },
     closeToTrayTemplate,
-    { label: `版本 v${app.getVersion()}`, enabled: false },
     { type: 'separator' },
     { label: '退出', click: () => { isQuitting = true; app.quit(); } },
   ]);
