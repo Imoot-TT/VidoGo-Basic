@@ -97,7 +97,8 @@ jobs:
           }
           gh release view $env:RELEASE_TAG *> $null
           if ($LASTEXITCODE -ne 0) {
-            throw "Release $env:RELEASE_TAG must be created by the Imoot-TT account before running this workflow."
+            gh release create $env:RELEASE_TAG --target main --title "VidoGo Basic $($env:RELEASE_TAG -replace '^basic-v','')" --notes-file $notesFile
+            if ($LASTEXITCODE -ne 0) { throw "Release creation failed" }
           }
           gh release edit $env:RELEASE_TAG --title "VidoGo Basic $version" --notes-file $notesFile --latest
           if ($LASTEXITCODE -ne 0) { throw "Release notes update failed" }

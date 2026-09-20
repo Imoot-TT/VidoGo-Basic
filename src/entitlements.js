@@ -2,14 +2,13 @@
 
 const PLAN_ENTITLEMENTS = Object.freeze({
   free: Object.freeze({ dailyLimit: 5, maxConcurrentDownloads: 1, recordingDurationLimitMs: 5 * 60 * 1000 }),
-  pro: Object.freeze({ dailyLimit: 30, maxConcurrentDownloads: 5, recordingDurationLimitMs: 30 * 60 * 1000 }),
-  ultimate: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: 10, recordingDurationLimitMs: null }),
-  lifetime: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: 10, recordingDurationLimitMs: null }),
+  creator: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: 5, recordingDurationLimitMs: null }),
   owner: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: null, recordingDurationLimitMs: null }),
 });
 
 function normalizePlanLevel(value) {
-  const normalized = value === 'flagship' ? 'ultimate' : String(value || '').trim().toLowerCase();
+  const original = String(value || '').trim().toLowerCase();
+  const normalized = ['pro', 'ultimate', 'flagship', 'lifetime'].includes(original) ? 'creator' : original;
   return Object.prototype.hasOwnProperty.call(PLAN_ENTITLEMENTS, normalized) ? normalized : 'free';
 }
 
@@ -29,6 +28,7 @@ function dayKey(value = Date.now()) {
 
 function normalizeStore(value) {
   const usage = {};
+  const projects = {};
   if (value && typeof value === 'object' && value.usage && typeof value.usage === 'object') {
     for (const [key, count] of Object.entries(value.usage)) {
       const normalizedCount = Math.max(0, Math.floor(Number(count) || 0));
@@ -37,7 +37,17 @@ function normalizeStore(value) {
       }
     }
   }
-  return { version: 1, usage };
+  if (value && typeof value === 'object' && value.projects && typeof value.projects === 'object') {
+    for (const [key, identifiers] of Object.entries(value.projects)) {
+      if (!/^(?:account:|device:).+\|\d{4}-\d{2}-\d{2}$/.test(key) || !Array.isArray(identifiers)) continue;
+      const normalized = Array.from(new Set(identifiers
+        .map((identifier) => String(identifier || '').trim().toLowerCase())
+        .filter((identifier) => /^[a-f0-9]{64}$/.test(identifier))))
+        .slice(0, 1000);
+      if (normalized.length) projects[key] = normalized;
+    }
+  }
+  return { version: 2, usage, projects };
 }
 
 function normalizeProfile(profile = {}) {
@@ -86,6 +96,36 @@ function consumeDailyEntitlement(storeValue, profileValue = {}, count = 1, now =
   return { ok: true, store, state: entitlementState(store, profileValue, now) };
 }
 
+function normalizeProjectKeys(values) {
+  const input = Array.isArray(values) ? values : [values];
+  return Array.from(new Set(input
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter((value) => /^[a-f0-9]{64}$/.test(value))));
+}
+
+function consumeProjectEntitlement(storeValue, profileValue = {}, projectKeys = [], now = Date.now()) {
+  const store = normalizeStore(storeValue);
+  const before = entitlementState(store, profileValue, now);
+  const usageKey = `${before.identity}|${before.date}`;
+  const existing = new Set(store.projects[usageKey] || []);
+  const requestedKeys = normalizeProjectKeys(projectKeys);
+  const newKeys = requestedKeys.filter((key) => !existing.has(key));
+  if (!newKeys.length) return { ok: true, charge: 0, store, state: before };
+  if (before.remainingToday !== null && newKeys.length > before.remainingToday) {
+    return { ok: false, charge: newKeys.length, store, state: before };
+  }
+  store.projects[usageKey] = [...existing, ...newKeys].slice(-1000);
+  store.usage[usageKey] = before.usedToday + newKeys.length;
+  const minimumDate = dayKey(new Date(new Date(now).getTime() - 35 * 24 * 60 * 60 * 1000));
+  for (const key of Object.keys(store.usage)) {
+    if (key.slice(-10) < minimumDate) delete store.usage[key];
+  }
+  for (const key of Object.keys(store.projects)) {
+    if (key.slice(-10) < minimumDate) delete store.projects[key];
+  }
+  return { ok: true, charge: newKeys.length, store, state: entitlementState(store, profileValue, now) };
+}
+
 function downloadEntitlementCharge(newEntryCount, retryExisting = false) {
   const count = Math.max(0, Math.floor(Number(newEntryCount) || 0));
   return retryExisting === true ? 0 : count;
@@ -102,6 +142,7 @@ module.exports = {
   PLAN_ENTITLEMENTS,
   clampConcurrency,
   consumeDailyEntitlement,
+  consumeProjectEntitlement,
   downloadEntitlementCharge,
   dayKey,
   entitlementState,

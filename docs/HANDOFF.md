@@ -28,7 +28,7 @@ Read this file first when continuing Basic development. The public website and m
 - Page identity remains in the sidebar and page content; the title bar deliberately avoids repeating it.
 - The browser home adds a connected Browse → Detect → Choose → Save rail below the site shortcuts; labels are localized for all eight desktop locales.
 - The signed-out account page uses a responsive two-column layout with product context, entitlement/order/security benefits, the existing login/register form, and a management-service credential notice.
-- Settings explains that simultaneous download/recording limits are plan entitlements: Free 1, Pro 5, Ultimate/Lifetime 10. A Free account sees a visibly locked number input and a real “View plans” action; paid plans can modify the value up to their limit.
+- Settings explains that simultaneous download/recording limits are plan entitlements: Free 1, Creator 5. A Free account sees a visibly locked number input and a real “View plans” action; Creator accounts can modify the value up to their limit.
 - Electron smoke screenshots were inspected for the browser shell, Home, and Account states after the change; `npm run smoke` and `npm run check` pass.
 
 ## Application Icon Source
@@ -203,8 +203,8 @@ This batch completes the immediate button/icon/page-semantics request, but it do
 
 ## 2026-08-23 Plan Entitlement Enforcement
 
-- Added a persisted main-process entitlement store with the extracted Free/Pro/Ultimate/Lifetime daily, concurrency, and recording-duration limits.
-- Download batches consume only newly submitted URLs; recordings consume the same daily allowance. Free/Pro recording sessions automatically stop and save at 5/30 minutes.
+- Added a persisted main-process entitlement store with the Free/Creator project, concurrency, and recording-duration limits. Legacy paid account levels normalize to Creator.
+- One source link consumes one project even when its video, MP3, subtitle, and cover are saved separately. Free recordings automatically stop and save at 5 minutes; Creator recordings are unlimited.
 - Account changes immediately reconfigure main-process limits. Repeated identity normalization was fixed so anonymous and signed-in counters remain separate.
 - Registration now returns to sign-in, login no longer auto-creates unknown users, payment creation no longer grants a plan before confirmation, and the non-reference local “continue payment” control was removed.
 - Verification passed with `npm run check`, `npm run check:backend`, standard Electron smoke, real loopback-download smoke, and recorder smoke. No installer/package was generated during this follow-up.

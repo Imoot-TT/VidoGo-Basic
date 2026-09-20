@@ -15,7 +15,7 @@ const launchCwd = requestedExecutable ? path.dirname(path.resolve(requestedExecu
 const resultPath = path.join(os.tmpdir(), 'vidogo-smoke-result.json');
 const screenshotName = scenario === 'locale-rtl'
   ? 'vidogo-smoke-locale-rtl.png'
-  : (scenario === 'account-ui-flow'
+  : (['account-ui-flow', 'account-api-flow'].includes(scenario)
     ? 'vidogo-smoke-account-ui.png'
   : (scenario === 'owner-flow'
     ? 'vidogo-smoke-owner.png'
@@ -38,7 +38,7 @@ for (const file of [resultPath, screenshotPath]) {
   }
 }
 
-const timeoutMs = ['browser-youtube-flow', 'browser-platform-flow', 'download-queue-real', 'resolver-flow'].includes(scenario)
+const timeoutMs = ['browser-youtube-flow', 'browser-platform-flow', 'download-queue-real', 'resolver-flow', 'account-api-flow'].includes(scenario)
   ? 90000
   : (scenario === 'recorder-flow' ? 50000 : 35000);
 let child = null;

@@ -2,6 +2,8 @@ const { ipcRenderer } = require('electron');
 const { installRecorderToolbar } = require('./recorder-toolbar');
 
 function installChromeIdentityHints() {
+  const host = location.hostname.toLowerCase();
+  if (!(host === 'youtube.com' || host.endsWith('.youtube.com') || host === 'google.com' || host.endsWith('.google.com'))) return;
   const original = navigator.userAgentData;
   const fullVersion = navigator.userAgent.match(/Chrome\/([\d.]+)/i)?.[1] || '';
   const major = fullVersion.split('.')[0];

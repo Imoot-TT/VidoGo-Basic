@@ -50,24 +50,38 @@
           <section class="page active" id="page-home">
             <div class="home-page browser-home">
               <div class="browser-home-content">
-              <div class="brand browser-home-brand">
-                <div class="brand-wordmark browser-home-logo"><span class="brand-media logo-vid">Vido</span><span class="brand-browser logo-browser">Go</span></div>
-                <div class="brand-underline"></div>
-                <div class="brand-tagline" id="home-tagline">一键下载 · 畅享精彩</div>
-              </div>
-              <section class="popular-sites" aria-label="常用站点">
-                <header class="popular-sites-header">
-                  <button class="platform-manage-button" id="platform-manage-button" type="button"><span id="platform-manage-label">平台管理</span><span class="platform-manage-arrow" data-icon="arrow-right" aria-hidden="true"></span></button>
-                </header>
-                <div class="quick-grid popular-site-groups" id="platform-groups"></div>
-              </section>
-              <section class="home-workflow" id="home-workflow" aria-label="VidoGo 工作流">
-                <div class="home-workflow-track" aria-hidden="true"><i></i></div>
-                <div class="home-workflow-step"><span data-icon="monitor"></span><b id="home-flow-browser">浏览</b><small>01</small></div>
-                <div class="home-workflow-step is-live"><span data-icon="scale-to-original"></span><b id="home-flow-detect">识别</b><small>02</small></div>
-                <div class="home-workflow-step"><span data-icon="video-play"></span><b id="home-flow-choose">选择</b><small>03</small></div>
-                <div class="home-workflow-step"><span data-icon="folder-opened"></span><b id="home-flow-save">保存</b><small>04</small></div>
-              </section>
+                <div class="brand browser-home-brand">
+                  <div class="brand-wordmark browser-home-logo"><span class="brand-media logo-vid">Vido</span><span class="brand-browser logo-browser">Go</span></div>
+                  <div class="brand-underline"></div>
+                </div>
+                <section class="home-primary-task" aria-labelledby="home-task-title">
+                  <p class="home-task-eyebrow" id="home-task-eyebrow">创作者素材工作台</p>
+                  <h1 id="home-task-title">粘贴一个链接，生成完整素材包</h1>
+                  <p class="brand-tagline" id="home-tagline">视频、MP3、字幕、封面和来源信息自动归档到同一个项目。</p>
+                  <form class="home-asset-pack-form" id="home-asset-pack-form" novalidate>
+                    <label class="home-address-input" for="home-asset-pack-url">
+                      <span class="input-prefix" data-icon="search" aria-hidden="true"></span>
+                      <input id="home-asset-pack-url" type="url" inputmode="url" autocomplete="url" spellcheck="false" placeholder="粘贴公开视频链接" aria-describedby="home-asset-pack-error" required />
+                    </label>
+                    <button class="home-asset-pack-submit" id="home-asset-pack-submit" type="submit"><span data-icon="download"></span><span id="home-asset-pack-submit-label">分析并生成素材包</span></button>
+                    <p class="home-asset-pack-error" id="home-asset-pack-error" role="alert" hidden></p>
+                  </form>
+                  <div class="home-pack-contents" aria-label="素材包内容">
+                    <span><i data-icon="video-play"></i><b id="home-pack-video">视频</b></span>
+                    <span><i data-icon="headset"></i><b id="home-pack-audio">MP3</b></span>
+                    <span><i data-icon="document"></i><b id="home-pack-subtitles">字幕</b></span>
+                    <span><i data-icon="view"></i><b id="home-pack-cover">封面</b></span>
+                    <span><i data-icon="info-filled"></i><b id="home-pack-source">来源信息</b></span>
+                  </div>
+                  <p class="home-task-note" id="home-task-note">仅处理你有权保存的公开或已授权内容。DRM 保护内容无法下载或录制。</p>
+                </section>
+                <details class="popular-sites home-secondary-sites">
+                  <summary><span id="home-browse-sites">也可以先浏览支持的网站</span><span data-icon="arrow-down" aria-hidden="true"></span></summary>
+                  <header class="popular-sites-header">
+                    <button class="platform-manage-button" id="platform-manage-button" type="button"><span id="platform-manage-label">平台管理</span><span class="platform-manage-arrow" data-icon="arrow-right" aria-hidden="true"></span></button>
+                  </header>
+                  <div class="quick-grid popular-site-groups" id="platform-groups"></div>
+                </details>
               </div>
             </div>
           </section>
@@ -101,7 +115,14 @@
               </div>
 
               <section class="browser-content" id="browser-split">
-                <section class="browser-frame" id="browser-stage"></section>
+                <section class="browser-frame" id="browser-stage">
+                  <div class="browser-page-loading" id="browser-page-loading" role="status" aria-live="polite" aria-atomic="true" hidden>
+                    <img class="browser-page-loading-mark" src="./assets/vidogo-app-icon-256.png" alt="" width="72" height="72" />
+                    <strong id="browser-page-loading-title">正在连接网页</strong>
+                    <span id="browser-page-loading-copy">网络较慢时可能需要一点时间</span>
+                    <div class="browser-page-loading-track" aria-hidden="true"><i></i></div>
+                  </div>
+                </section>
                 <aside class="browser-side media-panel generic-media-panel" id="browser-side" aria-label="视频媒体">
                   <div class="side-head media-panel-header">
                     <div class="side-title media-panel-title">
@@ -227,7 +248,7 @@
                 <label class="library-search">
                   <span data-icon="search" aria-hidden="true"></span>
                   <span class="visually-hidden" id="library-search-label">搜索素材库</span>
-                  <input id="library-search" type="search" placeholder="搜索标题、平台或媒体 ID" autocomplete="off" />
+                  <input id="library-search" type="search" placeholder="搜索标题、文件名、平台或项目标签" autocomplete="off" />
                 </label>
                 <div class="library-filter-row">
                   <select id="library-provider-filter" aria-label="平台筛选"></select>
@@ -255,9 +276,19 @@
                     <div class="library-detail-cover" id="library-detail-cover"><span data-icon="folder-opened"></span></div>
                     <div class="library-detail-heading">
                       <p id="library-detail-eyebrow">媒体项目</p>
-                      <h2 id="library-detail-title">项目详情</h2>
+                      <h2 id="library-detail-title"><span id="library-detail-title-text">项目详情</span></h2>
+                      <div class="library-detail-heading-actions" id="library-detail-heading-actions"></div>
                     </div>
                     <button class="library-detail-close" id="library-detail-close" type="button" aria-label="关闭项目详情"><span data-icon="close"></span></button>
+                    <div class="library-detail-tags" id="library-detail-tags">
+                      <div class="library-detail-tag-list" id="library-detail-tag-list"></div>
+                      <form class="library-detail-tag-form" id="library-detail-tag-form" autocomplete="off">
+                        <label class="visually-hidden" id="library-detail-tag-label" for="library-detail-tag-input">添加标签</label>
+                        <input id="library-detail-tag-input" type="text" maxlength="24" placeholder="添加标签" aria-labelledby="library-detail-tag-label" />
+                        <button id="library-detail-tag-add" type="submit" aria-label="添加标签" title="添加标签"><span data-icon="plus"></span></button>
+                      </form>
+                    </div>
+                    <p class="library-detail-summary" id="library-detail-summary"></p>
                   </header>
                   <div class="library-detail-body" id="library-detail-body"></div>
                 </aside>
@@ -293,15 +324,6 @@
 
           <section class="page" id="page-plans">
             <div class="plans-view" aria-label="套餐购买">
-              <header class="account-toolbar">
-                <div class="account-toolbar-title">
-                  <span class="account-toolbar-icon" data-icon="shopping-cart" aria-hidden="true"></span>
-                  <div>
-                    <h2 id="plans-title">套餐购买</h2>
-                    <p id="plans-subtitle">选择套餐和支付方式。</p>
-                  </div>
-                </div>
-              </header>
               <div class="plans-content">
                 <div class="account-plan-grid" id="plan-cards"></div>
                 <section class="account-comparison-table-wrap" id="plan-table"></section>
@@ -309,7 +331,7 @@
                   <header class="account-section-header">
                     <div>
                       <h3 id="purchase-title">购买支付方式</h3>
-                      <p class="account-payment-summary"><span id="purchase-current">旗舰版 · 月付</span><span id="purchase-price">US$9.90 / 月</span></p>
+                      <p class="account-payment-summary"><span id="purchase-current">Creator · 年付</span><span id="purchase-price">US$39 / 年</span></p>
                     </div>
                     <span class="account-toolbar-icon" data-icon="credit-card" aria-hidden="true"></span>
                   </header>
@@ -327,16 +349,6 @@
 
           <section class="page" id="page-account">
             <div class="account-view" aria-label="账户">
-              <header class="account-toolbar">
-                <div class="account-toolbar-title">
-                  <span class="account-toolbar-icon" data-icon="user-filled" aria-hidden="true"></span>
-                  <div>
-                    <h2 id="account-title">账户</h2>
-                    <p id="account-subtitle">登录后查看套餐、订单和购买状态。</p>
-                  </div>
-                </div>
-                <button class="ghost-button hidden" id="account-refresh" type="button"><span data-icon="refresh"></span><span id="account-refresh-label">刷新</span></button>
-              </header>
               <div class="account-content">
                 <section class="account-auth-panel" id="account-auth-panel">
                   <aside class="account-auth-story">
@@ -360,6 +372,10 @@
                     </div>
                     <label class="field"><span>邮箱</span><input id="login-email" type="email" placeholder="输入邮箱地址" /></label>
                     <label class="field"><span>密码</span><span class="password-input-wrap"><input id="login-password" type="password" placeholder="输入密码" /><button class="password-visibility-toggle" type="button" data-password-target="login-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
+                    <div class="account-remember-row" id="account-remember-row">
+                      <label class="account-remember-check"><input id="remember-login" type="checkbox" /><span id="remember-login-label">记住账号和密码</span></label>
+                      <button class="account-forget-login" id="forget-login" type="button" hidden>清除已记住信息</button>
+                    </div>
                     <label class="field" id="confirm-password-field"><span id="confirm-password-label">确认密码</span><span class="password-input-wrap"><input id="confirm-password" type="password" placeholder="再次输入密码" /><button class="password-visibility-toggle" type="button" data-password-target="confirm-password" aria-label="显示密码" title="显示密码"><span data-icon="view" aria-hidden="true"></span></button></span></label>
                     <p class="account-auth-error" id="account-auth-error" role="alert" aria-live="assertive" hidden><span data-icon="circle-close" aria-hidden="true"></span><span id="account-auth-error-copy"></span></p>
                     <div class="login-actions is-split">
@@ -377,7 +393,10 @@
                       <h3 id="profile-title">账户信息</h3>
                       <p id="profile-subtitle">从管理平台同步账户和套餐信息。</p>
                     </div>
-                    <button class="ghost-button" id="logout-button" type="button"><span data-icon="switch-button"></span><span id="logout-button-label">退出登录</span></button>
+                    <div class="account-section-actions">
+                      <button class="ghost-button hidden" id="account-refresh" type="button"><span data-icon="refresh"></span><span id="account-refresh-label">刷新</span></button>
+                      <button class="ghost-button" id="logout-button" type="button"><span data-icon="switch-button"></span><span id="logout-button-label">退出登录</span></button>
+                    </div>
                   </div>
                   <div class="account-profile-grid">
                     <div><span id="profile-email-label">邮箱</span><strong id="profile-email">-</strong></div>
@@ -545,6 +564,15 @@
                         <label class="settings-switch"><input id="settings-recording-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-recording-state">关闭</span></label>
                       </div>
                     </div>
+                    <div class="settings-section">
+                      <div class="setting-copy">
+                        <div class="setting-label" id="settings-analytics-title">匿名使用数据</div>
+                        <p id="settings-analytics-description">帮助改进首次成功率；不收集链接、标题、搜索词、文件名、路径、Cookie 或下载内容。</p>
+                      </div>
+                      <div class="setting-control">
+                        <label class="settings-switch"><input id="settings-analytics-control" type="checkbox" /><span class="settings-switch-track" aria-hidden="true"></span><span id="settings-analytics-state">关闭</span></label>
+                      </div>
+                    </div>
                   </div>
                 </section>
 
@@ -676,6 +704,19 @@
         <footer class="media-preview-footer">
           <span id="media-preview-status"></span>
           <button class="ghost-button" id="media-preview-system-open" type="button"><span data-icon="switch-button"></span><span id="media-preview-system-open-label">使用系统应用打开</span></button>
+        </footer>
+      </div>
+    </section>
+    <section class="analytics-consent-overlay" id="analytics-consent-overlay" hidden>
+      <div class="analytics-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="analytics-consent-title" aria-describedby="analytics-consent-copy">
+        <span class="analytics-consent-icon" data-icon="sliders" aria-hidden="true"></span>
+        <div>
+          <h2 id="analytics-consent-title">帮助我们改善首次成功率</h2>
+          <p id="analytics-consent-copy">允许发送匿名步骤事件，例如媒体已识别、成功保存和导入剪辑软件。不会发送链接、标题、文件名、路径、Cookie 或内容。</p>
+        </div>
+        <footer>
+          <button class="ghost-button" id="analytics-consent-decline" type="button">暂不允许</button>
+          <button class="platform-primary-button" id="analytics-consent-allow" type="button">允许匿名统计</button>
         </footer>
       </div>
     </section>

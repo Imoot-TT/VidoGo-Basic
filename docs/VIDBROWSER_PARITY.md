@@ -156,8 +156,8 @@ Current target:
 - Empty downloads should show the VidBrowser-style empty state and should not render a table header.
 - Table headers should render only when rows exist.
 - Missing completed files should show a missing-file state and should not offer an open-file action.
-- The 1–10 concurrent-download setting now drives an actual main-process job queue with per-job progress routing and cancel-all semantics. The renderer and main process both clamp it to the active plan: Free 1, Pro 5, Ultimate/Lifetime 10.
-- Downloads and recordings share the extracted daily allowance and persistent UTC-day usage counter: Free 5, Pro 30, Ultimate/Lifetime unlimited. Recording sessions also enforce the matching 5-minute, 30-minute, or unlimited single-session duration.
+- The concurrent-download setting drives an actual main-process job queue with per-job progress routing and cancel-all semantics. The renderer and main process clamp it to the active 0.2.0 plan: Free 1, Creator 5.
+- Downloads and recordings share a project-level UTC-day allowance: Free includes 5 unique source projects per day, while Creator is unlimited. Video, MP3, subtitles, and cover from one source are deduplicated as one project. Free recordings stop and save at 5 minutes; Creator recordings are unlimited.
 - Registration returns to sign-in, unknown users are not silently created by login, and creating a payment order no longer activates a plan. The non-reference local “continue payment” action was removed; a paid plan must come from confirmed account state once a real VidoGo account/payment service is connected.
 - Settings/About no longer reports “latest” unconditionally. It checks `Imoot-TT/VidoGo` GitHub Releases, performs semantic-version comparison, presents the newest version, and changes the action to the validated HTTPS release page only when an update exists. Missing public releases, API limits, malformed responses, timeouts, and offline failures have distinct states.
 

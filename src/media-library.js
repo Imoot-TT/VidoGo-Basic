@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-const MEDIA_LIBRARY_SCHEMA_VERSION = 3;
+const MEDIA_LIBRARY_SCHEMA_VERSION = 4;
 
 const PROVIDER_ALIASES = Object.freeze({
   x: 'twitter',
@@ -211,8 +211,22 @@ function classifiedOutputDirectory(outputRoot, provider) {
   return path.join(path.resolve(String(outputRoot || '').trim()), providerFolderName(provider));
 }
 
+function normalizeProjectTags(tags) {
+  const normalized = [];
+  const seen = new Set();
+  for (const rawTag of Array.isArray(tags) ? tags : []) {
+    const tag = String(rawTag || '').replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 24);
+    const identity = tag.toLocaleLowerCase();
+    if (!tag || seen.has(identity)) continue;
+    seen.add(identity);
+    normalized.push(tag);
+    if (normalized.length >= 50) break;
+  }
+  return normalized;
+}
+
 function emptyLibrary() {
-  return { schemaVersion: MEDIA_LIBRARY_SCHEMA_VERSION, updatedAt: null, items: [] };
+  return { schemaVersion: MEDIA_LIBRARY_SCHEMA_VERSION, updatedAt: null, items: [], projectTags: {} };
 }
 
 function normalizeLibraryItem(item) {
@@ -254,10 +268,17 @@ function normalizeLibraryItem(item) {
 
 function normalizeMediaLibrary(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return emptyLibrary();
+  const projectTags = {};
+  for (const [rawKey, rawTags] of Object.entries(value.projectTags || {})) {
+    const key = String(rawKey || '').trim().slice(0, 1000);
+    const tags = normalizeProjectTags(rawTags);
+    if (key && tags.length) projectTags[key] = tags;
+  }
   return {
     schemaVersion: MEDIA_LIBRARY_SCHEMA_VERSION,
     updatedAt: typeof value.updatedAt === 'string' ? value.updatedAt : null,
     items: (Array.isArray(value.items) ? value.items : []).map(normalizeLibraryItem).filter(Boolean),
+    projectTags,
   };
 }
 
@@ -272,7 +293,7 @@ function mediaLibraryProjectKey(item = {}) {
   return `${provider}:folder:${path.resolve(String(item.folderPath || path.dirname(String(item.filePath || '.'))))}`;
 }
 
-function groupMediaLibraryItems(items = []) {
+function groupMediaLibraryItems(items = [], projectTags = {}) {
   const groups = new Map();
   for (const rawItem of Array.isArray(items) ? items : []) {
     const item = normalizeLibraryItem(rawItem);
@@ -344,6 +365,7 @@ function groupMediaLibraryItems(items = []) {
       assetCount: logicalAssets.length,
       assetCounts,
       assets: logicalAssets,
+      tags: normalizeProjectTags(projectTags[key]),
     });
   }
   return projects.sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0));
@@ -459,7 +481,20 @@ function createMediaLibraryStore(filePath) {
     });
   }
 
-  return Object.freeze({ addCompleted, list, filePath: resolvedFilePath });
+  async function setProjectTags(projectKey, tags) {
+    return enqueue(async () => {
+      const key = String(projectKey || '').trim().slice(0, 1000);
+      if (!key) throw new Error('A media project key is required.');
+      const normalizedTags = normalizeProjectTags(tags);
+      const document = await load();
+      if (normalizedTags.length) document.projectTags[key] = normalizedTags;
+      else delete document.projectTags[key];
+      await save(document);
+      return [...normalizedTags];
+    });
+  }
+
+  return Object.freeze({ addCompleted, list, setProjectTags, filePath: resolvedFilePath });
 }
 
 module.exports = {
@@ -472,6 +507,7 @@ module.exports = {
   groupMediaLibraryItems,
   mediaLibraryProjectKey,
   normalizeMediaLibrary,
+  normalizeProjectTags,
   normalizeProviderId,
   providerFolderName,
   resolveMediaProjectDirectory,

@@ -16,6 +16,10 @@ const recorder = fs.readFileSync(path.join(root, 'src', 'recorder-toolbar.js'), 
 const entitlements = fs.readFileSync(path.join(root, 'src', 'entitlements.js'), 'utf8');
 const updateCheck = fs.readFileSync(path.join(root, 'src', 'update-check.js'), 'utf8');
 const manifestRules = fs.readFileSync(path.join(root, 'src', 'manifest-rules.js'), 'utf8');
+const analytics = fs.readFileSync(path.join(root, 'src', 'analytics.js'), 'utf8');
+const releaseWorkflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'release-basic.yml'), 'utf8');
+const signedReleaseScript = fs.readFileSync(path.join(root, 'scripts', 'build_signed_release.ps1'), 'utf8');
+const betaValidation = fs.readFileSync(path.join(root, 'docs', 'BETA_VALIDATION_0.2.0.md'), 'utf8');
 const downloaderCore = fs.readFileSync(path.join(root, 'backend', 'downloader_core.py'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
@@ -59,7 +63,7 @@ assert(!app.includes('downloads-empty-icon') && !app.includes('history-empty-ico
 assert((app.match(/class="[^"]*menu-empty-state[^"]*"/g) || []).length === 3, 'Download, history, and favorites pages must share one aligned empty-state layout');
 assert(!/menu-empty-state[^`]*<p>/.test(app), 'Main menu empty states must not render redundant empty-copy labels');
 
-const requiredCopy = ['浏览器', '主页', '下载', '素材库', '历史', '收藏', '一键下载 · 畅享精彩', '搜索或输入网址', '套餐购买'];
+const requiredCopy = ['浏览器', '主页', '下载', '素材库', '历史', '收藏', '粘贴一个链接，生成完整素材包', '搜索或输入网址', '套餐购买'];
 for (const copy of requiredCopy) {
   assert(html.includes(copy) || app.includes(copy), `Required Chinese copy missing: ${copy}`);
 }
@@ -111,7 +115,7 @@ assert(html.includes('src="./assets/vidogo-app-icon-16.png"') && html.includes('
 assert(main.includes("nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-256.png'))"), 'Electron runtime icon must load the official renderer asset');
 assert(packageJson.build?.win?.icon === 'app-icon.ico', 'Windows packaging must use the official app-icon.ico');
 assert(packageJson.scripts?.['pack:win']?.includes('--config.electronDist=node_modules/electron/dist'), 'Windows packaging must use the installed Electron distribution reliably');
-assert(packageJson.version === '0.1.9', 'Package version must match the automatic-update release version');
+assert(packageJson.version === '0.2.0', 'Package version must match the productized release version');
 assert(packageJson.dependencies?.['electron-updater'] === '6.8.9', 'electron-updater must be pinned as a packaged runtime dependency');
 assert(packageJson.build?.publish?.provider === 'github'
   && packageJson.build.publish.owner === 'Imoot-TT'
@@ -156,17 +160,30 @@ assert(/\.browser-tab\s*\{[^}]*width:\s*176px[^}]*min-width:\s*72px[^}]*max-widt
 assert(app.includes('reorderBrowserTab') && app.includes("setData('text/x-vidogo-tab'"), 'Browser tabs must support drag reordering');
 assert(app.includes('scrollActiveTabIntoView'), 'The active browser tab must be scrolled into view');
 
-for (const planCode of ['pro_month', 'pro_year', 'ultimate_month', 'ultimate_year', 'lifetime']) {
+for (const planCode of ['creator_year', 'creator_founder']) {
   assert(app.includes(`${planCode}:`), `Reference plan product missing: ${planCode}`);
 }
+assert(app.includes("const PLAN_LEVELS = ['free', 'creator'];"), 'Only Free and Creator may be user-visible plan levels');
+assert(/creator_year:\s*\{[^}]*amount:\s*39/.test(app) && /creator_founder:\s*\{[^}]*amount:\s*59/.test(app), 'Creator validation prices must be $39/year and $59 founder lifetime');
 for (const token of [
   "free: { dailyDownloadLimit: 5, maxConcurrentDownloads: 1, recordingMinutes: 5",
-  "pro: { dailyDownloadLimit: 30, maxConcurrentDownloads: 5, recordingMinutes: 30",
-  "ultimate: { dailyDownloadLimit: null, maxConcurrentDownloads: 10, recordingMinutes: null",
-  "lifetime: { dailyDownloadLimit: null, maxConcurrentDownloads: 10, recordingMinutes: null",
-  "{ key: 'dailyDownloadsRecording'",
-  "{ key: 'prioritySupport'",
+  "creator: { dailyDownloadLimit: null, maxConcurrentDownloads: 5, recordingMinutes: null",
+  "{ key: 'dailySourceProjects'",
+  "{ key: 'prioritySiteFixes'",
 ]) assert(app.includes(token), `Reference plan comparison token missing: ${token}`);
+assert(!app.includes("drmSupport:") && !app.includes("key: 'drmSupport'") && !locales.includes('drmSupport'), 'Plans and locale assets must not promise DRM support');
+assert(html.includes('DRM 保护内容无法下载或录制'), 'Home must state the DRM limitation clearly');
+assert(html.includes('id="home-asset-pack-form"') && html.includes('id="home-asset-pack-url"') && app.includes('startCompleteAssetPack(candidate)'), 'Home must provide one complete-asset-pack task');
+assert(html.includes('id="home-asset-pack-form" novalidate') && html.includes('id="home-asset-pack-error" role="alert" hidden'), 'Home URL validation must use the localized inline error instead of the native browser bubble');
+assert(app.includes("els.homeAssetPackError.textContent = text('homeInvalidUrl')") && !app.includes("toast(text('homeInvalidUrl')"), 'Home invalid-link feedback must stay beside its input');
+assert(app.includes('window.setTimeout(clearHomeAssetPackError, 3000)') && app.includes("document.addEventListener('pointerdown'"), 'Home invalid-link feedback must auto-dismiss and clear when the user clicks elsewhere');
+assert(/\.home-secondary-sites > summary\s*\{[^}]*width:\s*fit-content[^}]*justify-self:\s*center/s.test(css), 'Supported-platform disclosure must limit its hit target to the visible label');
+assert(/input:not\(\[readonly\]\):focus, textarea:focus\s*\{[^}]*box-shadow:\s*none/s.test(css), 'Text-field focus must not render a thick double focus ring');
+assert(/select:not\(\[multiple\]\):focus,[\s\S]*?outline:\s*none;[\s\S]*?box-shadow:\s*none;/s.test(css), 'Select focus must use a single thin border');
+assert(html.includes('id="remember-login"') && html.includes('id="forget-login"'), 'Account login must expose remembered-login controls');
+assert(main.includes("safeStorage") && main.includes("encryptedPassword: Buffer.from(encrypted).toString('base64')") && !main.includes('password, encryptedPassword'), 'Remembered passwords must be encrypted with Electron safe storage before persistence');
+assert(preload.includes('getRememberedLogin') && preload.includes('saveRememberedLogin') && preload.includes('clearRememberedLogin'), 'Remembered-login renderer bridge is incomplete');
+assert(app.includes("assets.find((asset) => asset.assetType === 'audio')") && app.includes('preferredAssetPackSubtitle(assets)'), 'Complete asset pack must include available MP3 and subtitles');
 assert(html.includes('data-payment-channel="stripe"') && !html.includes('data-payment-channel="payssion"'), 'Desktop checkout must be delegated to the management platform provider');
 assert(app.includes('window.mediaDeck.createAccountOrder(selected.code)'), 'Desktop purchases must create orders through the management platform');
 assert(!app.includes('https://www.vidbrowser.net/?plan='), 'Desktop purchases must not use the reference website');
@@ -210,25 +227,28 @@ for (const token of [
   'dailyLimit: 5',
   'maxConcurrentDownloads: 1',
   'recordingDurationLimitMs: 5 * 60 * 1000',
-  'dailyLimit: 30',
   'maxConcurrentDownloads: 5',
-  'recordingDurationLimitMs: 30 * 60 * 1000',
-  'maxConcurrentDownloads: 10',
   'owner: Object.freeze({ dailyLimit: null, maxConcurrentDownloads: null, recordingDurationLimitMs: null })',
-  'consumeDailyEntitlement',
-  'downloadEntitlementCharge',
+  'consumeProjectEntitlement',
 ]) assert(entitlements.includes(token), `Entitlement implementation token missing: ${token}`);
 for (const token of [
   "ipcMain.handle('entitlements:get-state'",
   "ipcMain.handle('entitlements:configure'",
-  'consumeCurrentDailyEntitlement',
+  'consumeCurrentProjectEntitlement',
   'recordingDurationLimitMs',
   'daily-entitlement-limit-reached',
 ]) assert(main.includes(token), `Main entitlement enforcement token missing: ${token}`);
 assert(preload.includes('getEntitlements') && preload.includes('checkDownloadEntitlement') && preload.includes('configureEntitlements') && preload.includes('onEntitlementsChanged'), 'Entitlement renderer bridge is incomplete');
-assert(main.includes("ipcMain.handle('entitlements:check-download'") && app.includes('ensureDownloadEntitlementAvailable(candidates.length)'), 'Batch resolution must be blocked by an authoritative entitlement preflight');
-assert(main.includes('entitlements.remainingToday > 0 && (retryExisting || requested <= entitlements.remainingToday)') && !app.includes('if (options.retryExisting === true || requested === 0) return true'), 'A retry may avoid a second charge but must not bypass the zero-remaining preflight gate');
-assert(app.indexOf('ensureDownloadEntitlementAvailable(candidates.length)') < app.indexOf('const queuedTasks = candidates.map'), 'Batch entitlement preflight must run before queue rows are mounted or resolved');
+assert(main.includes("ipcMain.handle('entitlements:check-download'") && app.includes('ensureDownloadEntitlementAvailable(candidates.length,'), 'Batch resolution must be blocked by an authoritative entitlement preflight');
+assert(main.includes('consumePlanProjectEntitlement') && app.includes('projectIds:'), 'Entitlement preflight must deduplicate assets by source project');
+for (const eventName of ['first_open', 'media_detected', 'verified_saved', 'editor_imported', 'second_session', 'purchase_completed']) {
+  assert(analytics.includes(`'${eventName}'`) && (main.includes(`'${eventName}'`) || app.includes(`'${eventName}'`)), `Anonymous funnel event is incomplete: ${eventName}`);
+}
+assert(html.includes('id="analytics-consent-overlay"') && html.includes('不收集链接、标题、搜索词、文件名、路径、Cookie 或下载内容'), 'Anonymous analytics must be opt-in with explicit privacy copy');
+assert(preload.includes('getAnalyticsState') && preload.includes('setAnalyticsConsent') && preload.includes('trackAnalytics'), 'Anonymous analytics renderer bridge is incomplete');
+assert(releaseWorkflow.includes('npm run dist:win -- --publish never') && releaseWorkflow.includes('gh release create') && releaseWorkflow.includes('gh release upload'), 'Release workflow must build and publish the standard Windows release assets');
+assert(/10\s*[–-]\s*15/.test(betaValidation) && /至少\s*5\s*位[^\n]*真实付/.test(betaValidation), 'Closed-beta gate must require 10–15 creators and five real paying founders');
+assert(app.indexOf('ensureDownloadEntitlementAvailable(candidates.length,') < app.indexOf('const queuedTasks = candidates.map'), 'Batch entitlement preflight must run before queue rows are mounted or resolved');
 assert(app.indexOf('ensureDownloadEntitlementAvailable(activeUrls.length') < app.indexOf('const queuedRows = queueUrls(urls, downloadTarget)'), 'Single-download entitlement preflight must run before a queue row is mounted');
 assert(html.includes('id="head-result"'), 'Downloads table must include the result-details column header');
 assert(html.includes('id="head-type"') && app.includes("document.getElementById('head-type').textContent = text('assetType')"), 'Downloads table must expose a localized asset-type column');
@@ -244,6 +264,15 @@ assert(app.includes('原始错误原因已丢失') && app.includes('retry it to 
 assert(main.includes('browserDownloadInterruptionError') && main.includes('rememberBrowserDownloadNetworkError'), 'Main process must preserve browser network failure diagnostics');
 assert(app.includes('retryExisting: downloadTarget?.isRetry === true'), 'Only an explicit retry may skip daily entitlement consumption');
 assert(/retryRowId:\s*rowId,\s*isRetry:\s*true,/.test(app), 'Failed-task retry must explicitly preserve its entitlement exemption');
+assert(app.includes('preserveProgress: options.preserveProgress === true') && app.includes('resumePending: preserveProgress'), 'Resume must preserve the last confirmed download progress');
+assert(html.includes('id="browser-page-loading"') && app.includes('syncBrowserLoadingOverlay'), 'Browser navigation must expose a VidoGo loading transition');
+assert(css.includes('.browser-page-loading') && css.includes('.download-progress-track.is-indeterminate'), 'Browser and resumed-download indeterminate progress styles are missing');
+assert(!html.includes('id="plans-title"') && !html.includes('id="account-title"'), 'Plans and account pages must not retain redundant top introductions');
+assert(app.includes('browserLoadingShowTimer') && app.includes('window.setTimeout(show, 260)'), 'Browser loading transition must debounce short navigation flashes');
+assert(app.includes("did-first-visually-non-empty-paint") && app.includes('scheduleTabPageUsableProbe(tab') && app.includes('tab.navigationPending && !tab.pageVisuallyReady'), 'Browser loading transition must wait for meaningful page content instead of a blank first paint or every background request');
+assert(app.includes("const startsWithNavigation = Boolean(url && url !== 'about:blank')") && app.includes('loadingCoverUntil: needsInitialCover ? Date.now() + 520 : 0'), 'A new YouTube tab must be treated as an external navigation and receive an immediate initial loading cover');
+assert(main.includes('AD_SUPPORTED_PAGE_PROVIDERS') && main.includes('AD_SUPPORTED_PAGE_PROVIDERS.has(providerSiteForUrl(value))'), 'Stock platforms must bypass the page ad filter across subframe and redirect requests');
+assert(webviewPreload.includes("host.endsWith('.youtube.com')") && webviewPreload.includes("host.endsWith('.google.com')"), 'Chrome identity hints must be limited to Google and YouTube pages');
 assert(app.includes('BATCH_RESOLVER_CONCURRENCY') && app.includes('Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length)'), 'Batch episode resolution must use a bounded parallel worker pool');
 assert(!app.includes('const resolverConcurrency = hasCollectionPages ? 1'), 'Collection-page resolution must not force the worker pool back to serial execution');
 assert(main.includes('分集页面加载超时。') && main.includes('Promise.race(['), 'Background episode resolver must enforce a hard page-load timeout');
@@ -273,7 +302,7 @@ assert(app.indexOf("renderCandidateQuickAssets(candidate, assets)") < app.indexO
 assert(css.includes('.sniffer-resource-quick-grid') && css.includes('.sniffer-resource-subtitle-picker'), 'Compact quick-download and subtitle-picker styles are missing');
 assert(app.includes('selectedSubtitleAssetKeysByCandidateId') && app.includes('data-asset-index'), 'Subtitle selection must survive candidate refreshes');
 assert(app.includes("subtitleDetecting: '字幕检测中…'") && app.includes('subtitleDiscoveryPending: true') && css.includes('.sniffer-resource-subtitle-status'), 'YouTube subtitle discovery must expose a visible pending state');
-assert(/select:not\(\[multiple\]\):focus-visible\s*\{[^}]*outline:\s*1px[^}]*box-shadow:\s*none/s.test(css), 'Select controls must use the restrained global focus treatment');
+assert(/select:not\(\[multiple\]\):focus,[\s\S]*?select:not\(\[multiple\]\):focus-visible\s*\{[^}]*outline:\s*none[^}]*box-shadow:\s*none/s.test(css), 'Select controls must use a single restrained focus border');
 for (const token of ['xiaohongshuMediaSnapshot', 'xiaohongshuContentImages', "vidogo:xiaohongshu-media", "assetRole: 'gallery'"]) {
   assert(webviewPreload.includes(token) || app.includes(token), `Xiaohongshu image-note integration token missing: ${token}`);
 }
@@ -293,6 +322,7 @@ assert(app.includes("iconSvg('send')") && html.includes('data-icon="sliders"'), 
 assert(app.includes('beginLibraryEditorImport') && app.includes("libraryImportingEditor: '正在启动并导入 {editor}…'") && css.includes('.library-asset-action.is-editor-action.is-loading'), 'Editor import controls must expose a visible pending state while an editing app starts');
 assert(app.includes('libraryPlatformProviderKey(platform)') && app.includes('MEDIA_RULES?.providerSiteForUrl') && app.includes('label: platform.name'), 'Library platform labels and filters must resolve through Platform Manager URLs');
 assert(!app.includes("text('libraryMediaId')") && !app.includes("librarySearchPlaceholder: '搜索标题、平台或媒体 ID'"), 'Internal media IDs must not be exposed in library details or search copy');
+assert(app.includes('libraryProjectTagSearchTerms(project)') && app.includes("librarySearchPlaceholder: '搜索标题、文件名、平台或项目标签'") && html.includes('placeholder="搜索标题、文件名、平台或项目标签"'), 'Media-library search must index project tags and describe their project scope');
 assert(html.includes('id="settings-search-engine-control"') && html.includes('id="settings-editor-control"') && html.includes('data-settings-panel="preferences"') && !html.includes('data-settings-panel="editors"') && !html.includes('class="settings-header"'), 'Settings must restore search-engine selection, merge editor management into Preferences, and omit redundant panel titles');
 assert(html.includes('id="media-preview-overlay"') && app.includes('showMediaPreview') && app.includes('closeMediaPreview'), 'Built-in video, audio, image, and subtitle preview UI is incomplete');
 assert(css.includes('.media-preview-dialog[data-preview-type="audio"]') && css.includes('height: 250px'), 'Audio preview must use a compact layout instead of the video canvas');
@@ -304,6 +334,7 @@ assert(main.includes('classifiedOutputDirectory(outputRoot, provider)') && main.
 assert(main.includes('mediaLibraryStore.addCompleted') && main.includes("ipcMain.handle('library:list'") && main.includes("ipcMain.handle('library:refresh'"), 'Completed downloads must be stored in the media library');
 assert(main.includes("mainWindow.webContents.send('library:changed')") && preload.includes('onMediaLibraryChanged'), 'Completed downloads must refresh the visible media library automatically');
 assert(preload.includes('listMediaLibrary') && preload.includes('refreshMediaLibrary'), 'The media-library read bridge is incomplete');
+assert(preload.includes('setMediaLibraryProjectTags') && main.includes("ipcMain.handle('library:set-project-tags'") && app.includes('saveLibraryDetailTags'), 'Media-project tags must persist through the media-library bridge');
 assert(html.includes('id="page-library"') && html.includes('data-section="library"'), 'The media library sidebar entry or page is missing');
 for (const token of ['loadMediaLibrary', 'renderLibrary', 'filteredLibraryProjects', 'filteredLibraryAssets', 'renderLibraryDetail', 'data-library-project-action', 'data-library-project-import', 'data-library-asset-action']) {
   assert(app.includes(token), `Media library interaction is incomplete: ${token}`);
@@ -317,7 +348,27 @@ assert(html.includes('id="browser-login-button"') && html.includes('id="external
 assert(!html.includes('class="library-header"') && !html.includes('id="library-subtitle"'), 'Media library must not repeat a title and explanatory subtitle above the toolbar');
 assert(app.includes('openUrl(project.sourceUrl') && !app.includes('openExternal(project.sourceUrl'), 'Media library source links must open in the embedded browser');
 assert(!app.includes('data-library-asset-action="system"'), 'Media library must not render a duplicate system-open action');
-assert(app.includes('class="library-detail-meta-item') && app.includes('downloadAssetPresentation(asset.assetType).openLabel'), 'Media library compact metadata and type-specific open actions are missing');
+assert(app.includes('class="library-detail-groups"') && app.includes("text('libraryDownloadSummary'") && app.includes('downloadAssetPresentation(asset.assetType).openLabel'), 'Media library grouped detail layout and type-specific open actions are missing');
+assert(html.includes('id="library-detail-tag-list"') && html.includes('id="library-detail-tag-input"') && app.includes("setData('text/x-vidogo-library-tag'"), 'Media project tags must support adding, removing, and drag reordering');
+assert(/\.library-detail-overlay\s*\{[^}]*min\(468px,\s*51vw\)/s.test(css), 'Media project drawer must be about one-third narrower than the previous 700px layout');
+assert(app.includes("text('libraryDownloadSummary'") && !app.includes("[text('libraryFolder'), project.folderPath"), 'Media project metadata must be one quiet download-time and size summary');
+assert(html.includes('id="library-detail-heading-actions"') && html.includes('id="library-detail-summary"') && /\.library-detail-cover\s*\{[^}]*width:\s*140px[^}]*height:\s*88px/s.test(css), 'Media detail header must use the selected cover-led layout');
+assert(css.includes('.library-detail-groups') && /\.library-detail-asset-actions\s*\{[^}]*gap:\s*7px/s.test(css), 'Media assets must use one grouped list with separate compact action buttons');
+assert(css.includes('@keyframes library-title-marquee') && app.includes('syncLibraryDetailTitleMarquee'), 'Long media-project titles must marquee on hover');
+assert(app.includes('libraryProjectRowTags(project)') && app.includes('class="library-row-project-tag"'), 'Media-project list rows must place compact project tags directly after the title');
+assert(app.includes('syncLibraryProjectRowTags') && app.includes('container.clientWidth') && app.includes('chip.offsetWidth') && app.includes('document.fonts?.ready') && /\.library-row-project-title\s*\{[^}]*max-width:\s*190px/s.test(css), 'Media-project list rows must fit complete tags dynamically within the available width after fonts settle');
+assert(/\.library-project-row \.library-project-counts\s*\{[^}]*border-top:\s*0/s.test(css), 'Media-project list counts must not render the old divider line');
+assert(app.includes('class="library-project-card-tags${projectTags') && /\.library-project-title\s*\{[^}]*text-overflow:\s*ellipsis[^}]*white-space:\s*nowrap/s.test(css), 'Media-project cards must show tags below a one-line ellipsized title');
+assert(/\.library-project-cover\s*\{[^}]*aspect-ratio:\s*16\s*\/\s*9/s.test(css), 'Media-project card covers must preserve a natural thumbnail ratio');
+assert(/\.library-project-card\s*\{[^}]*padding:\s*0/s.test(css) && /\.library-project-cover\s*\{[^}]*width:\s*100%[^}]*margin:\s*0[^}]*border-radius:\s*5px\s+5px\s+0\s+0/s.test(css), 'Media-project covers must sit flush against the card edges with rounded top corners');
+assert(/\.library-provider-badge\s*\{[^}]*top:\s*0[^}]*left:\s*0[^}]*border-radius:\s*5px\s+0\s+5px\s+0[^}]*background:\s*#15803d/s.test(css), 'Media-project source badges must lock to the top-left corner with a distinct green background');
+assert(/\.library-grid\s*\{[^}]*minmax\(190px,\s*1fr\)/s.test(css) && app.includes("is-${isProjects ? 'projects' : 'assets'}"), 'Media projects and all-assets cards must share the same compact grid width');
+assert(app.includes('function libraryAssetProjectTags(project)') && app.includes('library-asset-project-tags-label') && /\.library-asset-project-tags\s*\{[^}]*min-height:\s*20px/s.test(css), 'All-assets cards must reserve a clearly labeled inherited project-tag row');
+assert(app.includes('data-library-project-tag-editor=') && app.includes('openLibraryProjectTagEditor') && app.includes('libraryDetailTagInput?.focus()'), 'All-assets cards must open the owning project tag editor directly');
+assert(app.includes('library-asset-project-tags is-empty') && !app.includes('library-asset-project-tags-empty'), 'Untagged all-assets cards must reserve empty tag space without a dash placeholder');
+assert(/\.library-asset-type-badge\s*\{[^}]*top:\s*0[^}]*right:\s*0[^}]*border-radius:\s*0\s+5px\s+0\s+5px[^}]*background:\s*#6d28d9/s.test(css), 'Asset-type badges must use a distinct purple top-right corner treatment');
+assert(app.includes('class="library-project-meta"><span>') && app.includes('<time datetime=') && !app.includes('class="library-project-size"'), 'Media-project timestamps must follow the asset count and size instead of competing with footer icons');
+assert(/\.library-project-card-tags\s*\{[^}]*min-height:\s*20px/s.test(css) && app.includes("library-project-card-tags${projectTags ? '' : ' is-empty'}"), 'Media-project cards must reserve one tag row so footer icons stay aligned');
 assert(preload.includes('startExternalYouTubeLogin') && preload.includes('syncExternalBrowserLogin') && preload.includes('onExternalLoginRequest'), 'External browser login preload bridge is incomplete');
 assert(main.includes("ipcMain.handle('browser:start-external-login'") && main.includes("ipcMain.handle('browser:sync-external-login'"), 'External browser login IPC handlers are missing');
 assert(main.includes('startManagedExternalLogin') && main.includes('isGoogleLoginFromYouTube'), 'Embedded Google login is not redirected to an external Chrome/Edge login window');

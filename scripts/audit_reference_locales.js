@@ -6,6 +6,19 @@ const root = path.resolve(__dirname, '..');
 const referencePath = path.join(root, 'legacy_reference', 'out', 'renderer', 'assets', 'index.pretty.js');
 const rendererPath = path.join(root, 'src', 'renderer', 'app.js');
 
+if (process.argv.includes('--remove-retired-keys')) {
+  const localeModulePath = path.join(root, 'src', 'renderer', 'locales.js');
+  const localeModule = fs.readFileSync(localeModulePath, 'utf8');
+  const retiredKeys = ['drmSupport', 'pro', 'flagship', 'ultimate', 'lifetime'];
+  const sanitizedModule = retiredKeys.reduce(
+    (source, key) => source.replace(new RegExp(`"${key}"\\s*:\\s*"[^"]*"\\s*,\\s*`, 'g'), ''),
+    localeModule
+  );
+  fs.writeFileSync(localeModulePath, sanitizedModule, 'utf8');
+  console.log(`Removed retired locale keys: ${retiredKeys.join(', ')}`);
+  process.exit(0);
+}
+
 function readObjectLiteral(filePath, startMarker, endMarker) {
   const source = fs.readFileSync(filePath, 'utf8');
   const start = source.indexOf(startMarker);
@@ -93,10 +106,6 @@ const pathOverrides = {
   plansTitle: 'account.purchaseTitle',
   plansSubtitle: 'account.purchaseDescription',
   free: 'account.planNames.free',
-  pro: 'account.planNames.pro',
-  flagship: 'account.planNames.ultimate',
-  ultimate: 'account.planNames.ultimate',
-  lifetime: 'account.planNames.lifetime',
   included: 'account.freeIncluded',
   fromPrice: 'account.fromPrice',
   month: 'account.billing.monthly',
@@ -112,7 +121,6 @@ const pathOverrides = {
   concurrentDownloads: 'account.comparison.concurrentDownloads',
   recordingDuration: 'account.comparison.recordingDuration',
   mediaLibrary: 'account.comparison.mediaLibrary',
-  drmSupport: 'account.comparison.drmSupport',
   futureUpdates: 'account.comparison.futureUpdates',
   prioritySupport: 'account.comparison.prioritySupport',
   none: 'account.comparison.none',
@@ -291,7 +299,7 @@ for (const [key, value] of Object.entries(rendererText.en)) {
   }
 }
 
-if (process.argv.includes('--module')) {
+if (process.argv.includes('--module') || process.argv.includes('--write-module')) {
   const translations = {};
   for (const locale of localeOrder) {
     translations[locale] = {
@@ -304,7 +312,13 @@ if (process.argv.includes('--module')) {
   }
   const payload = JSON.stringify(translations, null, 2);
   const names = JSON.stringify(nativeLanguageNames, null, 2);
-  process.stdout.write(`(function initVidoGoI18n(global) {\n  'use strict';\n\n  const localeOrder = ${JSON.stringify(localeOrder)};\n  const nativeLanguageNames = ${names};\n  const translations = ${payload};\n  const rtlLocales = new Set(['ar']);\n\n  function resolveSupportedLocale(value) {\n    if (!value) return null;\n    const normalized = String(value).trim().replace(/_/g, '-');\n    if (localeOrder.includes(normalized)) return normalized;\n    const lower = normalized.toLowerCase();\n    if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-sg' || lower.startsWith('zh-hans')) return 'zh-CN';\n    if (lower === 'zh-tw' || lower === 'zh-hk' || lower === 'zh-mo' || lower.startsWith('zh-hant')) return 'zh-TW';\n    const language = lower.split('-')[0];\n    return ['en', 'ru', 'pt', 'vi', 'th', 'ar'].includes(language) ? language : null;\n  }\n\n  function createTextTables(baseTables) {\n    const englishFallback = baseTables?.en || {};\n    return Object.fromEntries(localeOrder.map((locale) => [locale, { ...englishFallback, ...translations[locale] }]));\n  }\n\n  global.VidoGoI18n = Object.freeze({\n    localeOrder: Object.freeze([...localeOrder]),\n    nativeLanguageNames: Object.freeze({ ...nativeLanguageNames }),\n    translations: Object.freeze(translations),\n    resolveSupportedLocale,\n    getDirection: (locale) => rtlLocales.has(locale) ? 'rtl' : 'ltr',\n    createTextTables,\n  });\n})(window);\n`);
+  const moduleSource = `(function initVidoGoI18n(global) {\n  'use strict';\n\n  const localeOrder = ${JSON.stringify(localeOrder)};\n  const nativeLanguageNames = ${names};\n  const translations = ${payload};\n  const rtlLocales = new Set(['ar']);\n\n  function resolveSupportedLocale(value) {\n    if (!value) return null;\n    const normalized = String(value).trim().replace(/_/g, '-');\n    if (localeOrder.includes(normalized)) return normalized;\n    const lower = normalized.toLowerCase();\n    if (lower === 'zh' || lower === 'zh-cn' || lower === 'zh-sg' || lower.startsWith('zh-hans')) return 'zh-CN';\n    if (lower === 'zh-tw' || lower === 'zh-hk' || lower === 'zh-mo' || lower.startsWith('zh-hant')) return 'zh-TW';\n    const language = lower.split('-')[0];\n    return ['en', 'ru', 'pt', 'vi', 'th', 'ar'].includes(language) ? language : null;\n  }\n\n  function createTextTables(baseTables) {\n    const englishFallback = baseTables?.en || {};\n    return Object.fromEntries(localeOrder.map((locale) => [locale, { ...englishFallback, ...translations[locale] }]));\n  }\n\n  global.VidoGoI18n = Object.freeze({\n    localeOrder: Object.freeze([...localeOrder]),\n    nativeLanguageNames: Object.freeze({ ...nativeLanguageNames }),\n    translations: Object.freeze(translations),\n    resolveSupportedLocale,\n    getDirection: (locale) => rtlLocales.has(locale) ? 'rtl' : 'ltr',\n    createTextTables,\n  });\n})(window);\n`;
+  if (process.argv.includes('--write-module')) {
+    fs.writeFileSync(path.join(root, 'src', 'renderer', 'locales.js'), moduleSource, 'utf8');
+    console.log('Updated src/renderer/locales.js');
+  } else {
+    process.stdout.write(moduleSource);
+  }
 } else if (process.argv.includes('--reference')) {
   for (const [dottedPath, value] of referenceEnglish) {
     console.log(`${dottedPath}\t${value}`);

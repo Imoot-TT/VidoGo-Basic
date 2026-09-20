@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, nativeImage, net, session, shell, webContents } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, nativeImage, net, safeStorage, session, shell, webContents } = require('electron');
 const crypto = require('node:crypto');
 const fsSync = require('fs');
 const fs = require('fs/promises');
@@ -26,12 +26,14 @@ const {
 const {
   clampConcurrency: clampPlanConcurrency,
   consumeDailyEntitlement: consumePlanDailyEntitlement,
+  consumeProjectEntitlement: consumePlanProjectEntitlement,
   downloadEntitlementCharge,
   entitlementState,
   normalizeProfile: normalizeEntitlementProfile,
   normalizeStore: normalizeEntitlementStore,
 } = require('./entitlements');
 const { deriveGitHubUpdateState, safeHttpsUrl } = require('./update-check');
+const { beginSession, createEvent, normalizeAnalyticsStore } = require('./analytics');
 const { customEditor, discoverEditors, importIntoEditor } = require('./editor-integration');
 const {
   classifiedOutputDirectory,
@@ -73,9 +75,11 @@ const SESSION_DATA_PATH = path.join(USER_DATA_PATH, 'SessionData');
 const PARTITIONS_PATH = path.join(USER_DATA_PATH, 'Partitions');
 const ENTITLEMENT_STATE_PATH = path.join(USER_DATA_PATH, 'entitlements.json');
 const ACCOUNT_SESSION_PATH = path.join(USER_DATA_PATH, 'account-session.json');
+const REMEMBERED_LOGIN_PATH = path.join(USER_DATA_PATH, 'remembered-login.json');
 const PLATFORM_CONFIG_PATH = path.join(USER_DATA_PATH, 'platforms.json');
 const MEDIA_LIBRARY_PATH = path.join(USER_DATA_PATH, 'media-library.json');
 const EDITOR_CONFIG_PATH = path.join(USER_DATA_PATH, 'editor-config.json');
+const ANALYTICS_STATE_PATH = path.join(USER_DATA_PATH, 'analytics.json');
 const ACCOUNT_API_ORIGIN = (() => {
   try {
     const configPath = app.isPackaged
@@ -114,6 +118,7 @@ const BLOCKED_HOST_PARTS = [
   'pubmatic.com',
   'rubiconproject.com',
 ];
+const AD_SUPPORTED_PAGE_PROVIDERS = new Set(['dailymotion', 'pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy']);
 const MEDIA_EXTENSIONS = new Set([
   '.mp4',
   '.m4v',
@@ -141,6 +146,90 @@ const MEDIA_MIME_PREFIXES = [
 
 app.setPath('userData', USER_DATA_PATH);
 app.setPath('sessionData', SESSION_DATA_PATH);
+
+function loadAnalyticsState() {
+  try {
+    return beginSession(JSON.parse(fsSync.readFileSync(ANALYTICS_STATE_PATH, 'utf8')));
+  } catch {
+    return beginSession({});
+  }
+}
+
+let analyticsState = loadAnalyticsState();
+let analyticsFlushTimer = null;
+
+function saveAnalyticsState() {
+  fsSync.mkdirSync(path.dirname(ANALYTICS_STATE_PATH), { recursive: true });
+  const temporaryPath = `${ANALYTICS_STATE_PATH}.tmp`;
+  fsSync.writeFileSync(temporaryPath, `${JSON.stringify(analyticsState, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 });
+  fsSync.renameSync(temporaryPath, ANALYTICS_STATE_PATH);
+}
+
+function publicAnalyticsState() {
+  return { consent: analyticsState.consent, sessionCount: analyticsState.sessionCount, queuedEvents: analyticsState.queue.length };
+}
+
+function enqueueAnalyticsEvent(event, properties = {}) {
+  if (analyticsState.consent !== true) return publicAnalyticsState();
+  const item = createEvent(event, properties);
+  if (!item) return publicAnalyticsState();
+  analyticsState.queue = [...analyticsState.queue, item].slice(-200);
+  saveAnalyticsState();
+  scheduleAnalyticsFlush();
+  return publicAnalyticsState();
+}
+
+async function flushAnalyticsEvents() {
+  if (analyticsState.consent !== true || !analyticsState.queue.length || !ACCOUNT_API_ORIGIN) return;
+  const batch = analyticsState.queue.slice(0, 20);
+  if (IS_SMOKE_TEST) {
+    analyticsState.queue = analyticsState.queue.slice(batch.length);
+    saveAnalyticsState();
+    return;
+  }
+  try {
+    const response = await net.fetch(`${ACCOUNT_API_ORIGIN}/api/v1/analytics/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-VidoGo-Client': 'desktop' },
+      body: JSON.stringify({ anonymousId: analyticsState.anonymousId, appVersion: app.getVersion(), events: batch }),
+    });
+    if (!response.ok) return;
+    analyticsState.queue = analyticsState.queue.slice(batch.length);
+    saveAnalyticsState();
+    if (analyticsState.queue.length) scheduleAnalyticsFlush();
+  } catch { /* anonymous analytics must never interrupt the product flow */ }
+}
+
+function scheduleAnalyticsFlush() {
+  if (analyticsFlushTimer) return;
+  analyticsFlushTimer = setTimeout(() => {
+    analyticsFlushTimer = null;
+    void flushAnalyticsEvents();
+  }, 800);
+}
+
+function setAnalyticsConsent(enabled) {
+  analyticsState = normalizeAnalyticsStore({ ...analyticsState, consent: enabled === true });
+  if (enabled === true) {
+    if (!analyticsState.firstOpenTracked) {
+      analyticsState.firstOpenTracked = true;
+      const firstOpen = createEvent('first_open');
+      if (firstOpen) analyticsState.queue.push(firstOpen);
+    }
+    if (analyticsState.sessionCount >= 2 && !analyticsState.secondSessionTracked) {
+      analyticsState.secondSessionTracked = true;
+      const secondSession = createEvent('second_session');
+      if (secondSession) analyticsState.queue.push(secondSession);
+    }
+  } else {
+    analyticsState.queue = [];
+  }
+  saveAnalyticsState();
+  if (enabled === true) scheduleAnalyticsFlush();
+  return publicAnalyticsState();
+}
+
+saveAnalyticsState();
 
 let mainWindow = null;
 const activeDownloadJobs = new Map();
@@ -463,6 +552,65 @@ function saveAccountSession() {
   fsSync.renameSync(temporaryPath, ACCOUNT_SESSION_PATH);
 }
 
+async function rememberedLoginEncryptionAvailable() {
+  try {
+    if (typeof safeStorage.isAsyncEncryptionAvailable === 'function') return await safeStorage.isAsyncEncryptionAvailable();
+    return safeStorage.isEncryptionAvailable();
+  } catch {
+    return false;
+  }
+}
+
+async function encryptRememberedPassword(password) {
+  if (typeof safeStorage.encryptStringAsync === 'function') return safeStorage.encryptStringAsync(password);
+  return safeStorage.encryptString(password);
+}
+
+async function decryptRememberedPassword(encrypted) {
+  if (typeof safeStorage.decryptStringAsync === 'function') {
+    const value = await safeStorage.decryptStringAsync(encrypted);
+    return { password: value.result, shouldReEncrypt: value.shouldReEncrypt === true };
+  }
+  return { password: safeStorage.decryptString(encrypted), shouldReEncrypt: false };
+}
+
+async function saveRememberedLogin(credentials = {}) {
+  const remember = credentials.remember === true;
+  if (!remember) {
+    await fs.unlink(REMEMBERED_LOGIN_PATH).catch((error) => {
+      if (error?.code !== 'ENOENT') throw error;
+    });
+    return { available: await rememberedLoginEncryptionAvailable(), remembered: false, email: '', password: '' };
+  }
+  const email = String(credentials.email || '').trim().toLowerCase();
+  const password = String(credentials.password || '');
+  if (!email || !password) throw new Error('Email and password are required.');
+  if (!await rememberedLoginEncryptionAvailable()) return { available: false, remembered: false, email: '', password: '' };
+  const encrypted = await encryptRememberedPassword(password);
+  const value = { version: 1, email, encryptedPassword: Buffer.from(encrypted).toString('base64') };
+  await fs.mkdir(path.dirname(REMEMBERED_LOGIN_PATH), { recursive: true });
+  const temporaryPath = `${REMEMBERED_LOGIN_PATH}.tmp`;
+  await fs.writeFile(temporaryPath, `${JSON.stringify(value)}\n`, { encoding: 'utf8', mode: 0o600 });
+  await fs.rename(temporaryPath, REMEMBERED_LOGIN_PATH);
+  return { available: true, remembered: true, email, password };
+}
+
+async function loadRememberedLogin() {
+  const available = await rememberedLoginEncryptionAvailable();
+  if (!available) return { available: false, remembered: false, email: '', password: '' };
+  try {
+    const value = JSON.parse(await fs.readFile(REMEMBERED_LOGIN_PATH, 'utf8'));
+    const email = String(value?.email || '').trim().toLowerCase();
+    const encrypted = Buffer.from(String(value?.encryptedPassword || ''), 'base64');
+    if (!email || !encrypted.length) throw new Error('Invalid remembered login.');
+    const decrypted = await decryptRememberedPassword(encrypted);
+    if (decrypted.shouldReEncrypt) await saveRememberedLogin({ remember: true, email, password: decrypted.password });
+    return { available: true, remembered: true, email, password: decrypted.password };
+  } catch {
+    return { available: true, remembered: false, email: '', password: '' };
+  }
+}
+
 async function accountApiRequest(route, options = {}) {
   if (!ACCOUNT_API_ORIGIN) throw new Error('账户服务地址无效。');
   const controller = new AbortController();
@@ -602,12 +750,12 @@ async function fetchLatestReleaseResponse() {
     return {
       status: 200,
       data: [{
-        tag_name: 'basic-v0.2.0',
-        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.0',
+        tag_name: 'basic-v0.2.1',
+        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.1',
         published_at: '2026-08-23T12:00:00Z',
         assets: [{
-          name: 'VidoGo-Basic-0.2.0-x64-Setup.exe',
-          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.0/VidoGo-Basic-0.2.0-x64-Setup.exe',
+          name: 'VidoGo-Basic-0.2.1-x64-Setup.exe',
+          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.1/VidoGo-Basic-0.2.1-x64-Setup.exe',
         }],
       }],
     };
@@ -1137,23 +1285,18 @@ async function runSmokeTest(window) {
         const missing = requiredIds.filter((id) => !document.getElementById(id));
         if (window.__VIDOGO_BOOTSTRAPPED && missing.length === 0) {
           const scenario = ${JSON.stringify(process.env.ELECTRON_SMOKE_SCENARIO || '')};
-          const runnerName = scenario === 'browser-youtube-flow'
-            ? '__VIDOGO_RUN_BROWSER_YOUTUBE_FLOW_TEST'
-            : (scenario === 'browser-platform-flow'
-              ? '__VIDOGO_RUN_BROWSER_PLATFORM_FLOW_TEST'
-            : (scenario === 'account-ui-flow'
-              ? '__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST'
-            : (scenario === 'owner-flow'
-              ? '__VIDOGO_RUN_OWNER_FLOW_TEST'
-            : (scenario === 'locale-rtl'
-              ? '__VIDOGO_RUN_RTL_LOCALE_TEST'
-              : (scenario === 'recorder-flow'
-                ? '__VIDOGO_RUN_RECORDER_FLOW_TEST'
-                : (scenario === 'manifest-flow'
-                  ? '__VIDOGO_RUN_MANIFEST_FLOW_TEST'
-                  : (scenario === 'dash-flow'
-                    ? '__VIDOGO_RUN_DASH_FLOW_TEST'
-                    : (scenario === 'resolver-flow' ? '__VIDOGO_RUN_RESOLVER_FLOW_TEST' : '__VIDOGO_RUN_SELF_TEST'))))))));
+          const runnerName = ({
+            'browser-youtube-flow': '__VIDOGO_RUN_BROWSER_YOUTUBE_FLOW_TEST',
+            'browser-platform-flow': '__VIDOGO_RUN_BROWSER_PLATFORM_FLOW_TEST',
+            'account-api-flow': '__VIDOGO_RUN_ACCOUNT_API_FLOW_TEST',
+            'account-ui-flow': '__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST',
+            'owner-flow': '__VIDOGO_RUN_OWNER_FLOW_TEST',
+            'locale-rtl': '__VIDOGO_RUN_RTL_LOCALE_TEST',
+            'recorder-flow': '__VIDOGO_RUN_RECORDER_FLOW_TEST',
+            'manifest-flow': '__VIDOGO_RUN_MANIFEST_FLOW_TEST',
+            'dash-flow': '__VIDOGO_RUN_DASH_FLOW_TEST',
+            'resolver-flow': '__VIDOGO_RUN_RESOLVER_FLOW_TEST',
+          })[scenario] || '__VIDOGO_RUN_SELF_TEST';
           const runnerLabel = scenario || 'self test';
           const runnerTimeoutMs = ['browser-youtube-flow', 'browser-platform-flow'].includes(scenario)
             ? 65000
@@ -1683,8 +1826,7 @@ function webContentsUsesAdSupportedPlayback(webContentsId) {
     return false;
   }
   if (!guest || guest.isDestroyed() || guest.getType() !== 'webview') return false;
-  return ['dailymotion', 'pixabay', 'pexels', 'mixkit', 'coverr', 'videvo', 'videezy']
-    .includes(providerSiteForUrl(guest.getURL()));
+  return AD_SUPPORTED_PAGE_PROVIDERS.has(providerSiteForUrl(guest.getURL()));
 }
 
 function requestUsesAdSupportedPlayback(details = {}) {
@@ -1698,12 +1840,12 @@ function requestUsesAdSupportedPlayback(details = {}) {
     frame?.parent?.url,
   ];
   try { contextUrls.push(details.webContents?.getURL?.()); } catch { /* request may outlive its contents */ }
-  return contextUrls.some((value) => providerSiteForUrl(value) === 'dailymotion');
+  return contextUrls.some((value) => AD_SUPPORTED_PAGE_PROVIDERS.has(providerSiteForUrl(value)));
 }
 
 function frameUsesAdSupportedPlayback(frame) {
   const contextUrls = [frame?.url, frame?.top?.url, frame?.parent?.url];
-  return contextUrls.some((value) => providerSiteForUrl(value) === 'dailymotion');
+  return contextUrls.some((value) => AD_SUPPORTED_PAGE_PROVIDERS.has(providerSiteForUrl(value)));
 }
 
 function sendAdBlockerState() {
@@ -2482,6 +2624,29 @@ function sendDownloadQueueState() {
   mainWindow.webContents.send('download:state', getDownloadQueueState());
 }
 
+function entitlementProjectKey(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized ? crypto.createHash('sha256').update(normalized).digest('hex') : '';
+}
+
+function entitlementProjectKeys(entries = []) {
+  return Array.from(new Set(entries.map((entry) => {
+    const task = entry?.task || entry || {};
+    const identity = task.sourceGroupId
+      || `${task.provider || 'web'}:${task.mediaId || task.pageUrl || entry?.url || task.url || ''}`;
+    return entitlementProjectKey(identity);
+  }).filter(Boolean)));
+}
+
+function consumeCurrentProjectEntitlement(projectKeys) {
+  const result = consumePlanProjectEntitlement(entitlementStore, currentEntitlementProfile, projectKeys);
+  if (!result.ok) return result;
+  entitlementStore = result.store;
+  if (result.charge > 0) persistEntitlementStore();
+  notifyEntitlementState(result.state);
+  return result;
+}
+
 function sendMediaLibraryChanged() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.send('library:changed');
@@ -2489,7 +2654,7 @@ function sendMediaLibraryChanged() {
 
 async function mediaLibrarySnapshot(refresh = false) {
   const document = await mediaLibraryStore.list({ refresh });
-  return { ...document, projects: groupMediaLibraryItems(document.items) };
+  return { ...document, projects: groupMediaLibraryItems(document.items, document.projectTags) };
 }
 
 function registerCompletedDownload(job, data = {}) {
@@ -3467,6 +3632,8 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  if (analyticsFlushTimer) clearTimeout(analyticsFlushTimer);
+  analyticsFlushTimer = null;
   if (backgroundUpdateTimer) clearTimeout(backgroundUpdateTimer);
   backgroundUpdateTimer = null;
   if (systemNetworkTimer) clearInterval(systemNetworkTimer);
@@ -3495,6 +3662,9 @@ ipcMain.handle('app:get-default-download-dir', () => (IS_SMOKE_TEST
 
 ipcMain.handle('app:get-runtime-info', () => getRuntimeInfo());
 ipcMain.handle('app:get-legacy-info', () => getLegacyInfo());
+ipcMain.handle('analytics:get-state', () => publicAnalyticsState());
+ipcMain.handle('analytics:set-consent', (_event, enabled) => setAnalyticsConsent(enabled));
+ipcMain.handle('analytics:track', (_event, payload = {}) => enqueueAnalyticsEvent(payload.event, payload.properties));
 ipcMain.handle('system:get-network-speed', async () => {
   if (IS_SMOKE_TEST) return { ...systemNetworkSpeed, available: true };
   if (!systemNetworkSpeed.sampledAt) await sampleSystemNetworkSpeed();
@@ -3557,6 +3727,9 @@ ipcMain.handle('app:download-update', () => downloadAppUpdate());
 ipcMain.handle('app:install-update', (_event, options = {}) => installDownloadedAppUpdate(options.force === true));
 
 ipcMain.handle('account:get-config', () => ({ apiOrigin: ACCOUNT_API_ORIGIN, connected: Boolean(ACCOUNT_API_ORIGIN) }));
+ipcMain.handle('account:get-remembered-login', () => loadRememberedLogin());
+ipcMain.handle('account:save-remembered-login', (_event, credentials = {}) => saveRememberedLogin(credentials));
+ipcMain.handle('account:clear-remembered-login', () => saveRememberedLogin({ remember: false }));
 ipcMain.handle('account:register', (_event, credentials = {}) => accountRegister({ email: credentials.email, password: credentials.password }));
 ipcMain.handle('account:login', (_event, credentials = {}) => accountLogin({ email: credentials.email, password: credentials.password }));
 ipcMain.handle('account:current', () => accountCurrent());
@@ -3804,16 +3977,20 @@ ipcMain.handle('entitlements:check-download', (event, payload = {}) => {
   if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
     throw new Error('Entitlement checks are only available to the app renderer.');
   }
-  const requested = Math.max(0, Math.floor(Number(payload.count) || 0));
   const retryExisting = payload.retryExisting === true;
-  const charge = downloadEntitlementCharge(requested, retryExisting);
-  const entitlements = getCurrentEntitlementState();
+  const rawProjectIds = Array.isArray(payload.projectIds) ? payload.projectIds.slice(0, 100) : [];
+  const requestedFallback = Math.max(0, Math.floor(Number(payload.count) || 0));
+  const projectKeys = retryExisting
+    ? []
+    : (rawProjectIds.length
+      ? rawProjectIds.map(entitlementProjectKey).filter(Boolean)
+      : Array.from({ length: requestedFallback }, (_value, index) => entitlementProjectKey(`preflight:${index}`)));
+  const preview = consumePlanProjectEntitlement(entitlementStore, currentEntitlementProfile, projectKeys);
+  const entitlements = preview.state;
   return {
-    ok: requested === 0
-      || entitlements.remainingToday === null
-      || (entitlements.remainingToday > 0 && (retryExisting || requested <= entitlements.remainingToday)),
-    requested,
-    charge,
+    ok: preview.ok,
+    requested: projectKeys.length,
+    charge: preview.charge,
     entitlements,
   };
 });
@@ -3856,14 +4033,14 @@ ipcMain.handle('recording:start', async (event, payload = {}) => {
   if (activeDownloadJobs.size + activeRecordingSessions.size >= downloadConcurrencyLimit) {
     throw new Error('recording-capacity-reached');
   }
-  assertDailyEntitlementAvailable(1);
   const pageUrl = String(payload.pageUrl || event.sender.getURL() || '').slice(0, 4096);
   const pageTitle = String(payload.pageTitle || event.sender.getTitle() || 'recording').slice(0, 500);
   const mimeType = String(payload.mimeType || 'video/webm').slice(0, 200);
   const outputDir = recordingOutputDir || path.join(app.getPath('downloads'), APP_NAME);
   const requestedStem = sanitizeRecordingStem(payload.suggestedFileName || `${pageTitle} - recording`);
   const { finalPath, temporaryPath } = await reserveRecordingPaths(outputDir, requestedStem, recordingExtension(mimeType));
-  const consumed = consumeCurrentDailyEntitlement(1);
+  const recordingProjectKey = entitlementProjectKey(`recording:${normalizePageUrl(pageUrl) || pageUrl}`);
+  const consumed = consumeCurrentProjectEntitlement([recordingProjectKey]);
   if (!consumed.ok) {
     await fs.unlink(temporaryPath).catch(() => {});
     const error = new Error('daily-entitlement-limit-reached');
@@ -4308,6 +4485,14 @@ ipcMain.handle('library:refresh', async (event) => {
   return mediaLibrarySnapshot(true);
 });
 
+ipcMain.handle('library:set-project-tags', async (event, payload = {}) => {
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender.id !== mainWindow.webContents.id) {
+    throw new Error('The media library is only available to the app renderer.');
+  }
+  const tags = await mediaLibraryStore.setProjectTags(payload.projectKey, payload.tags);
+  return { ok: true, tags };
+});
+
 ipcMain.handle('window:renderer-ready', (event) => {
   if (IS_SMOKE_TEST || !mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) return false;
   mainWindow.show();
@@ -4476,7 +4661,7 @@ ipcMain.handle('download:start', async (_event, task) => {
   ].map((job) => [job.requestKey || downloadRequestKey(job.url, job.task?.formatId, `${job.task?.assetType || 'video'}:${job.task?.subtitleLanguage || ''}`), job]));
   const newEntries = requestedEntries.filter((entry) => !existingByRequestKey.has(entry.requestKey));
   if (IS_SMOKE_TEST && !IS_REAL_DOWNLOAD_SMOKE) {
-    const consumed = consumeCurrentDailyEntitlement(downloadEntitlementCharge(newEntries.length, task.retryExisting));
+    const consumed = consumeCurrentProjectEntitlement(task.retryExisting ? [] : entitlementProjectKeys(newEntries));
     if (!consumed.ok) {
       releaseRetainedMediaResolver(baseTask.webContentsId);
       const error = new Error('daily-entitlement-limit-reached');
@@ -4568,7 +4753,7 @@ ipcMain.handle('download:start', async (_event, task) => {
       ...getDownloadQueueState(),
     };
   }
-  const consumed = consumeCurrentDailyEntitlement(downloadEntitlementCharge(newEntries.length, task.retryExisting));
+  const consumed = consumeCurrentProjectEntitlement(task.retryExisting ? [] : entitlementProjectKeys(newEntries));
   if (!consumed.ok) {
     releaseRetainedMediaResolver(baseTask.webContentsId);
     const error = new Error('daily-entitlement-limit-reached');

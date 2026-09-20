@@ -68,14 +68,18 @@ async function main() {
     let library = await store.list();
     assert.equal(library.items.length, 1, 'The same physical asset must remain one library record across repeated tasks');
     assert.equal(library.items.find((item) => item.sourceTaskId === 'job-1').title, 'Updated title');
+    await store.setProjectTags('tiktok:media:123', ['#口播', '旅行', '口播']);
+    library = await store.list();
+    assert.deepEqual(library.projectTags['tiktok:media:123'], ['口播', '旅行'], 'Project tags must be normalized, deduplicated, and kept in user order');
 
     await fs.unlink(mediaPath);
     library = await store.list({ refresh: true });
     assert(library.items.every((item) => item.status === 'missing'), 'Refresh must retain records and mark externally deleted files as missing');
     const persisted = JSON.parse(await fs.readFile(store.filePath, 'utf8'));
-    assert.equal(persisted.schemaVersion, 3);
+    assert.equal(persisted.schemaVersion, 4);
+    assert.deepEqual(persisted.projectTags['tiktok:media:123'], ['口播', '旅行']);
     const manifest = JSON.parse(await fs.readFile(path.join(path.dirname(mediaPath), 'metadata.json'), 'utf8'));
-    assert.equal(manifest.schemaVersion, 3);
+    assert.equal(manifest.schemaVersion, 4);
     assert.equal(manifest.assets[0].assetType, 'video');
     assert.equal(manifest.assets[0].relativePath, 'video-1080p-h264.mp4');
 
@@ -100,11 +104,12 @@ async function main() {
         filePath: path.join(legacyAudioFolder, 'images', 'cover.jpg'), folderPath: legacyAudioFolder, assetType: 'image', assetRole: 'cover',
         fileSize: 4, downloadedAt: '2026-09-07T23:14:00.000Z', status: 'available',
       },
-    ]);
+    ], { 'youtube:media:shared-id': ['口播', '旅行'] });
     assert.equal(groupedProjects.length, 1, 'Assets with the same provider and media id must appear as one project');
     assert.deepEqual(groupedProjects[0].assetCounts, { video: 1, audio: 1, image: 1, subtitle: 0 });
     assert.equal(groupedProjects[0].assets.filter((asset) => asset.assetRole === 'cover').length, 1, 'Duplicate legacy covers must be represented as one shared cover');
     assert.equal(groupedProjects[0].assetCount, 3);
+    assert.deepEqual(groupedProjects[0].tags, ['口播', '旅行'], 'Grouped projects must expose their persisted tag order');
   } finally {
     await fs.rm(temporaryRoot, { recursive: true, force: true });
   }

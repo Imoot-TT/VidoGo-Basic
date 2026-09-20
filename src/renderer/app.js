@@ -19,19 +19,14 @@ const STORAGE_KEYS = {
   orders: 'vidogo:orders',
 };
 
-const PLAN_LEVELS = ['free', 'pro', 'ultimate', 'lifetime'];
+const PLAN_LEVELS = ['free', 'creator'];
 const PLAN_PRODUCTS = {
-  pro_month: { code: 'pro_month', level: 'pro', amount: 4.9, currency: 'USD', billing: 1 },
-  pro_year: { code: 'pro_year', level: 'pro', amount: 39, currency: 'USD', billing: 2 },
-  ultimate_month: { code: 'ultimate_month', level: 'ultimate', amount: 9.9, currency: 'USD', billing: 1 },
-  ultimate_year: { code: 'ultimate_year', level: 'ultimate', amount: 59, currency: 'USD', billing: 2 },
-  lifetime: { code: 'lifetime', level: 'lifetime', amount: 149, currency: 'USD', billing: 0 },
+  creator_year: { code: 'creator_year', level: 'creator', amount: 39, currency: 'USD', billing: 2 },
+  creator_founder: { code: 'creator_founder', level: 'creator', amount: 59, currency: 'USD', billing: 0 },
 };
 const PLAN_LIMITS = {
   free: { dailyDownloadLimit: 5, maxConcurrentDownloads: 1, recordingMinutes: 5, mediaLibrary: 'basic' },
-  pro: { dailyDownloadLimit: 30, maxConcurrentDownloads: 5, recordingMinutes: 30, mediaLibrary: 'medium' },
-  ultimate: { dailyDownloadLimit: null, maxConcurrentDownloads: 10, recordingMinutes: null, mediaLibrary: 'unlimited' },
-  lifetime: { dailyDownloadLimit: null, maxConcurrentDownloads: 10, recordingMinutes: null, mediaLibrary: 'unlimited' },
+  creator: { dailyDownloadLimit: null, maxConcurrentDownloads: 5, recordingMinutes: null, mediaLibrary: 'unlimited' },
   owner: { dailyDownloadLimit: null, maxConcurrentDownloads: null, recordingMinutes: null, mediaLibrary: 'unlimited' },
 };
 
@@ -164,10 +159,6 @@ const TEXT = {
     plansTitle: '套餐购买',
     plansSubtitle: '选择套餐和支付方式，购买记录会显示在账户订单中。',
     free: '免费版',
-    pro: '专业版',
-    flagship: '旗舰版',
-    ultimate: '旗舰版',
-    lifetime: '终身版',
     included: '默认包含',
     fromPrice: '{price} 起',
     month: '月',
@@ -182,7 +173,6 @@ const TEXT = {
     concurrentDownloads: '并发下载数',
     recordingDuration: '单次录制时长',
     mediaLibrary: '媒体库容量',
-    drmSupport: 'DRM 内容支持',
     futureUpdates: '后续更新',
     prioritySupport: '优先客服支持',
     none: '-',
@@ -414,10 +404,6 @@ const TEXT = {
     plansTitle: 'Plans',
     plansSubtitle: 'Choose a plan and payment method. Purchases appear in account orders.',
     free: 'Free',
-    pro: 'Pro',
-    flagship: 'Ultimate',
-    ultimate: 'Ultimate',
-    lifetime: 'Lifetime',
     included: 'Included by default',
     fromPrice: 'From {price}',
     month: 'month',
@@ -432,7 +418,6 @@ const TEXT = {
     concurrentDownloads: 'Concurrent downloads',
     recordingDuration: 'Single recording length',
     mediaLibrary: 'Media library capacity',
-    drmSupport: 'DRM content support',
     futureUpdates: 'Future updates',
     prioritySupport: 'Priority support',
     none: '-',
@@ -600,14 +585,14 @@ const PLATFORM_MANAGER_TEXT = {
 };
 for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], PLATFORM_MANAGER_TEXT[locale] || PLATFORM_MANAGER_TEXT.en);
 const AUTH_FAILURE_TEXT = {
-  'zh-CN': { loginFailed: '邮箱或密码不正确。' },
-  'zh-TW': { loginFailed: '電子郵件或密碼不正確。' },
-  en: { loginFailed: 'Email or password is incorrect.' },
-  ru: { loginFailed: 'Неверный адрес электронной почты или пароль.' },
-  pt: { loginFailed: 'E-mail ou senha incorretos.' },
-  vi: { loginFailed: 'Email hoặc mật khẩu không đúng.' },
-  th: { loginFailed: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
-  ar: { loginFailed: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' },
+  'zh-CN': { loginFailed: '邮箱或密码不正确。', accountExists: '该邮箱已经注册，请直接登录。', passwordLengthInvalid: '密码长度必须为 10 到 128 个字符。', accountServiceUnavailable: '账户服务暂时不可用，请稍后重试。' },
+  'zh-TW': { loginFailed: '電子郵件或密碼不正確。', accountExists: '此電子郵件已註冊，請直接登入。', passwordLengthInvalid: '密碼長度必須為 10 到 128 個字元。', accountServiceUnavailable: '帳戶服務暫時無法使用，請稍後再試。' },
+  en: { loginFailed: 'Email or password is incorrect.', accountExists: 'This email is already registered. Sign in instead.', passwordLengthInvalid: 'Password must contain 10 to 128 characters.', accountServiceUnavailable: 'The account service is temporarily unavailable. Try again later.' },
+  ru: { loginFailed: 'Неверный адрес электронной почты или пароль.', accountExists: 'Этот адрес уже зарегистрирован. Войдите в аккаунт.', passwordLengthInvalid: 'Пароль должен содержать от 10 до 128 символов.', accountServiceUnavailable: 'Сервис аккаунтов временно недоступен. Повторите попытку позже.' },
+  pt: { loginFailed: 'E-mail ou senha incorretos.', accountExists: 'Este e-mail já está cadastrado. Entre na conta.', passwordLengthInvalid: 'A senha deve ter de 10 a 128 caracteres.', accountServiceUnavailable: 'O serviço de conta está temporariamente indisponível. Tente novamente mais tarde.' },
+  vi: { loginFailed: 'Email hoặc mật khẩu không đúng.', accountExists: 'Email này đã được đăng ký. Hãy đăng nhập.', passwordLengthInvalid: 'Mật khẩu phải có từ 10 đến 128 ký tự.', accountServiceUnavailable: 'Dịch vụ tài khoản tạm thời không khả dụng. Hãy thử lại sau.' },
+  th: { loginFailed: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', accountExists: 'อีเมลนี้ลงทะเบียนแล้ว กรุณาเข้าสู่ระบบ', passwordLengthInvalid: 'รหัสผ่านต้องมีความยาว 10 ถึง 128 ตัวอักษร', accountServiceUnavailable: 'บริการบัญชีไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งภายหลัง' },
+  ar: { loginFailed: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.', accountExists: 'هذا البريد مسجل بالفعل. سجّل الدخول بدلاً من ذلك.', passwordLengthInvalid: 'يجب أن تتكون كلمة المرور من 10 إلى 128 حرفًا.', accountServiceUnavailable: 'خدمة الحساب غير متاحة مؤقتًا. حاول مرة أخرى لاحقًا.' },
 };
 for (const [locale, copy] of Object.entries(AUTH_FAILURE_TEXT)) Object.assign(TEXT_TABLES[locale], copy);
 const NOTICE_TEXT = {
@@ -669,7 +654,7 @@ const LIBRARY_TEXT = {
   'zh-CN': {
     library: '素材库', libraryTitle: '素材库', libraryDescription: '视频、MP3、封面和字幕按来源归入同一个媒体项目。',
     libraryProjects: '媒体项目', libraryAllAssets: '全部素材', libraryRefresh: '刷新', libraryRefreshing: '正在刷新…',
-    librarySearch: '搜索素材库', librarySearchPlaceholder: '搜索标题、文件名或平台', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部类型',
+    librarySearch: '搜索素材库', librarySearchPlaceholder: '搜索标题、文件名、平台或项目标签', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部类型',
     librarySortRecent: '最近下载', librarySortTitle: '按标题', librarySortSize: '按大小', libraryGridView: '网格视图', libraryListView: '列表视图',
     libraryLoading: '正在读取素材库…', libraryLoadFailed: '素材库读取失败：{message}', libraryEmptyTitle: '素材库还是空的',
     libraryEmptyBody: '下载视频、MP3、封面或字幕后，会自动整理到这里。', libraryNoResultsTitle: '没有匹配的素材', libraryNoResultsBody: '试试清空搜索或更换筛选条件。', libraryBrowse: '去浏览下载',
@@ -679,11 +664,13 @@ const LIBRARY_TEXT = {
     libraryProvider: '平台', libraryDownloadedAt: '下载时间', libraryFolder: '项目文件夹', librarySize: '大小',
     libraryStatusAvailable: '完整', libraryStatusPartial: '部分文件缺失', libraryStatusMissing: '文件缺失', libraryMissing: '缺失', libraryUnknownProvider: '其他平台',
     libraryVideo: '视频', libraryAudio: 'MP3', libraryImage: '图片', librarySubtitle: '字幕', librarySharedCover: '共享封面', libraryRefreshDone: '素材库已刷新',
+    libraryTags: '项目标签', libraryEditProjectTags: '改标签', libraryAddTag: '添加项目标签', libraryRemoveTag: '删除项目标签 {tag}', libraryTagSaveFailed: '项目标签保存失败，请重试。', libraryTagReorderHint: '拖动项目标签可调整顺序',
+    librarySourcePage: '来源网页', libraryProjectFolder: '项目文件夹', libraryDownloadSummary: '下载于 {time} · 共 {size}',
   },
   'zh-TW': {
     library: '素材庫', libraryTitle: '素材庫', libraryDescription: '影片、MP3、封面與字幕會依來源歸入同一個媒體專案。',
     libraryProjects: '媒體專案', libraryAllAssets: '全部素材', libraryRefresh: '重新整理', libraryRefreshing: '正在重新整理…',
-    librarySearch: '搜尋素材庫', librarySearchPlaceholder: '搜尋標題、檔名或平台', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部類型',
+    librarySearch: '搜尋素材庫', librarySearchPlaceholder: '搜尋標題、檔名、平台或專案標籤', libraryAllPlatforms: '全部平台', libraryAllTypes: '全部類型',
     librarySortRecent: '最近下載', librarySortTitle: '依標題', librarySortSize: '依大小', libraryGridView: '網格檢視', libraryListView: '清單檢視',
     libraryLoading: '正在讀取素材庫…', libraryLoadFailed: '素材庫讀取失敗：{message}', libraryEmptyTitle: '素材庫還是空的',
     libraryEmptyBody: '下載影片、MP3、封面或字幕後，會自動整理到這裡。', libraryNoResultsTitle: '沒有符合的素材', libraryNoResultsBody: '請清除搜尋或更換篩選條件。', libraryBrowse: '前往瀏覽下載',
@@ -693,11 +680,13 @@ const LIBRARY_TEXT = {
     libraryProvider: '平台', libraryDownloadedAt: '下載時間', libraryFolder: '專案資料夾', librarySize: '大小',
     libraryStatusAvailable: '完整', libraryStatusPartial: '部分檔案遺失', libraryStatusMissing: '檔案遺失', libraryMissing: '遺失', libraryUnknownProvider: '其他平台',
     libraryVideo: '影片', libraryAudio: 'MP3', libraryImage: '圖片', librarySubtitle: '字幕', librarySharedCover: '共用封面', libraryRefreshDone: '素材庫已重新整理',
+    libraryTags: '專案標籤', libraryEditProjectTags: '改標籤', libraryAddTag: '新增專案標籤', libraryRemoveTag: '刪除專案標籤 {tag}', libraryTagSaveFailed: '專案標籤儲存失敗，請再試一次。', libraryTagReorderHint: '拖曳專案標籤可調整順序',
+    librarySourcePage: '來源網頁', libraryProjectFolder: '專案資料夾', libraryDownloadSummary: '下載於 {time} · 共 {size}',
   },
   en: {
     library: 'Library', libraryTitle: 'Media library', libraryDescription: 'Video, MP3, covers and subtitles are grouped into one source project.',
     libraryProjects: 'Media projects', libraryAllAssets: 'All assets', libraryRefresh: 'Refresh', libraryRefreshing: 'Refreshing…',
-    librarySearch: 'Search library', librarySearchPlaceholder: 'Search title, file name, or platform', libraryAllPlatforms: 'All platforms', libraryAllTypes: 'All types',
+    librarySearch: 'Search library', librarySearchPlaceholder: 'Search title, file name, platform, or project tag', libraryAllPlatforms: 'All platforms', libraryAllTypes: 'All types',
     librarySortRecent: 'Most recent', librarySortTitle: 'By title', librarySortSize: 'By size', libraryGridView: 'Grid view', libraryListView: 'List view',
     libraryLoading: 'Loading the media library…', libraryLoadFailed: 'Could not load the media library: {message}', libraryEmptyTitle: 'Your library is empty',
     libraryEmptyBody: 'Downloaded video, MP3, covers, and subtitles will be organized here automatically.', libraryNoResultsTitle: 'No matching assets', libraryNoResultsBody: 'Clear the search or change a filter.', libraryBrowse: 'Browse and download',
@@ -707,6 +696,8 @@ const LIBRARY_TEXT = {
     libraryProvider: 'Platform', libraryDownloadedAt: 'Downloaded', libraryFolder: 'Project folder', librarySize: 'Size',
     libraryStatusAvailable: 'Complete', libraryStatusPartial: 'Some files are missing', libraryStatusMissing: 'Files missing', libraryMissing: 'Missing', libraryUnknownProvider: 'Other',
     libraryVideo: 'Video', libraryAudio: 'MP3', libraryImage: 'Image', librarySubtitle: 'Subtitle', librarySharedCover: 'Shared cover', libraryRefreshDone: 'Media library refreshed',
+    libraryTags: 'Project tags', libraryEditProjectTags: 'Edit tags', libraryAddTag: 'Add project tag', libraryRemoveTag: 'Remove project tag {tag}', libraryTagSaveFailed: 'Could not save the project tags. Try again.', libraryTagReorderHint: 'Drag project tags to reorder them',
+    librarySourcePage: 'Source page', libraryProjectFolder: 'Project folder', libraryDownloadSummary: 'Downloaded {time} · {size} total',
   },
 };
 for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], LIBRARY_TEXT[locale] || LIBRARY_TEXT.en);
@@ -862,9 +853,9 @@ const EXTERNAL_LOGIN_TEXT = {
 };
 for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], EXTERNAL_LOGIN_TEXT[locale] || EXTERNAL_LOGIN_TEXT.en);
 const TITLEBAR_ACCOUNT_TEXT = {
-  'zh-CN': { signedOut: '未登录 · 免费版', remaining: '今日剩余 {remaining}/{limit}', unlimited: '下载不限', open: '查看账户信息' },
-  'zh-TW': { signedOut: '未登入 · 免費版', remaining: '今日剩餘 {remaining}/{limit}', unlimited: '下載不限', open: '查看帳戶資訊' },
-  en: { signedOut: 'Signed out · Free', remaining: '{remaining}/{limit} left today', unlimited: 'Unlimited downloads', open: 'View account' },
+  'zh-CN': { signedOut: '未登录 · Free', remaining: '今日项目 {remaining}/{limit}', unlimited: '项目不限', open: '查看账户信息' },
+  'zh-TW': { signedOut: '未登入 · Free', remaining: '今日專案 {remaining}/{limit}', unlimited: '專案不限', open: '查看帳戶資訊' },
+  en: { signedOut: 'Signed out · Free', remaining: '{remaining}/{limit} projects left', unlimited: 'Unlimited projects', open: 'View account' },
 };
 const MEDIA_CONTEXT_TEXT = {
   'zh-CN': { currentMedia: '当前视频', batchMedia: '批量', selectAllMedia: '全选', downloadSelectedMedia: '下载所选', selectMediaFirst: '请先选择要下载的视频。', resolvingEpisode: '正在识别第 {current}/{total} 集…', batchResolveDone: '批量处理完成：已开始 {started} 个，未识别 {failed} 个。', batchResolveFailed: '未能识别所选分集的真实视频，请先打开其中一集并播放后再试。' },
@@ -873,62 +864,171 @@ const MEDIA_CONTEXT_TEXT = {
 };
 for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], MEDIA_CONTEXT_TEXT[locale] || MEDIA_CONTEXT_TEXT.en);
 
+const PRODUCT_020_TEXT = {
+  'zh-CN': {
+    creator: 'Creator',
+    homeTaskEyebrow: '创作者素材工作台',
+    homeTaskTitle: '粘贴一个链接，生成完整素材包',
+    homeTaskTagline: '视频、MP3、字幕、封面和来源信息自动归档到同一个项目。',
+    homeUrlPlaceholder: '粘贴公开视频链接',
+    homeAssetPackSubmit: '分析并生成素材包',
+    homeAssetPackWorking: '正在识别素材…',
+    homeBrowseSites: '也可以先浏览支持的网站',
+    homeTaskNote: '仅处理你有权保存的公开或已授权内容。DRM 保护内容无法下载或录制。',
+    homeInvalidUrl: '请粘贴有效的 http 或 https 链接。',
+    homeMediaTimeout: '暂未识别到媒体。请在已打开的页面播放视频后，再点击媒体面板中的下载按钮。',
+    homePackStarted: '素材包已开始生成：同一链接只计 1 个项目。',
+    dailySourceProjects: '每日免费项目',
+    founderPrice: '创始买断价',
+    fullAssetPack: '视频、MP3、字幕与封面素材包',
+    editorImport: '导入剪辑软件素材区',
+    batchPlaylists: '批量与播放列表',
+    prioritySiteFixes: '优先站点适配',
+    projectsPerDay: '{count} 个项目/天',
+    analyticsTitle: '匿名使用数据',
+    analyticsDescription: '帮助改进首次成功率；不收集链接、标题、搜索词、文件名、路径、Cookie 或下载内容。',
+    analyticsConsentTitle: '帮助我们改善首次成功率',
+    analyticsConsentCopy: '允许发送匿名步骤事件，例如媒体已识别、成功保存和导入剪辑软件。不会发送链接、标题、文件名、路径、Cookie 或内容。',
+    analyticsAllow: '允许匿名统计',
+    analyticsDecline: '暂不允许',
+    browserLoadingTitle: '正在连接网页',
+    browserLoadingCopy: '网络较慢时可能需要一点时间',
+    resuming: '正在恢复…',
+    retainedProgress: '已保留 {percent}%',
+    rememberLogin: '记住账号和密码',
+    forgetLogin: '清除已记住信息',
+    rememberLoginUnavailable: '系统安全存储不可用',
+    rememberedLoginCleared: '已清除记住的登录信息',
+  },
+  'zh-TW': {
+    creator: 'Creator',
+    homeTaskEyebrow: '創作者素材工作台',
+    homeTaskTitle: '貼上一個連結，產生完整素材包',
+    homeTaskTagline: '影片、MP3、字幕、封面和來源資訊自動歸檔到同一個專案。',
+    homeUrlPlaceholder: '貼上公開影片連結',
+    homeAssetPackSubmit: '分析並產生素材包',
+    homeAssetPackWorking: '正在辨識素材…',
+    homeBrowseSites: '也可以先瀏覽支援的網站',
+    homeTaskNote: '僅處理你有權儲存的公開或已授權內容。DRM 保護內容無法下載或錄製。',
+    homeInvalidUrl: '請貼上有效的 http 或 https 連結。',
+    homeMediaTimeout: '尚未辨識到媒體。請在已開啟的頁面播放影片後，再使用媒體面板下載。',
+    homePackStarted: '素材包已開始產生：同一連結只計 1 個專案。',
+    dailySourceProjects: '每日免費專案',
+    founderPrice: '創始買斷價',
+    fullAssetPack: '影片、MP3、字幕與封面素材包',
+    editorImport: '匯入剪輯軟體素材區',
+    batchPlaylists: '批次與播放清單',
+    prioritySiteFixes: '優先網站適配',
+    projectsPerDay: '{count} 個專案/天',
+    analyticsTitle: '匿名使用資料',
+    analyticsDescription: '協助改善首次成功率；不收集連結、標題、搜尋詞、檔名、路徑、Cookie 或下載內容。',
+    analyticsConsentTitle: '協助我們改善首次成功率',
+    analyticsConsentCopy: '允許傳送匿名步驟事件，例如媒體已辨識、成功儲存和匯入剪輯軟體。不會傳送連結、標題、檔名、路徑、Cookie 或內容。',
+    analyticsAllow: '允許匿名統計',
+    analyticsDecline: '暫不允許',
+    browserLoadingTitle: '正在連接網頁',
+    browserLoadingCopy: '網路較慢時可能需要一點時間',
+    resuming: '正在恢復…',
+    retainedProgress: '已保留 {percent}%',
+    rememberLogin: '記住帳號和密碼',
+    forgetLogin: '清除已記住資訊',
+    rememberLoginUnavailable: '系統安全儲存無法使用',
+    rememberedLoginCleared: '已清除記住的登入資訊',
+  },
+  en: {
+    creator: 'Creator',
+    homeTaskEyebrow: 'Creator asset workspace',
+    homeTaskTitle: 'Paste one link. Get a complete asset pack.',
+    homeTaskTagline: 'Video, MP3, subtitles, cover art, and source details are organized into one project.',
+    homeUrlPlaceholder: 'Paste a public media link',
+    homeAssetPackSubmit: 'Analyze and create asset pack',
+    homeAssetPackWorking: 'Detecting assets…',
+    homeBrowseSites: 'Or browse supported sites first',
+    homeTaskNote: 'Only save public or authorized content you have the right to use. DRM-protected content cannot be downloaded or recorded.',
+    homeInvalidUrl: 'Paste a valid http or https link.',
+    homeMediaTimeout: 'No media was detected yet. Play the video in the opened page, then use the media panel to download it.',
+    homePackStarted: 'Asset pack started. One source link counts as one project.',
+    dailySourceProjects: 'Free projects per day',
+    founderPrice: 'Founder lifetime price',
+    fullAssetPack: 'Video, MP3, subtitle, and cover asset pack',
+    editorImport: 'Import to editing app media bin',
+    batchPlaylists: 'Batch and playlists',
+    prioritySiteFixes: 'Priority site compatibility fixes',
+    projectsPerDay: '{count} projects/day',
+    analyticsTitle: 'Anonymous usage data',
+    analyticsDescription: 'Helps improve first-use success. Links, titles, searches, filenames, paths, cookies, and downloaded content are never collected.',
+    analyticsConsentTitle: 'Help improve first-use success',
+    analyticsConsentCopy: 'Allow anonymous step events such as media detected, save completed, and editor import. Links, titles, filenames, paths, cookies, and content are never sent.',
+    analyticsAllow: 'Allow anonymous analytics',
+    analyticsDecline: 'Not now',
+    browserLoadingTitle: 'Connecting to the page',
+    browserLoadingCopy: 'This can take a moment on a slower network',
+    resuming: 'Resuming…',
+    retainedProgress: '{percent}% retained',
+    rememberLogin: 'Remember email and password',
+    forgetLogin: 'Clear remembered login',
+    rememberLoginUnavailable: 'Secure system storage is unavailable',
+    rememberedLoginCleared: 'Remembered login cleared',
+  },
+};
+for (const locale of I18N.localeOrder) Object.assign(TEXT_TABLES[locale], PRODUCT_020_TEXT[locale] || PRODUCT_020_TEXT.en);
+
 const SHELL_EXPERIENCE_TEXT = {
   'zh-CN': {
     flow: ['浏览', '识别', '选择', '保存'],
     storyTitle: '让浏览、套餐和下载记录保持同步',
     storyCopy: '登录后即可从管理平台安全读取权益，在同一个工作台继续你的任务。',
     benefits: ['同步套餐与额度', '查看订单与支付状态', '账户数据独立加密存储'],
-    footnote: '凭据仅发送到你配置的 VidoGo 管理平台',
+    footnote: '密码用于登录；勾选记住后由系统安全存储加密保管',
   },
   'zh-TW': {
     flow: ['瀏覽', '辨識', '選擇', '儲存'],
     storyTitle: '讓瀏覽、方案與下載記錄保持同步',
     storyCopy: '登入後即可從管理平台安全讀取權益，在同一個工作台繼續你的任務。',
     benefits: ['同步方案與額度', '查看訂單與付款狀態', '帳戶資料獨立加密儲存'],
-    footnote: '憑證只會傳送至你設定的 VidoGo 管理平台',
+    footnote: '密碼用於登入；勾選記住後由系統安全儲存加密保管',
   },
   en: {
     flow: ['Browse', 'Detect', 'Choose', 'Save'],
     storyTitle: 'Keep browsing, plans and downloads in sync',
     storyCopy: 'Sign in to securely read your entitlements and continue every task from one workspace.',
     benefits: ['Sync plans and usage', 'Review orders and payment status', 'Keep account data encrypted'],
-    footnote: 'Credentials are sent only to your configured VidoGo admin service',
+    footnote: 'Passwords are used to sign in; remembered passwords are encrypted by secure OS storage',
   },
   ru: {
     flow: ['Обзор', 'Поиск', 'Выбор', 'Сохранить'],
     storyTitle: 'Синхронизируйте просмотр, тариф и загрузки',
     storyCopy: 'Войдите, чтобы безопасно получить права доступа и продолжить задачи в одном рабочем пространстве.',
     benefits: ['Синхронизация тарифа и лимитов', 'Заказы и статус оплаты', 'Шифрование данных аккаунта'],
-    footnote: 'Данные отправляются только в настроенную службу VidoGo',
+    footnote: 'Пароль используется для входа; сохранённый пароль шифруется защищённым хранилищем ОС',
   },
   pt: {
     flow: ['Navegar', 'Detectar', 'Escolher', 'Salvar'],
     storyTitle: 'Mantenha navegação, plano e downloads sincronizados',
     storyCopy: 'Entre para consultar seus benefícios com segurança e continuar as tarefas em um único espaço.',
     benefits: ['Sincronizar plano e limites', 'Ver pedidos e pagamentos', 'Dados da conta criptografados'],
-    footnote: 'As credenciais são enviadas apenas ao serviço VidoGo configurado',
+    footnote: 'A senha é usada para entrar; senhas lembradas são criptografadas pelo sistema operacional',
   },
   vi: {
     flow: ['Duyệt', 'Nhận diện', 'Chọn', 'Lưu'],
     storyTitle: 'Đồng bộ trình duyệt, gói dịch vụ và lượt tải',
     storyCopy: 'Đăng nhập để đọc quyền lợi an toàn và tiếp tục mọi tác vụ trong cùng một không gian.',
     benefits: ['Đồng bộ gói và hạn mức', 'Xem đơn hàng và thanh toán', 'Mã hóa dữ liệu tài khoản'],
-    footnote: 'Thông tin chỉ được gửi tới dịch vụ VidoGo bạn đã cấu hình',
+    footnote: 'Mật khẩu dùng để đăng nhập; mật khẩu đã nhớ được mã hóa bằng kho bảo mật của hệ điều hành',
   },
   th: {
     flow: ['เรียกดู', 'ตรวจจับ', 'เลือก', 'บันทึก'],
     storyTitle: 'ซิงค์การเรียกดู แพ็กเกจ และรายการดาวน์โหลด',
     storyCopy: 'เข้าสู่ระบบเพื่ออ่านสิทธิ์อย่างปลอดภัยและทำงานต่อจากพื้นที่เดียว',
     benefits: ['ซิงค์แพ็กเกจและโควตา', 'ดูคำสั่งซื้อและการชำระเงิน', 'เข้ารหัสข้อมูลบัญชี'],
-    footnote: 'ข้อมูลจะถูกส่งไปยังบริการ VidoGo ที่คุณตั้งค่าไว้เท่านั้น',
+    footnote: 'รหัสผ่านใช้สำหรับเข้าสู่ระบบ และรหัสผ่านที่จำไว้จะถูกเข้ารหัสโดยระบบปฏิบัติการ',
   },
   ar: {
     flow: ['تصفح', 'اكتشاف', 'اختيار', 'حفظ'],
     storyTitle: 'زامن التصفح والباقات والتنزيلات',
     storyCopy: 'سجل الدخول لقراءة مزاياك بأمان ومتابعة جميع المهام من مساحة عمل واحدة.',
     benefits: ['مزامنة الباقة والحدود', 'عرض الطلبات وحالة الدفع', 'تشفير بيانات الحساب'],
-    footnote: 'ترسل بيانات الدخول فقط إلى خدمة VidoGo التي أعددتها',
+    footnote: 'تُستخدم كلمة المرور لتسجيل الدخول، وتُشفّر كلمة المرور المحفوظة عبر التخزين الآمن للنظام',
   },
 };
 
@@ -945,14 +1045,22 @@ const els = {
   tabbar: document.getElementById('browser-tabbar'),
   tabAdd: document.getElementById('tab-add'),
   homeTagline: document.getElementById('home-tagline'),
+  homeTaskEyebrow: document.getElementById('home-task-eyebrow'),
+  homeTaskTitle: document.getElementById('home-task-title'),
+  homeAssetPackForm: document.getElementById('home-asset-pack-form'),
+  homeAssetPackUrl: document.getElementById('home-asset-pack-url'),
+  homeAssetPackError: document.getElementById('home-asset-pack-error'),
+  homeAssetPackSubmit: document.getElementById('home-asset-pack-submit'),
+  homeAssetPackSubmitLabel: document.getElementById('home-asset-pack-submit-label'),
+  homeBrowseSites: document.getElementById('home-browse-sites'),
+  homeTaskNote: document.getElementById('home-task-note'),
   platformGroups: document.getElementById('platform-groups'),
   platformManageButton: document.getElementById('platform-manage-button'),
   platformManageLabel: document.getElementById('platform-manage-label'),
-  homeFlowBrowser: document.getElementById('home-flow-browser'),
-  homeFlowDetect: document.getElementById('home-flow-detect'),
-  homeFlowChoose: document.getElementById('home-flow-choose'),
-  homeFlowSave: document.getElementById('home-flow-save'),
   browserStage: document.getElementById('browser-stage'),
+  browserPageLoading: document.getElementById('browser-page-loading'),
+  browserPageLoadingTitle: document.getElementById('browser-page-loading-title'),
+  browserPageLoadingCopy: document.getElementById('browser-page-loading-copy'),
   browserSplit: document.getElementById('browser-split'),
   browserSide: document.getElementById('browser-side'),
   back: document.getElementById('nav-back'),
@@ -1037,8 +1145,17 @@ const els = {
   libraryDetailScrim: document.getElementById('library-detail-scrim'),
   libraryDetailCover: document.getElementById('library-detail-cover'),
   libraryDetailTitle: document.getElementById('library-detail-title'),
+  libraryDetailTitleText: document.getElementById('library-detail-title-text'),
   libraryDetailEyebrow: document.getElementById('library-detail-eyebrow'),
+  libraryDetailHeadingActions: document.getElementById('library-detail-heading-actions'),
   libraryDetailClose: document.getElementById('library-detail-close'),
+  libraryDetailTags: document.getElementById('library-detail-tags'),
+  libraryDetailTagList: document.getElementById('library-detail-tag-list'),
+  libraryDetailTagForm: document.getElementById('library-detail-tag-form'),
+  libraryDetailTagLabel: document.getElementById('library-detail-tag-label'),
+  libraryDetailTagInput: document.getElementById('library-detail-tag-input'),
+  libraryDetailTagAdd: document.getElementById('library-detail-tag-add'),
+  libraryDetailSummary: document.getElementById('library-detail-summary'),
   libraryDetailBody: document.getElementById('library-detail-body'),
   historyList: document.getElementById('history-list'),
   historyRange: document.getElementById('history-range'),
@@ -1066,6 +1183,10 @@ const els = {
   registerButton: document.getElementById('register-button'),
   loginEmail: document.getElementById('login-email'),
   loginPassword: document.getElementById('login-password'),
+  accountRememberRow: document.getElementById('account-remember-row'),
+  rememberLogin: document.getElementById('remember-login'),
+  rememberLoginLabel: document.getElementById('remember-login-label'),
+  forgetLogin: document.getElementById('forget-login'),
   accountAuthError: document.getElementById('account-auth-error'),
   accountAuthErrorCopy: document.getElementById('account-auth-error-copy'),
   passwordVisibilityToggles: Array.from(document.querySelectorAll('[data-password-target]')),
@@ -1099,6 +1220,8 @@ const els = {
   settingsConcurrencyPlans: document.getElementById('settings-concurrency-plans'),
   settingsRecording: document.getElementById('settings-recording-control'),
   settingsRecordingState: document.getElementById('settings-recording-state'),
+  settingsAnalytics: document.getElementById('settings-analytics-control'),
+  settingsAnalyticsState: document.getElementById('settings-analytics-state'),
   settingsEditor: document.getElementById('settings-editor-control'),
   settingsEditorPath: document.getElementById('settings-editor-path'),
   settingsEditorScan: document.getElementById('settings-editor-scan'),
@@ -1157,6 +1280,9 @@ const els = {
   mediaPreviewStatus: document.getElementById('media-preview-status'),
   mediaPreviewSystemOpen: document.getElementById('media-preview-system-open'),
   mediaPreviewSystemOpenLabel: document.getElementById('media-preview-system-open-label'),
+  analyticsConsentOverlay: document.getElementById('analytics-consent-overlay'),
+  analyticsConsentAllow: document.getElementById('analytics-consent-allow'),
+  analyticsConsentDecline: document.getElementById('analytics-consent-decline'),
   toastRegion: document.getElementById('toast-region'),
 };
 
@@ -1181,7 +1307,7 @@ const state = {
   account: {},
   users: [],
   orders: [],
-  selectedPlan: 'ultimate_month',
+  selectedPlan: 'creator_year',
   paymentChannel: 'stripe',
   queue: readArray(STORAGE_KEYS.downloads),
   downloadRange: 'all',
@@ -1213,6 +1339,13 @@ const state = {
   entitlements: null,
   downloadDiagnostics: [],
   updateInfo: null,
+  analytics: { consent: null, sessionCount: 1 },
+  analyticsDetectedTabs: new Set(),
+  analyticsVerifiedProjects: new Set(),
+  analyticsPaywallViewed: false,
+  analyticsPaidOrderIds: new Set(),
+  pendingAssetPack: null,
+  rememberedLogin: { available: true, remembered: false, email: '' },
   externalLoginBusy: false,
   externalLoginCanSync: false,
   previewItem: null,
@@ -1231,6 +1364,8 @@ const state = {
     sort: 'recent',
     view: 'grid',
     selectedProjectId: null,
+    draggedTagIndex: null,
+    tagSaveRevision: 0,
     previewUrls: new Map(),
   },
   systemNetworkSpeed: {
@@ -1244,6 +1379,9 @@ const state = {
 let webviewResizeFrame = 0;
 let systemNetworkSpeedTimer = 0;
 let systemNetworkSpeedRefreshPending = false;
+let browserLoadingShowTimer = 0;
+let browserLoadingHideTimer = 0;
+let browserLoadingShownAt = 0;
 
 function readArray(key) {
   try {
@@ -1320,7 +1458,13 @@ function applyLocale() {
   document.title = text('title');
   els.title.textContent = text('title');
   updateTitlebarAccount();
-  els.homeTagline.textContent = text('homeSlogan');
+  els.homeTagline.textContent = text('homeTaskTagline');
+  document.getElementById('home-task-eyebrow').textContent = text('homeTaskEyebrow');
+  document.getElementById('home-task-title').textContent = text('homeTaskTitle');
+  els.homeAssetPackUrl.placeholder = text('homeUrlPlaceholder');
+  els.homeAssetPackSubmitLabel.textContent = state.pendingAssetPack ? text('homeAssetPackWorking') : text('homeAssetPackSubmit');
+  document.getElementById('home-browse-sites').textContent = text('homeBrowseSites');
+  document.getElementById('home-task-note').textContent = text('homeTaskNote');
   els.platformManageLabel.textContent = text('platformManager');
   els.platformManageButton.title = text('platformManager');
   els.platformManageButton.setAttribute('aria-label', text('platformManager'));
@@ -1344,9 +1488,6 @@ function applyLocale() {
   els.platformManagerClose.title = text('close');
   els.platformManagerClose.setAttribute('aria-label', text('close'));
   const shellCopy = SHELL_EXPERIENCE_TEXT[state.locale] || SHELL_EXPERIENCE_TEXT.en;
-  [els.homeFlowBrowser, els.homeFlowDetect, els.homeFlowChoose, els.homeFlowSave].forEach((element, index) => {
-    if (element) element.textContent = shellCopy.flow[index];
-  });
   if (els.authStoryTitle) els.authStoryTitle.textContent = shellCopy.storyTitle;
   if (els.authStoryCopy) els.authStoryCopy.textContent = shellCopy.storyCopy;
   [els.authBenefitPlan, els.authBenefitOrders, els.authBenefitSecurity].forEach((element, index) => {
@@ -1354,6 +1495,8 @@ function applyLocale() {
   });
   if (els.authFootnote) els.authFootnote.textContent = shellCopy.footnote;
   els.address.placeholder = text('currentAddress');
+  els.browserPageLoadingTitle.textContent = text('browserLoadingTitle');
+  els.browserPageLoadingCopy.textContent = text('browserLoadingCopy');
   els.back.title = text('back');
   els.back.setAttribute('aria-label', text('back'));
   els.forward.title = text('forward');
@@ -1421,8 +1564,6 @@ function applyLocale() {
   els.historyClear.querySelector('span:last-child').textContent = text('clear');
   els.favoritesTitle.textContent = text('favoritesTitle');
   document.getElementById('favorites-popover-title').textContent = text('favoritesTitle');
-  document.getElementById('plans-title').textContent = text('plansTitle');
-  document.getElementById('plans-subtitle').textContent = text('plansSubtitle');
   document.getElementById('purchase-title').textContent = text('purchaseTitle');
   els.purchaseButton.textContent = text('purchase');
   updateAccountCopy();
@@ -1450,6 +1591,11 @@ function applyLocale() {
   renderPlatformManager();
   syncAppUpdateUi();
   hydrateIcons();
+}
+
+function trackAnalytics(event, properties = {}) {
+  if (state.analytics.consent !== true) return;
+  void window.mediaDeck.trackAnalytics(event, properties).catch(() => null);
 }
 
 function updateSettingsCopy() {
@@ -1492,6 +1638,12 @@ function updateSettingsCopy() {
   document.getElementById('settings-adblock-notice').textContent = text('adBlockerNotice');
   els.settingsAdBlockState.textContent = text(state.settings.adBlocker !== false ? 'on' : 'off');
   els.settingsRecordingState.textContent = text(state.settings.recordingEnabled === true ? 'on' : 'off');
+  document.getElementById('settings-analytics-title').textContent = text('analyticsTitle');
+  document.getElementById('settings-analytics-description').textContent = text('analyticsDescription');
+  document.getElementById('analytics-consent-title').textContent = text('analyticsConsentTitle');
+  document.getElementById('analytics-consent-copy').textContent = text('analyticsConsentCopy');
+  els.analyticsConsentAllow.textContent = text('analyticsAllow');
+  els.analyticsConsentDecline.textContent = text('analyticsDecline');
   document.getElementById('settings-update-title').textContent = text('updates');
   document.getElementById('settings-update-description').textContent = text('updateCheckDescription');
   syncUpdateCheckControl();
@@ -1723,6 +1875,8 @@ function syncSettingsControls() {
   els.settingsAdBlockState.textContent = text(els.settingsAdBlock.checked ? 'on' : 'off');
   els.settingsRecording.checked = state.settings.recordingEnabled === true;
   els.settingsRecordingState.textContent = text(els.settingsRecording.checked ? 'on' : 'off');
+  els.settingsAnalytics.checked = state.analytics.consent === true;
+  els.settingsAnalyticsState.textContent = text(els.settingsAnalytics.checked ? 'on' : 'off');
   renderEditorSettings();
   updateBrowserStatusBar();
   els.settingsVersion.textContent = `${state.runtimeInfo?.appName || text('title')} ${state.runtimeInfo?.version || '-'}`;
@@ -1777,12 +1931,14 @@ function updateTitlebarAccount() {
 }
 
 async function ensureDownloadEntitlementAvailable(count = 1, options = {}) {
-  const requested = Math.max(0, Math.floor(Number(count) || 0));
+  const projectIds = [...new Set((options.projectIds || []).map((value) => String(value || '').trim()).filter(Boolean))];
+  const requested = projectIds.length || Math.max(0, Math.floor(Number(count) || 0));
   if (requested === 0) return true;
   try {
     const result = await window.mediaDeck.checkDownloadEntitlement({
       count: requested,
       retryExisting: options.retryExisting === true,
+      projectIds,
     });
     if (result?.entitlements) applyEntitlementState(result.entitlements);
     if (result?.ok) return true;
@@ -1790,8 +1946,8 @@ async function ensureDownloadEntitlementAvailable(count = 1, options = {}) {
     const message = remaining === 0
       ? text('dailyLimitReached')
       : (state.locale.startsWith('zh')
-        ? `今日剩余 ${remaining} 次，本次选择了 ${requested} 个任务，未开始解析。`
-        : `${remaining} downloads remain today, but ${requested} tasks were selected. Resolution was not started.`);
+        ? `今日剩余 ${remaining} 个免费项目，本次选择了 ${requested} 个项目，未开始解析。`
+        : `${remaining} free projects remain today, but ${requested} projects were selected. Resolution was not started.`);
     if (!options.suppressToast) toast(message, 'error');
     return false;
   } catch (error) {
@@ -1992,6 +2148,7 @@ function scheduleActiveWebviewResize() {
 function setSection(section) {
   const requestedSection = section;
   if (section === 'browser' && !state.tabs.length) section = 'home';
+  if (section !== 'home' && !els.homeAssetPackError.hidden) clearHomeAssetPackError();
   if (section !== 'browser') setFavoritesPopoverOpen(false);
   state.section = section;
   state.navSection = requestedSection === 'home' ? 'browser' : requestedSection;
@@ -2001,7 +2158,13 @@ function setSection(section) {
   if (!els.sidebar.some((button) => button.dataset.section === state.navSection) && document.activeElement?.classList?.contains('sidebar-btn')) {
     document.activeElement.blur();
   }
-  if (section === 'plans') renderPlans();
+  if (section === 'plans') {
+    renderPlans();
+    if (!state.analyticsPaywallViewed) {
+      state.analyticsPaywallViewed = true;
+      trackAnalytics('paywall_viewed');
+    }
+  }
   if (section === 'account') renderAccount();
   if (section === 'library' && !state.library.loaded && !state.library.loading) void loadMediaLibrary();
   if (section !== 'library' && !els.libraryDetailOverlay.hidden) closeLibraryDetail();
@@ -2014,13 +2177,22 @@ function setSection(section) {
 
 function createTab(url = HOME_URL, title = text('newTab'), options = {}) {
   const webview = document.createElement('webview');
+  const startsWithNavigation = Boolean(url && url !== 'about:blank');
+  const needsInitialCover = options.internal !== true && startsWithNavigation;
   const tab = {
     id: `tab-${++state.tabCounter}`,
     url,
     title,
     webview,
     ready: false,
-    loading: false,
+    loading: startsWithNavigation,
+    initialLoad: startsWithNavigation,
+    navigationPending: startsWithNavigation,
+    pageVisuallyReady: !startsWithNavigation,
+    pageUsableTimer: 0,
+    pageUsableSequence: 0,
+    loadingCoverUntil: needsInitialCover ? Date.now() + 520 : 0,
+    loadingCoverTimer: 0,
     webContentsId: null,
     mediaEnrichmentSequence: 0,
     mediaEnrichmentTimer: 0,
@@ -2043,6 +2215,12 @@ function createTab(url = HOME_URL, title = text('newTab'), options = {}) {
   els.browserStage.appendChild(webview);
   attachWebviewEvents(tab);
   state.tabs.push(tab);
+  if (!tab.internal && tab.loadingCoverUntil) {
+    tab.loadingCoverTimer = window.setTimeout(() => {
+      tab.loadingCoverTimer = 0;
+      if (tab.id === state.activeTabId) syncBrowserLoadingOverlay();
+    }, Math.max(0, tab.loadingCoverUntil - Date.now()) + 10);
+  }
   if (!tab.internal) state.activeTabId = tab.id;
   renderTabs();
   setVisibleWebviews();
@@ -2085,6 +2263,16 @@ function attachWebviewEvents(tab) {
     scheduleActiveWebviewResize();
     scheduleActiveMediaProbe(tab, 300);
     void tab.webview.executeJavaScript('window.__vidogoActiveMediaReporter?.report?.()', true).catch(() => null);
+    scheduleTabPageUsableProbe(tab, 40);
+  });
+  tab.webview.addEventListener('did-first-visually-non-empty-paint', () => scheduleTabPageUsableProbe(tab, 0));
+  tab.webview.addEventListener('did-start-navigation', (event) => {
+    if (event.isMainFrame && !event.isSameDocument) {
+      tab.navigationPending = true;
+      tab.pageVisuallyReady = false;
+      tab.pageUsableSequence += 1;
+      clearTimeout(tab.pageUsableTimer);
+    }
   });
   tab.webview.addEventListener('did-start-loading', () => {
     tab.loading = true;
@@ -2104,6 +2292,7 @@ function attachWebviewEvents(tab) {
   });
   tab.webview.addEventListener('did-stop-loading', () => {
     tab.loading = false;
+    scheduleTabPageUsableProbe(tab, 0);
     sync();
     scheduleActiveWebviewResize();
     schedulePageMediaEnrichment(tab);
@@ -2117,7 +2306,14 @@ function attachWebviewEvents(tab) {
     if (isSupportedMetadataPage(tab.url)) schedulePageMediaEnrichment(tab, true);
   });
   tab.webview.addEventListener('did-fail-load', (event) => {
-    if (event.isMainFrame && event.errorCode !== -3) toast(`${text('loadFailed')}: ${event.validatedURL || tab.url}`);
+    if (event.isMainFrame) {
+      if (event.errorCode !== -3) {
+        tab.loading = false;
+        markTabPageUsable(tab);
+      }
+      if (tab.id === state.activeTabId) updateBrowserControls();
+      if (event.errorCode !== -3) toast(`${text('loadFailed')}: ${event.validatedURL || tab.url}`);
+    }
   });
   tab.webview.addEventListener('ipc-message', (event) => {
     if (event.channel === 'vidogo:active-media') {
@@ -2268,6 +2464,8 @@ function closeTab(id) {
   const closingTab = state.tabs[index];
   if (closingTab.mediaEnrichmentTimer) clearTimeout(closingTab.mediaEnrichmentTimer);
   if (closingTab.activeMediaProbeTimer) clearTimeout(closingTab.activeMediaProbeTimer);
+  if (closingTab.pageUsableTimer) clearTimeout(closingTab.pageUsableTimer);
+  if (closingTab.loadingCoverTimer) clearTimeout(closingTab.loadingCoverTimer);
   closingTab.mediaEnrichmentSequence += 1;
   closingTab.webview.remove();
   state.tabs.splice(index, 1);
@@ -2298,6 +2496,7 @@ function setVisibleWebviews() {
   state.tabs.forEach((tab) => {
     tab.webview.classList.toggle('is-active', state.section === 'browser' && tab.id === state.activeTabId);
   });
+  syncBrowserLoadingOverlay();
   scheduleActiveWebviewResize();
 }
 
@@ -2547,7 +2746,46 @@ function updateBrowserControls() {
   els.reload.title = reloadLabel;
   els.reload.setAttribute('aria-label', reloadLabel);
   setIcon(els.reloadIcon, tab?.loading ? 'close' : 'refresh');
+  syncBrowserLoadingOverlay();
   syncFavoriteButton();
+}
+
+function syncBrowserLoadingOverlay(forceImmediate = false) {
+  if (!els.browserPageLoading) return;
+  const tab = activeTab();
+  const smokeForced = window.mediaDeckSmokeVisualAudit && window.mediaDeckSmokeVisualPreview === 'loading';
+  const initialCoverActive = Number(tab?.loadingCoverUntil || 0) > Date.now();
+  const shouldShow = state.section === 'browser' && Boolean(tab && !tab.internal && (smokeForced || initialCoverActive || (tab.navigationPending && !tab.pageVisuallyReady)));
+  if (shouldShow) {
+    clearTimeout(browserLoadingHideTimer);
+    browserLoadingHideTimer = 0;
+    if (!els.browserPageLoading.hidden) return;
+    const show = () => {
+      browserLoadingShowTimer = 0;
+      const current = activeTab();
+      const currentInitialCover = Number(current?.loadingCoverUntil || 0) > Date.now();
+      if (state.section !== 'browser' || !current || current.internal || (!smokeForced && !currentInitialCover && (!current.navigationPending || current.pageVisuallyReady))) return;
+      els.browserPageLoading.hidden = false;
+      els.browserPageLoading.setAttribute('aria-hidden', 'false');
+      browserLoadingShownAt = Date.now();
+    };
+    if (forceImmediate || tab.initialLoad || initialCoverActive) {
+      clearTimeout(browserLoadingShowTimer);
+      browserLoadingShowTimer = 0;
+      show();
+    }
+    else if (!browserLoadingShowTimer) browserLoadingShowTimer = window.setTimeout(show, 260);
+    return;
+  }
+  clearTimeout(browserLoadingShowTimer);
+  browserLoadingShowTimer = 0;
+  if (els.browserPageLoading.hidden || browserLoadingHideTimer) return;
+  const remaining = Math.max(0, 420 - (Date.now() - browserLoadingShownAt));
+  browserLoadingHideTimer = window.setTimeout(() => {
+    browserLoadingHideTimer = 0;
+    els.browserPageLoading.hidden = true;
+    els.browserPageLoading.setAttribute('aria-hidden', 'true');
+  }, remaining);
 }
 
 function normalizeUrl(value) {
@@ -2982,6 +3220,49 @@ function finishLibraryEditorImport() {
   });
 }
 
+function markTabPageUsable(tab) {
+  if (!tab) return;
+  clearTimeout(tab.pageUsableTimer);
+  tab.pageUsableTimer = 0;
+  tab.pageVisuallyReady = true;
+  tab.navigationPending = false;
+  tab.initialLoad = false;
+  if (tab.id === state.activeTabId) syncBrowserLoadingOverlay();
+}
+
+function scheduleTabPageUsableProbe(tab, delay = 120) {
+  if (!tab || tab.internal || tab.pageVisuallyReady) return;
+  clearTimeout(tab.pageUsableTimer);
+  const sequence = ++tab.pageUsableSequence;
+  const startedAt = Date.now();
+  const inspect = async () => {
+    if (!state.tabs.includes(tab) || sequence !== tab.pageUsableSequence || tab.pageVisuallyReady) return;
+    const usable = await tab.webview.executeJavaScript(`(() => {
+      const body = document.body;
+      if (!body) return false;
+      const visible = (element) => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return rect.width > 8 && rect.height > 8 && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0;
+      };
+      const readableText = String(body.innerText || '').replace(/\\s+/g, ' ').trim();
+      const interactiveCount = Array.from(document.querySelectorAll('a[href], button, input, [role="button"]')).filter(visible).length;
+      const visualMedia = Array.from(document.querySelectorAll('img, video, canvas, svg')).some((element) => {
+        if (!visible(element)) return false;
+        const rect = element.getBoundingClientRect();
+        return rect.width * rect.height >= 2500;
+      });
+      return readableText.length >= 20 || interactiveCount >= 2 || visualMedia;
+    })()`, true).catch(() => false);
+    if (usable || Date.now() - startedAt >= 8000) {
+      markTabPageUsable(tab);
+      return;
+    }
+    tab.pageUsableTimer = window.setTimeout(inspect, 180);
+  };
+  tab.pageUsableTimer = window.setTimeout(inspect, Math.max(0, Number(delay) || 0));
+}
+
 function applyEditorConfiguration(configuration) {
   state.editor.editors = Array.isArray(configuration?.editors) ? configuration.editors : [];
   state.editor.selected = configuration?.selected || null;
@@ -3109,8 +3390,15 @@ function libraryProjectForAsset(assetId) {
   return state.library.projects.find((project) => project.assets?.some((asset) => asset.id === assetId)) || null;
 }
 
+function libraryProjectTagSearchTerms(project) {
+  return (Array.isArray(project?.tags) ? project.tags : []).flatMap((tag) => {
+    const value = String(tag || '').trim();
+    return value ? [value, `#${value}`] : [];
+  });
+}
+
 function librarySearchText(project) {
-  return [project.title, project.provider, libraryProviderLabel(project.provider), project.sourceUrl, project.folderPath]
+  return [project.title, project.provider, libraryProviderLabel(project.provider), project.sourceUrl, project.folderPath, ...libraryProjectTagSearchTerms(project)]
     .concat((project.assets || []).flatMap((asset) => [asset.title, asset.filePath, asset.language]))
     .filter(Boolean)
     .join(' ')
@@ -3138,7 +3426,7 @@ function filteredLibraryAssets() {
     for (const asset of project.assets || []) {
       if (state.library.assetType !== 'all' && asset.assetType !== state.library.assetType) continue;
       if (!isInRange(asset.downloadedAt, state.library.timeRange)) continue;
-      const searchable = [project.title, project.provider, libraryProviderLabel(project.provider), asset.title, asset.filePath, asset.language]
+      const searchable = [project.title, project.provider, libraryProviderLabel(project.provider), ...libraryProjectTagSearchTerms(project), asset.title, asset.filePath, asset.language]
         .filter(Boolean).join(' ').toLocaleLowerCase(state.locale);
       if (query && !searchable.includes(query)) continue;
       assets.push({ asset, project });
@@ -3181,15 +3469,78 @@ function libraryCountChips(project) {
   }).join('');
 }
 
+function libraryProjectRowTags(project) {
+  const tags = normalizeLibraryDetailTags(project?.tags);
+  if (!tags.length) return '';
+  const label = `${text('libraryTags')}: ${tags.map((tag) => `#${tag}`).join(' ')}`;
+  return `<span class="library-row-project-tags" data-library-row-tags title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
+    ${tags.map((tag) => `<span class="library-row-project-tag" data-library-row-tag>#${escapeHtml(tag)}</span>`).join('')}
+    <span class="library-row-project-tags-more is-overflow-hidden" data-library-row-tags-more></span>
+  </span>`;
+}
+
+function libraryAssetProjectTags(project) {
+  const tags = normalizeLibraryDetailTags(project?.tags);
+  if (!tags.length) return '<div class="library-asset-project-tags is-empty" aria-hidden="true"></div>';
+  return `<div class="library-asset-project-tags">
+    <span class="library-asset-project-tags-label">${escapeHtml(text('libraryTags'))}</span>
+    ${libraryProjectRowTags(project)}
+  </div>`;
+}
+
+function syncLibraryProjectRowTags(root = els.libraryContent) {
+  root?.querySelectorAll?.('[data-library-row-tags]').forEach((container) => {
+    const chips = Array.from(container.querySelectorAll('[data-library-row-tag]'));
+    const more = container.querySelector('[data-library-row-tags-more]');
+    if (!chips.length || !more) return;
+    chips.forEach((chip) => chip.classList.remove('is-overflow-hidden'));
+    more.classList.add('is-overflow-hidden');
+    more.textContent = '';
+    const availableWidth = container.clientWidth;
+    if (!availableWidth) return;
+    const gap = Number.parseFloat(getComputedStyle(container).columnGap) || 0;
+    const chipWidths = chips.map((chip) => chip.offsetWidth);
+    const prefixWidths = [0];
+    chipWidths.forEach((width) => prefixWidths.push(prefixWidths[prefixWidths.length - 1] + width));
+    let visibleCount = 0;
+    for (let count = chips.length; count >= 0; count -= 1) {
+      const hiddenCount = chips.length - count;
+      let requiredWidth = prefixWidths[count] + (Math.max(0, count - 1) * gap);
+      if (hiddenCount) {
+        more.textContent = `+${hiddenCount}`;
+        more.classList.remove('is-overflow-hidden');
+        requiredWidth += more.offsetWidth + (count ? gap : 0);
+      } else {
+        more.classList.add('is-overflow-hidden');
+      }
+      if (requiredWidth <= availableWidth) {
+        visibleCount = count;
+        break;
+      }
+    }
+    chips.forEach((chip, index) => chip.classList.toggle('is-overflow-hidden', index >= visibleCount));
+    const hiddenCount = chips.length - visibleCount;
+    more.textContent = hiddenCount ? `+${hiddenCount}` : '';
+    more.classList.toggle('is-overflow-hidden', !hiddenCount);
+  });
+}
+
+function scheduleLibraryProjectRowTagSync(root = els.libraryContent) {
+  syncLibraryProjectRowTags(root);
+  window.requestAnimationFrame(() => syncLibraryProjectRowTags(root));
+  if (document.fonts?.ready) void document.fonts.ready.then(() => syncLibraryProjectRowTags(root));
+}
+
 function libraryProjectCard(project) {
   const status = libraryStatusPresentation(project.status);
   const statusBadge = project.status === 'available' ? '' : `<span class="library-status-badge ${status.className}">${escapeHtml(status.label)}</span>`;
   const cover = project.coverPath ? `data-library-cover-path="${escapeHtml(project.coverPath)}"` : '';
+  const projectTags = libraryProjectRowTags(project);
   if (state.library.view === 'list') {
     return `<article class="library-project-row-shell">
       <button class="library-project-row" type="button" data-library-project="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryOpenProject'))}">
         <span class="library-row-cover" ${cover}>${iconSvg('folder-opened')}</span>
-        <span class="library-row-primary"><b>${escapeHtml(project.title)}</b></span>
+        <span class="library-row-project-copy"><b class="library-row-project-title">${escapeHtml(project.title)}</b>${projectTags}</span>
         <span class="library-row-secondary">${escapeHtml(libraryProviderLabel(project.provider))}</span>
         <span class="library-project-counts">${libraryCountChips(project)}</span>
         <span class="library-row-secondary">${escapeHtml(formatBytes(project.totalSize))}</span>
@@ -3201,8 +3552,9 @@ function libraryProjectCard(project) {
     <span class="library-project-cover" ${cover}>${iconSvg('folder-opened')}<span class="library-provider-badge">${escapeHtml(libraryProviderLabel(project.provider))}</span>${statusBadge}</span>
     <span class="library-project-body">
       <span class="library-project-title">${escapeHtml(project.title)}</span>
-      <span class="library-project-meta">${escapeHtml(text('libraryProjectAssets', { count: project.assetCount, size: formatBytes(project.totalSize) }))}</span>
-      <span class="library-project-counts">${libraryCountChips(project)}<span class="library-project-size">${escapeHtml(formatTime(project.updatedAt))}</span></span>
+      <span class="library-project-meta"><span>${escapeHtml(text('libraryProjectAssets', { count: project.assetCount, size: formatBytes(project.totalSize) }))}</span><time datetime="${escapeHtml(project.updatedAt || '')}">${escapeHtml(formatTime(project.updatedAt))}</time></span>
+      <span class="library-project-card-tags${projectTags ? '' : ' is-empty'}">${projectTags}</span>
+      <span class="library-project-counts">${libraryCountChips(project)}</span>
     </span>
   </button>`;
 }
@@ -3243,7 +3595,8 @@ function libraryAssetCard(entry) {
     <div class="library-asset-cover" ${cover}>${iconSvg(presentation.icon)}<span class="library-asset-type-badge">${escapeHtml(typeLabel)}</span></div>
     <div class="library-project-body">
       <div class="library-asset-title">${escapeHtml(fileName)}</div>
-      <div class="library-asset-meta">${escapeHtml(project.title)}</div>
+      <div class="library-asset-meta-row"><div class="library-asset-meta">${escapeHtml(project.title)}</div><button class="library-asset-project-tag-edit" type="button" data-library-project-tag-editor="${escapeHtml(project.id)}" title="${escapeHtml(text('libraryEditProjectTags'))}">${escapeHtml(text('libraryEditProjectTags'))}</button></div>
+      ${libraryAssetProjectTags(project)}
       <div class="library-asset-footer"><span>${asset.status === 'missing' ? escapeHtml(text('libraryMissing')) : escapeHtml(formatBytes(asset.fileSize))}</span>${libraryAssetActions(asset)}</div>
     </div>
   </article>`;
@@ -3291,7 +3644,9 @@ function renderLibrary() {
   const body = isProjects
     ? entries.map(libraryProjectCard).join('')
     : entries.map(libraryAssetCard).join('');
-  els.libraryContent.innerHTML = `<div class="library-${state.library.view === 'grid' ? 'grid' : 'list'}">${body}</div>`;
+  const layoutClass = `library-${state.library.view === 'grid' ? 'grid' : 'list'}${state.library.view === 'grid' ? ` is-${isProjects ? 'projects' : 'assets'}` : ''}`;
+  els.libraryContent.innerHTML = `<div class="${layoutClass}">${body}</div>`;
+  scheduleLibraryProjectRowTagSync(els.libraryContent);
   void renderLibraryCoverPreviews(els.libraryContent);
 }
 
@@ -3315,25 +3670,108 @@ async function renderLibraryCoverPreviews(root) {
   }));
 }
 
+function normalizeLibraryDetailTags(tags) {
+  const normalized = [];
+  const seen = new Set();
+  for (const rawTag of Array.isArray(tags) ? tags : []) {
+    const tag = String(rawTag || '').replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, 24);
+    const identity = tag.toLocaleLowerCase(state.locale);
+    if (!tag || seen.has(identity)) continue;
+    seen.add(identity);
+    normalized.push(tag);
+    if (normalized.length >= 50) break;
+  }
+  return normalized;
+}
+
+function syncLibraryDetailTitleMarquee() {
+  window.requestAnimationFrame(() => {
+    const viewport = els.libraryDetailTitle;
+    const track = els.libraryDetailTitleText;
+    if (!viewport || !track) return;
+    const distance = Math.max(0, Math.ceil(track.scrollWidth - viewport.clientWidth));
+    viewport.classList.toggle('has-overflow', distance > 0);
+    viewport.style.setProperty('--library-title-distance', `${distance}px`);
+    viewport.style.setProperty('--library-title-duration', `${Math.min(18, Math.max(3.5, distance / 30)).toFixed(1)}s`);
+  });
+}
+
+function renderLibraryDetailTags(project) {
+  if (!els.libraryDetailTagList) return;
+  const tags = normalizeLibraryDetailTags(project?.tags);
+  project.tags = tags;
+  els.libraryDetailTags.setAttribute('aria-label', text('libraryTags'));
+  els.libraryDetailTags.removeAttribute('title');
+  els.libraryDetailTagLabel.textContent = text('libraryAddTag');
+  els.libraryDetailTagInput.placeholder = text('libraryAddTag');
+  els.libraryDetailTagAdd.title = text('libraryAddTag');
+  els.libraryDetailTagAdd.setAttribute('aria-label', text('libraryAddTag'));
+  els.libraryDetailTagInput.disabled = tags.length >= 50;
+  els.libraryDetailTagAdd.disabled = tags.length >= 50;
+  els.libraryDetailTagList.innerHTML = tags.map((tag, index) => `<div class="library-detail-tag" draggable="true" tabindex="0" data-library-tag-index="${index}" title="${escapeHtml(text('libraryTagReorderHint'))}">
+    <span>#${escapeHtml(tag)}</span>
+    <button type="button" data-library-tag-remove="${index}" aria-label="${escapeHtml(text('libraryRemoveTag', { tag }))}" title="${escapeHtml(text('libraryRemoveTag', { tag }))}">${iconSvg('close')}</button>
+  </div>`).join('');
+}
+
+async function saveLibraryDetailTags(nextTags) {
+  const project = libraryProjectForId(state.library.selectedProjectId);
+  if (!project?.key) return;
+  const revision = ++state.library.tagSaveRevision;
+  const previousTags = normalizeLibraryDetailTags(project.tags);
+  project.tags = normalizeLibraryDetailTags(nextTags);
+  renderLibraryDetailTags(project);
+  renderLibrary();
+  try {
+    const result = await window.mediaDeck.setMediaLibraryProjectTags(project.key, project.tags);
+    if (revision !== state.library.tagSaveRevision) return;
+    project.tags = normalizeLibraryDetailTags(result?.tags);
+    renderLibraryDetailTags(project);
+  } catch {
+    if (revision !== state.library.tagSaveRevision) return;
+    project.tags = previousTags;
+    renderLibraryDetailTags(project);
+    renderLibrary();
+    toast(text('libraryTagSaveFailed'), 'error');
+  }
+}
+
+function clearLibraryTagDropState() {
+  els.libraryDetailTagList?.querySelectorAll('.is-drop-before, .is-drop-after, .is-dragging').forEach((tag) => {
+    tag.classList.remove('is-drop-before', 'is-drop-after', 'is-dragging');
+  });
+}
+
+function reorderLibraryDetailTags(tags, from, targetIndex, after) {
+  const reordered = normalizeLibraryDetailTags(tags);
+  if (!Number.isInteger(from) || from < 0 || from >= reordered.length || !Number.isInteger(targetIndex)) return reordered;
+  const [moved] = reordered.splice(from, 1);
+  let insertionIndex = targetIndex + (after ? 1 : 0);
+  if (from < insertionIndex) insertionIndex -= 1;
+  insertionIndex = Math.max(0, Math.min(reordered.length, insertionIndex));
+  reordered.splice(insertionIndex, 0, moved);
+  return reordered;
+}
+
 function renderLibraryDetail() {
   const project = libraryProjectForId(state.library.selectedProjectId);
   if (!project) return closeLibraryDetail();
   els.libraryDetailEyebrow.textContent = libraryProviderLabel(project.provider);
-  els.libraryDetailTitle.textContent = project.title;
+  els.libraryDetailTitleText.textContent = project.title;
+  els.libraryDetailTitle.title = project.title;
+  syncLibraryDetailTitleMarquee();
+  renderLibraryDetailTags(project);
   els.libraryDetailCover.innerHTML = iconSvg('folder-opened');
   if (project.coverPath) {
     els.libraryDetailCover.dataset.libraryCoverPath = project.coverPath;
     void renderLibraryCoverPreviews(els.libraryDetailCover.parentElement);
   } else delete els.libraryDetailCover.dataset.libraryCoverPath;
   const actions = [
-    `<button class="library-detail-action" type="button" data-library-project-action="folder">${iconSvg('folder-opened')}<span>${escapeHtml(text('libraryOpenFolder'))}</span></button>`,
-    project.sourceUrl ? `<button class="library-detail-action" type="button" data-library-project-action="source">${iconSvg('view')}<span>${escapeHtml(text('libraryOpenSource'))}</span></button>` : '',
+    project.sourceUrl ? `<button class="library-detail-action" type="button" data-library-project-action="source" title="${escapeHtml(text('libraryOpenSource'))}">${iconSvg('view')}<span>${escapeHtml(text('librarySourcePage'))}</span></button>` : '',
+    `<button class="library-detail-action" type="button" data-library-project-action="folder" title="${escapeHtml(text('libraryOpenFolder'))}">${iconSvg('folder-opened')}<span>${escapeHtml(text('libraryProjectFolder'))}</span></button>`,
   ].join('');
-  const fields = [
-    [text('libraryProvider'), libraryProviderLabel(project.provider), false],
-    [text('libraryDownloadedAt'), formatTime(project.updatedAt), false], [text('librarySize'), formatBytes(project.totalSize), false],
-    [text('libraryFolder'), project.folderPath || '-', true],
-  ];
+  els.libraryDetailHeadingActions.innerHTML = actions;
+  els.libraryDetailSummary.textContent = text('libraryDownloadSummary', { time: formatTime(project.updatedAt), size: formatBytes(project.totalSize) });
   const groups = ['video', 'audio', 'image', 'subtitle'].map((assetType) => {
     const assets = (project.assets || []).filter((asset) => asset.assetType === assetType);
     if (!assets.length) return '';
@@ -3345,7 +3783,7 @@ function renderLibraryDetail() {
     </div>`).join('');
     return `<section class="library-asset-group"><h3 class="library-asset-group-title" style="--asset-color:${presentation.color}">${iconSvg(presentation.icon)}${escapeHtml(presentation.label)}<strong>${assets.length}</strong></h3><div class="library-detail-assets">${rows}</div></section>`;
   }).join('');
-  els.libraryDetailBody.innerHTML = `<div class="library-detail-actions">${actions}</div><dl class="library-detail-meta">${fields.map(([label, value, wide]) => `<div class="library-detail-meta-item${wide ? ' is-wide' : ''}"><dt>${escapeHtml(label)}</dt><dd title="${escapeHtml(value)}">${escapeHtml(value)}</dd></div>`).join('')}</dl>${groups}`;
+  els.libraryDetailBody.innerHTML = `<div class="library-detail-groups">${groups}</div>`;
 }
 
 function openLibraryDetail(projectId) {
@@ -3356,9 +3794,18 @@ function openLibraryDetail(projectId) {
   els.libraryDetailClose.focus();
 }
 
+function openLibraryProjectTagEditor(projectId) {
+  openLibraryDetail(projectId);
+  els.libraryDetailTagInput?.focus();
+  window.requestAnimationFrame(() => els.libraryDetailTagInput?.focus());
+}
+
 function closeLibraryDetail() {
   if (!els.libraryDetailOverlay) return;
   els.libraryDetailOverlay.hidden = true;
+  state.library.draggedTagIndex = null;
+  clearLibraryTagDropState();
+  if (els.libraryDetailTagInput) els.libraryDetailTagInput.value = '';
   state.library.selectedProjectId = null;
 }
 
@@ -3376,7 +3823,10 @@ async function handleLibraryAction(action, assetId, triggerButton = null) {
       finishLibraryEditorImport();
     }
     const editorName = result?.editorName || selectedEditorName();
-    if (result?.ok) return toast(text('libraryImportEditorDone', { editor: editorName }), 'success');
+    if (result?.ok) {
+      trackAnalytics('editor_imported', { mediaType: asset.assetType || 'file', result: 'success' });
+      return toast(text('libraryImportEditorDone', { editor: editorName }), 'success');
+    }
     if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
     if (result?.reason === 'editor-not-ready') return toast(text('libraryImportEditorNotReady', { editor: editorName }), 'warning');
     if (result?.reason === 'background-import-unsupported') return toast(text('libraryImportEditorBackgroundUnsupported', { editor: editorName }), 'warning');
@@ -3403,7 +3853,10 @@ async function handleLibraryProjectImport(projectId, triggerButton = null) {
     finishLibraryEditorImport();
   }
   const editorName = result?.editorName || selectedEditorName();
-  if (result?.ok) return toast(text('libraryImportProjectDone', { editor: editorName, count: result.count || items.length }), 'success');
+  if (result?.ok) {
+    trackAnalytics('editor_imported', { mediaType: 'project', result: 'success' });
+    return toast(text('libraryImportProjectDone', { editor: editorName, count: result.count || items.length }), 'success');
+  }
   if (result?.reason === 'editor-not-found') return toast(text('libraryImportEditorMissing'), 'error');
   if (result?.reason === 'editor-not-ready') return toast(text('libraryImportEditorNotReady', { editor: editorName }), 'warning');
   if (result?.reason === 'background-import-unsupported') return toast(text('libraryImportEditorBackgroundUnsupported', { editor: editorName }), 'warning');
@@ -4043,6 +4496,7 @@ async function handleActiveMediaContext(tab, payload) {
       title: context.title || candidate.title,
       thumbnailUrl: context.thumbnailUrl || candidate.thumbnailUrl,
     })) : [placeholder]));
+  markTabPageUsable(tab);
   if (tab.id === state.activeTabId) renderCandidates();
   if (activeChanged) {
     tab.activeMediaExtractionKey = extractionKey;
@@ -4151,6 +4605,7 @@ function handleXiaohongshuMediaContext(tab, payload) {
     detectedAt: new Date().toISOString(),
   };
   setMediaCandidatesForTab(tab.id, [candidate]);
+  markTabPageUsable(tab);
   if (tab.id === state.activeTabId) renderCandidates();
 }
 
@@ -4229,6 +4684,7 @@ function handleMediaCollection(tab, payload) {
   else if (!state.mediaModeByTabId[tab.id]) {
     state.mediaModeByTabId[tab.id] = mediaCandidatesForTab(tab.id).length ? 'current' : 'batch';
   }
+  if (entries.length) markTabPageUsable(tab);
   if (tab.id === state.activeTabId) renderCandidates();
 }
 
@@ -4262,6 +4718,7 @@ function handleStockMediaContext(tab, payload) {
   candidate.pageUrl = canonicalUrl;
   tab.recentStockMediaCandidate = { ...candidate, capturedAt: Date.now() };
   setMediaCandidatesForTab(tab.id, [candidate]);
+  markTabPageUsable(tab);
   if (tab.id === state.activeTabId) renderCandidates();
 }
 
@@ -4386,6 +4843,10 @@ function addCandidate(candidate) {
   const tabId = mediaTabIdForCandidate(candidate);
   if (!tabId) return;
   const tab = state.tabs.find((item) => item.id === tabId);
+  if (!state.analyticsDetectedTabs.has(tabId)) {
+    state.analyticsDetectedTabs.add(tabId);
+    trackAnalytics('media_detected', { provider: candidate.provider || 'web', mediaType: candidate.kind || 'video' });
+  }
   if (candidate.hiddenForActiveMedia === true) {
     const retained = tab?.activeMediaNetworkCandidates || [];
     if (tab) {
@@ -5429,7 +5890,7 @@ async function startResolvedAgedmDownload(candidate) {
   });
 }
 
-async function startCandidateDownload(candidate, variant = null) {
+async function startCandidateDownload(candidate, variant = null, options = {}) {
   if (candidateRequiresRecording(candidate)) {
     toast(text(state.settings.recordingEnabled ? 'recordingRequired' : 'enableRecordingFirst'));
     return;
@@ -5439,6 +5900,9 @@ async function startCandidateDownload(candidate, variant = null) {
   const target = selectedVariant ? candidateForVariant(candidate, selectedVariant) : { ...candidate };
   target.url = candidateDownloadUrl(candidate, selectedVariant);
   if (!target.url) return;
+  target.sourceGroupId = options.sourceGroupId || candidateSourceGroupId(candidate);
+  target.entitlementPreflightPassed = options.entitlementPreflightPassed === true;
+  target.suppressToast = options.suppressToast === true;
   els.urlInput.value = target.url;
   if (agedmPlaybackUrl(candidate)) return startResolvedAgedmDownload(target);
   return startDownload(target);
@@ -5519,7 +5983,8 @@ async function startCandidateImageBatchDownload(candidate) {
   const images = candidateAssetOptions(candidate)
     .filter((asset) => asset.assetType === 'image' && asset.assetRole === 'gallery');
   if (!images.length) return null;
-  if (!await ensureDownloadEntitlementAvailable(images.length)) return null;
+  const sourceGroupId = candidateSourceGroupId(candidate);
+  if (!await ensureDownloadEntitlementAvailable(1, { projectIds: [sourceGroupId] })) return null;
   const results = await Promise.all(images.map((asset) => startCandidateAssetDownload(candidate, asset, {
     entitlementPreflightPassed: true,
     suppressToast: true,
@@ -5584,7 +6049,7 @@ async function startSelectedBatchDownloads() {
     toast(text('selectMediaFirst'));
     return;
   }
-  if (!await ensureDownloadEntitlementAvailable(candidates.length)) return;
+  if (!await ensureDownloadEntitlementAvailable(candidates.length, { projectIds: candidates.map(candidateSourceGroupId) })) return;
   const originalLabel = els.batchDownloadLabel.textContent;
   const sourceTab = activeTab();
   const currentDetectedMedia = mediaCandidatesForTab(tabId)
@@ -5793,6 +6258,7 @@ function queueUrls(urls, downloadTarget = null) {
   const requested = urls.map((url) => ({ url, requestKey: downloadRequestKey(url, formatId, assetKey) }));
   const rows = requested.filter((item) => retryRow || !existingActive.has(item.requestKey)).map(({ url, requestKey }) => {
     if (retryRow) {
+      const preserveProgress = downloadTarget?.preserveProgress === true;
       Object.assign(retryRow, {
         requestKey,
         formatId,
@@ -5801,10 +6267,10 @@ function queueUrls(urls, downloadTarget = null) {
         fileName: downloadTarget?.fileName || retryRow.fileName || getFileName(url) || url,
         thumbnailUrl: downloadTarget?.thumbnailUrl || retryRow.thumbnailUrl || null,
         qualityLabel: candidateResolution(downloadTarget) || retryRow.qualityLabel,
-        percent: 0,
-        downloaded: '-',
-        speed: '-',
-        size: downloadTarget ? formatBytes(candidateSize(downloadTarget)) : '-',
+        percent: preserveProgress ? Number(retryRow.percent || 0) : 0,
+        downloaded: preserveProgress ? (retryRow.downloaded || '-') : '-',
+        speed: preserveProgress ? (retryRow.speed || '-') : '-',
+        size: preserveProgress ? (retryRow.size || '-') : (downloadTarget ? formatBytes(candidateSize(downloadTarget)) : '-'),
         time: now,
         createdAt: Date.now(),
         status: 'queued',
@@ -5829,6 +6295,7 @@ function queueUrls(urls, downloadTarget = null) {
         webContentsId: downloadTarget?.webContentsId || retryRow.webContentsId || null,
         downloadStrategy: downloadTarget?.downloadStrategy || retryRow.downloadStrategy || null,
         backgroundResolvePage: downloadTarget?.backgroundResolvePage === true,
+        resumePending: preserveProgress,
       });
       return retryRow;
     }
@@ -5890,6 +6357,7 @@ async function startDownload(downloadTarget = null) {
     && !await ensureDownloadEntitlementAvailable(activeUrls.length, {
       retryExisting: downloadTarget?.isRetry === true,
       suppressToast: downloadTarget?.suppressToast === true,
+      projectIds: downloadTarget ? [downloadTarget.sourceGroupId || candidateSourceGroupId(downloadTarget)] : activeUrls,
     })) return null;
   const queuedRows = queueUrls(urls, downloadTarget);
   const requestKeys = new Set(activeUrls.map((url) => downloadRequestKey(
@@ -6018,6 +6486,7 @@ async function startDownload(downloadTarget = null) {
         item.status = 'error';
         item.state = 'error';
         item.errorMessage = rawMessage;
+        item.resumePending = false;
       }
     });
     state.running = false;
@@ -6046,9 +6515,12 @@ async function retryDownloadRow(row, options = {}) {
     };
     row.status = 'resolving';
     row.state = 'resolving';
-    row.percent = 0;
-    row.downloaded = '-';
-    row.speed = '-';
+    if (options.preserveProgress !== true) {
+      row.percent = 0;
+      row.downloaded = '-';
+      row.speed = '-';
+    }
+    row.resumePending = options.preserveProgress === true;
     row.errorMessage = null;
     saveState();
     renderDownloads();
@@ -6059,6 +6531,7 @@ async function retryDownloadRow(row, options = {}) {
       currentRow.status = 'error';
       currentRow.state = 'error';
       currentRow.errorMessage = text('batchResolveFailed');
+      currentRow.resumePending = false;
       saveState();
       renderDownloads();
       return null;
@@ -6076,6 +6549,7 @@ async function retryDownloadRow(row, options = {}) {
     ...target,
     retryRowId: rowId,
     isRetry: true,
+    preserveProgress: options.preserveProgress === true,
     suppressToast: Boolean(options.suppressToast),
   });
 }
@@ -6139,7 +6613,18 @@ async function retryAllFailedDownloads() {
 
 async function controlDownloadRow(row, action) {
   if (!row) return false;
-  if (action === 'resume') return Boolean(await retryDownloadRow(row));
+  if (action === 'resume') {
+    row.resumePending = true;
+    saveState();
+    renderDownloads();
+    const result = await retryDownloadRow(row, { preserveProgress: true }).catch(() => null);
+    if (!result) {
+      row.resumePending = false;
+      saveState();
+      renderDownloads();
+    }
+    return Boolean(result);
+  }
   const rowState = normalizeDownloadState(row.status || row.state);
   if (action === 'pause' && !row.jobId && ['queued', 'resolving', 'connecting'].includes(rowState)) {
     row.status = 'paused';
@@ -6222,7 +6707,9 @@ async function finalizeDownloadEvent(payload) {
     if (normalizeDownloadState(row.status || row.state) === 'paused') return;
     row.jobId = payload.jobId || row.jobId;
     const output = !payload.failed && row.completionCandidate
-      ? await window.mediaDeck.verifyDownloadedFile(row).catch(() => ({ ok: false }))
+      ? (window.mediaDeckSmokeTest && !window.mediaDeckSmokeDownload?.real
+        ? { ok: true, path: row.path, taskDir: row.savePath, size: Number(row.completedBytes || 2048) }
+        : await window.mediaDeck.verifyDownloadedFile(row).catch(() => ({ ok: false })))
       : { ok: false };
     row.completionVerified = Boolean(output?.ok);
     if (output?.ok) {
@@ -6235,7 +6722,15 @@ async function finalizeDownloadEvent(payload) {
     row.percent = row.completionVerified ? 100 : Math.min(99, Number(row.percent || 0));
     row.status = row.completionVerified ? 'completed' : 'error';
     row.state = row.status;
+    row.resumePending = false;
     if (!row.completionVerified && !row.errorMessage) row.errorMessage = text('invalidDownloadOutput');
+    const analyticsProjectKey = row.sourceGroupId || row.pageUrl || row.url || row.id;
+    if (row.completionVerified && !state.analyticsVerifiedProjects.has(analyticsProjectKey)) {
+      state.analyticsVerifiedProjects.add(analyticsProjectKey);
+      trackAnalytics('verified_saved', { provider: row.provider || 'web', mediaType: row.assetType || row.kind || 'video' });
+    } else if (!row.completionVerified) {
+      trackAnalytics('save_failed', { provider: row.provider || 'web', mediaType: row.assetType || row.kind || 'video', errorCategory: 'invalid-output' });
+    }
   }
   saveState();
   updateDownloadBadge();
@@ -6344,6 +6839,7 @@ function handleRecordingEvent(payload) {
 
 function prepareSmokeVisualAudit(section) {
   const now = new Date().toISOString();
+  const visualPreview = String(window.mediaDeckSmokeVisualPreview || '').trim();
   if (section === 'home') {
     state.tabs.forEach((tab) => tab.webview.remove());
     state.tabs = [];
@@ -6353,6 +6849,14 @@ function prepareSmokeVisualAudit(section) {
     state.expandedCandidateIdsByTabId = {};
     state.selectedMinimumResolutionByTabId = {};
     renderTabs();
+    const sites = document.querySelector('.home-secondary-sites');
+    if (sites) sites.open = visualPreview === 'expanded';
+    if (visualPreview === 'invalid-url') {
+      els.homeAssetPackUrl.value = '';
+      els.homeAssetPackError.textContent = text('homeInvalidUrl');
+      els.homeAssetPackError.hidden = false;
+      els.homeAssetPackUrl.setAttribute('aria-invalid', 'true');
+    }
   }
   if (section === 'downloads') {
     const outputDir = state.settings.outputDir || 'C:\\Users\\Demo\\Downloads\\VidoGo';
@@ -6390,14 +6894,15 @@ function prepareSmokeVisualAudit(section) {
         formatId: '400+251',
         title: 'This Swiss Train Offers Stunning Views to Travelers',
         fileName: 'This Swiss Train Offers Stunning Views to Travelers.webm',
-        percent: 0,
-        downloaded: '-',
+        percent: visualPreview === 'resuming' ? 37 : 0,
+        downloaded: visualPreview === 'resuming' ? '165 MB' : '-',
         speed: '-',
-        size: '-',
+        size: visualPreview === 'resuming' ? '13 GB' : '-',
         time: now,
         createdAt: Date.now() - 1000,
-        status: 'resolving',
-        state: 'resolving',
+        status: visualPreview === 'resuming' ? 'connecting' : 'resolving',
+        state: visualPreview === 'resuming' ? 'connecting' : 'resolving',
+        resumePending: visualPreview === 'resuming',
         path: outputDir,
         savePath: taskDir1440,
       },
@@ -6446,7 +6951,7 @@ function prepareSmokeVisualAudit(section) {
       },
     ];
     renderDownloads();
-    const previewType = String(window.mediaDeckSmokeVisualPreview || '').trim();
+    const previewType = visualPreview;
     if (['video', 'audio', 'image', 'subtitle'].includes(previewType)) {
       const extensions = { video: 'mp4', audio: 'mp3', image: 'jpg', subtitle: 'vtt' };
       void showMediaPreview({
@@ -6473,7 +6978,7 @@ function prepareSmokeVisualAudit(section) {
       folderPath: `C:\\SmokeDownloads\\${projectKey}`,
     });
     const makeProject = (id, title, provider, mediaId, assets, options = {}) => ({
-      id, title, provider, mediaId, sourceGroupId: `${provider}:${mediaId}`,
+      id, key: `${provider}:media:${mediaId}`, title, provider, mediaId, sourceGroupId: `${provider}:${mediaId}`,
       sourceUrl: `https://www.youtube.com/watch?v=${mediaId}`,
       folderPath: `C:\\SmokeDownloads\\${id}`,
       coverPath: assets.find((asset) => asset.assetRole === 'cover')?.filePath || null,
@@ -6484,6 +6989,7 @@ function prepareSmokeVisualAudit(section) {
       totalSize: assets.reduce((sum, asset) => sum + asset.fileSize, 0),
       assetCount: assets.length,
       assetCounts: assets.reduce((counts, asset) => ({ ...counts, [asset.assetType]: counts[asset.assetType] + 1 }), { video: 0, audio: 0, image: 0, subtitle: 0 }),
+      tags: options.tags || [],
       assets,
     });
     const swissAssets = [
@@ -6521,7 +7027,7 @@ function prepareSmokeVisualAudit(section) {
       sort: 'recent',
       view: 'grid',
       projects: [
-        makeProject('visual-swiss', '瑞士🇨🇭EP.2 🚂 冰河列車直達策馬特！馬特洪峰日照金山', 'youtube', 'Mpx3HPlyFZk', swissAssets),
+        makeProject('visual-swiss', '瑞士🇨🇭EP.2 🚂 冰河列車直達策馬特！馬特洪峰日照金山', 'youtube', 'Mpx3HPlyFZk', swissAssets, { tags: ['旅行攻略与路线规划', '风景摄影后期教程', '火车出行完整攻略', '瑞士雪山日照金山', '本地字幕翻译流程', 'Vlog拍摄技巧', '口播文案', '欧洲自由行'] }),
         makeProject('visual-tutorial', '【宅男福利来了】PotPlayer + Whisper + Ollama 最详细教程', 'youtube', 'PvSsT_kT_0w', tutorialAssets),
         makeProject('visual-music', '城市夜行 · 音乐收藏', 'tiktok', 'music-42', musicAssets),
         makeProject('visual-gallery', '旅行图片合集', 'xiaohongshu', 'gallery-7', galleryAssets, { status: 'partial' }),
@@ -6532,7 +7038,10 @@ function prepareSmokeVisualAudit(section) {
     renderLibraryFilters();
     renderLibrary();
     const libraryPreview = String(window.mediaDeckSmokeVisualPreview || '').trim();
-    if (libraryPreview === 'library-assets') {
+    if (libraryPreview === 'library-list') {
+      state.library.view = 'list';
+      renderLibrary();
+    } else if (libraryPreview === 'library-assets') {
       state.library.tab = 'assets';
       renderLibrary();
     } else if (libraryPreview === 'library-detail') {
@@ -6568,6 +7077,11 @@ function prepareSmokeVisualAudit(section) {
       state.expandedCandidateIdsByTabId[tab.id] = ['visual-resolution-candidate'];
       renderCandidates();
       syncMediaPanelVisibility();
+      if (visualPreview === 'loading') {
+        tab.loading = true;
+        updateBrowserControls();
+        syncBrowserLoadingOverlay(true);
+      }
     }
   }
   if (section === 'history') {
@@ -6627,6 +7141,111 @@ function closeMediaPreview() {
   els.mediaPreviewDialog.dataset.previewType = '';
   els.mediaPreviewStatus.textContent = '';
   state.previewItem = null;
+}
+
+function preferredAssetPackSubtitle(assets) {
+  const subtitles = assets.filter((asset) => asset.assetType === 'subtitle');
+  const localePrefix = String(state.locale || 'en').split('-')[0].toLowerCase();
+  return subtitles.find((asset) => String(asset.language || '').toLowerCase().startsWith(localePrefix)) || subtitles[0] || null;
+}
+
+function completeAssetPackSelection(candidate) {
+  const assets = candidateAssetOptions(candidate);
+  const gallery = assets.filter((asset) => asset.assetType === 'image' && asset.assetRole === 'gallery');
+  return {
+    gallery,
+    audio: gallery.length ? null : (assets.find((asset) => asset.assetType === 'audio') || null),
+    subtitle: gallery.length ? null : preferredAssetPackSubtitle(assets),
+  };
+}
+
+async function startCompleteAssetPack(candidate) {
+  const sourceGroupId = candidateSourceGroupId(candidate);
+  if (!await ensureDownloadEntitlementAvailable(1, { projectIds: [sourceGroupId] })) return false;
+  const { gallery, audio, subtitle } = completeAssetPackSelection(candidate);
+  const tasks = [];
+  if (gallery.length) {
+    tasks.push(...gallery.map((asset) => startCandidateAssetDownload(candidate, asset, {
+      entitlementPreflightPassed: true,
+      suppressToast: true,
+    })));
+  } else {
+    tasks.push(startCandidateDownload(candidate, null, { sourceGroupId, entitlementPreflightPassed: true, suppressToast: true }));
+    if (audio) tasks.push(startCandidateAssetDownload(candidate, audio, { entitlementPreflightPassed: true, suppressToast: true }));
+    if (subtitle) tasks.push(startCandidateAssetDownload(candidate, subtitle, { entitlementPreflightPassed: true, suppressToast: true }));
+  }
+  const results = await Promise.all(tasks);
+  const started = results.filter(Boolean).length;
+  if (!started) return false;
+  trackAnalytics('asset_pack_started', { provider: candidate.provider || 'web', mediaType: gallery.length ? 'image' : 'video' });
+  toast(text('homePackStarted'), 'success');
+  setSection('downloads');
+  return true;
+}
+
+let homeAssetPackErrorTimer = 0;
+
+function clearHomeAssetPackError() {
+  clearTimeout(homeAssetPackErrorTimer);
+  homeAssetPackErrorTimer = 0;
+  els.homeAssetPackError.hidden = true;
+  els.homeAssetPackError.textContent = '';
+  els.homeAssetPackUrl.removeAttribute('aria-invalid');
+}
+
+function showHomeAssetPackError() {
+  clearTimeout(homeAssetPackErrorTimer);
+  els.homeAssetPackError.textContent = text('homeInvalidUrl');
+  els.homeAssetPackError.hidden = false;
+  els.homeAssetPackUrl.setAttribute('aria-invalid', 'true');
+  homeAssetPackErrorTimer = window.setTimeout(clearHomeAssetPackError, 3000);
+}
+
+async function submitHomeAssetPack() {
+  const raw = String(els.homeAssetPackUrl.value || '').trim();
+  let url;
+  try {
+    url = new URL(raw);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error('unsupported protocol');
+  } catch {
+    showHomeAssetPackError();
+    els.homeAssetPackUrl.focus();
+    return;
+  }
+  clearHomeAssetPackError();
+  const token = `${Date.now()}-${Math.random()}`;
+  const tab = createTab(url.href, text('newTab'));
+  state.pendingAssetPack = { token, tabId: tab.id };
+  els.homeAssetPackSubmit.disabled = true;
+  els.homeAssetPackSubmitLabel.textContent = text('homeAssetPackWorking');
+  trackAnalytics('source_opened', { provider: url.hostname.toLowerCase().replace(/^www\./, '').split('.')[0] || 'web' });
+  setSection('browser');
+  const deadline = Date.now() + 30_000;
+  let candidate = null;
+  let cancelled = false;
+  try {
+    while (Date.now() < deadline && state.pendingAssetPack?.token === token) {
+      if (tab.ready) {
+        const extracted = await enrichTabMedia(tab, { force: candidate === null });
+        candidate = mediaCandidatesForTab(tab.id).find((item) => item?.url) || extracted?.find?.((item) => item?.url) || null;
+        if (candidate) break;
+      }
+      await waitForDelay(700);
+    }
+    cancelled = state.pendingAssetPack?.token !== token;
+  } catch {
+    candidate = null;
+  } finally {
+    if (state.pendingAssetPack?.token === token) state.pendingAssetPack = null;
+    els.homeAssetPackSubmit.disabled = false;
+    els.homeAssetPackSubmitLabel.textContent = text('homeAssetPackSubmit');
+  }
+  if (cancelled) return;
+  if (!candidate) {
+    toast(text('homeMediaTimeout'), 'warning');
+    return;
+  }
+  await startCompleteAssetPack(candidate);
 }
 
 function containOverlayWheel(event, scrollSelector) {
@@ -6771,6 +7390,8 @@ function renderDownloads() {
     const percent = Math.max(0, Math.min(100, Number(item.percent || 0)));
     const isResolving = item.state === 'resolving';
     const isConnecting = item.state === 'connecting';
+    const isIndeterminate = Boolean(item.resumePending) || ['queued', 'resolving', 'connecting'].includes(item.state);
+    const hideTransferDetails = (isResolving || isConnecting) && !item.resumePending;
     const id = escapeHtml(item.id || item.downloadId);
     const canOpen = item.state === 'completed' && item.path && item.path !== state.settings.outputDir;
     const canRetry = item.source !== 'recording' && ['error', 'cancelled'].includes(item.state);
@@ -6799,15 +7420,15 @@ function renderDownloads() {
           <span class="download-file-name" title="${escapeHtml(item.fileName)}"><bdi>${escapeHtml(item.fileName)}</bdi></span>
         </div>
         <div class="download-type-cell is-${escapeHtml(assetType)}"><span>${escapeHtml(assetPresentation.label)}</span></div>
-        <div class="download-progress-cell${isResolving || isConnecting ? ' is-resolving' : ''}">
-          ${isResolving || isConnecting ? '' : `<div class="download-list-progress"><div class="download-progress-track"><span style="width:${percent}%"></span></div></div>
+        <div class="download-progress-cell${isIndeterminate ? ' is-resolving' : ''}">
+          <div class="download-list-progress"><div class="download-progress-track${isIndeterminate ? ' is-indeterminate' : ''}" role="progressbar" aria-label="${escapeHtml(text(item.resumePending ? 'resuming' : item.state))}" aria-valuemin="0" aria-valuemax="100"${isIndeterminate ? '' : ` aria-valuenow="${Math.round(percent)}"`}><span style="width:${percent}%"></span></div></div>
           <div class="download-progress-meta">
-            <span class="download-progress-speed"><bdi>${escapeHtml(item.speed || item.downloaded || '-')}</bdi></span>
-            <span class="download-progress-ratio"><bdi>${item.state === 'completed' && item.completionVerified ? '100' : Math.round(percent)}%</bdi></span>
-          </div>`}
+            <span class="download-progress-speed"><bdi>${escapeHtml(isIndeterminate ? text(item.resumePending ? 'resuming' : item.state) : (item.speed || item.downloaded || '-'))}</bdi></span>
+            <span class="download-progress-ratio"><bdi>${isIndeterminate && percent > 0 ? escapeHtml(text('retainedProgress', { percent: Math.round(percent) })) : `${item.state === 'completed' && item.completionVerified ? '100' : Math.round(percent)}%`}</bdi></span>
+          </div>
         </div>
-        <div class="download-text-cell download-size-cell"><bdi>${isResolving || isConnecting ? '' : escapeHtml(item.downloaded || '0 B')}</bdi></div>
-        <div class="download-text-cell download-size-cell"><bdi>${isResolving ? '' : escapeHtml(item.size || '-')}</bdi></div>
+        <div class="download-text-cell download-size-cell"><bdi>${hideTransferDetails ? '' : escapeHtml(item.downloaded || '0 B')}</bdi></div>
+        <div class="download-text-cell download-size-cell"><bdi>${hideTransferDetails ? '' : escapeHtml(item.size || '-')}</bdi></div>
         <div class="download-text-cell download-time-cell" title="${escapeHtml(formatTime(item.time))}">${escapeHtml(formatTime(item.time))}</div>
         <div class="download-status-cell is-${escapeHtml(item.state)}" title="${escapeHtml(item.state === 'error' ? resultDetails : text(item.state))}">${escapeHtml(text(item.state))}</div>
         <div class="download-result-cell${item.state === 'error' ? ' has-error' : ''}" title="${escapeHtml(resultDetails)}"><bdi>${escapeHtml(resultDetails)}</bdi></div>
@@ -6963,9 +7584,10 @@ function renderFavoritesPopover() {
 }
 
 function normalizePlanLevel(value) {
-  const normalized = value === 'flagship' ? 'ultimate' : String(value || '');
+  const normalized = String(value || '').toLowerCase();
   if (normalized === 'owner') return 'owner';
-  return PLAN_LEVELS.includes(normalized) ? normalized : 'free';
+  if (['creator', 'pro', 'ultimate', 'flagship', 'lifetime'].includes(normalized)) return 'creator';
+  return 'free';
 }
 
 function formatPlanCurrency(amount, currency = 'USD') {
@@ -6983,26 +7605,23 @@ function planBillingLabel(billing) {
 }
 
 function formatPlanProduct(code) {
-  const product = PLAN_PRODUCTS[code] || PLAN_PRODUCTS.ultimate_month;
+  const product = PLAN_PRODUCTS[code] || PLAN_PRODUCTS.creator_year;
   const price = formatPlanCurrency(product.amount, product.currency);
   return product.billing === 0 ? `${price} ${text('once')}` : `${price} / ${planBillingLabel(product.billing)}`;
 }
 
 function planChoices(level) {
-  if (level === 'pro') return [PLAN_PRODUCTS.pro_month, PLAN_PRODUCTS.pro_year];
-  if (level === 'ultimate') return [PLAN_PRODUCTS.ultimate_month, PLAN_PRODUCTS.ultimate_year];
-  if (level === 'lifetime') return [PLAN_PRODUCTS.lifetime];
+  if (level === 'creator') return [PLAN_PRODUCTS.creator_year, PLAN_PRODUCTS.creator_founder];
   return [];
 }
 
 function planCardPrice(level) {
   if (level === 'free') return formatPlanCurrency(0, 'USD');
-  if (level === 'lifetime') return formatPlanProduct('lifetime');
-  return text('fromPrice', { price: formatPlanProduct(`${level}_month`) });
+  return formatPlanProduct('creator_year');
 }
 
 function formatDailyPlanLimit(limit) {
-  return limit === null ? text('unlimited') : text('timesPerDay', { count: limit });
+  return limit === null ? text('unlimited') : text('projectsPerDay', { count: limit });
 }
 
 function formatRecordingPlanLimit(minutes) {
@@ -7033,26 +7652,23 @@ function renderPlans() {
       `;
     }).join('')}
   `;
-  document.getElementById('purchase-current').textContent = selected.code === 'lifetime'
-    ? text('lifetime')
-    : `${text(selected.level)} ${selected.billingLabel}`;
+  document.getElementById('purchase-current').textContent = `${text(selected.level)} · ${selected.billingLabel}`;
   els.purchasePrice.textContent = selected.price;
   els.purchaseButton.innerHTML = `${iconSvg(state.account?.email ? 'shopping-cart' : 'lock')}<span>${escapeHtml(text(state.account?.email ? 'payNow' : 'purchase'))}</span>`;
   els.paymentChannels.forEach((button) => button.classList.toggle('is-active', button.dataset.paymentChannel === state.paymentChannel));
   els.payssionMethod.classList.toggle('hidden', state.paymentChannel !== 'payssion');
 
   const rows = [
-    { key: 'monthlyPrice', values: [formatPlanCurrency(0), formatPlanProduct('pro_month'), formatPlanProduct('ultimate_month'), text('none')] },
-    { key: 'yearlyPrice', values: [text('none'), formatPlanProduct('pro_year'), formatPlanProduct('ultimate_year'), text('none')] },
-    { key: 'lifetimePrice', values: [text('none'), text('none'), text('none'), formatPlanProduct('lifetime')] },
-    { key: 'yearlySavings', values: [text('none'), text('savings40'), text('savings45'), text('none')] },
-    { key: 'dailyDownloadsRecording', values: PLAN_LEVELS.map((level) => formatDailyPlanLimit(PLAN_LIMITS[level].dailyDownloadLimit)) },
+    { key: 'yearlyPrice', values: [text('none'), formatPlanProduct('creator_year')] },
+    { key: 'founderPrice', values: [text('none'), formatPlanProduct('creator_founder')] },
+    { key: 'dailySourceProjects', values: PLAN_LEVELS.map((level) => formatDailyPlanLimit(PLAN_LIMITS[level].dailyDownloadLimit)) },
     { key: 'concurrentDownloads', values: PLAN_LEVELS.map((level) => String(PLAN_LIMITS[level].maxConcurrentDownloads)) },
     { key: 'recordingDuration', values: PLAN_LEVELS.map((level) => formatRecordingPlanLimit(PLAN_LIMITS[level].recordingMinutes)) },
     { key: 'mediaLibrary', values: PLAN_LEVELS.map((level) => text(PLAN_LIMITS[level].mediaLibrary)) },
-    { key: 'drmSupport', values: PLAN_LEVELS.map(() => planFeature(true)) },
-    { key: 'futureUpdates', values: [planFeature(false), planFeature(true), planFeature(true), planFeature(true, text('lifetimeFree'))] },
-    { key: 'prioritySupport', values: [planFeature(false), planFeature(false), planFeature(true), planFeature(true)] },
+    { key: 'fullAssetPack', values: [planFeature(true), planFeature(true)] },
+    { key: 'editorImport', values: [planFeature(true), planFeature(true)] },
+    { key: 'batchPlaylists', values: [planFeature(false), planFeature(true)] },
+    { key: 'prioritySiteFixes', values: [planFeature(false), planFeature(true)] },
   ];
   els.planTable.setAttribute('aria-label', text('comparisonTitle'));
   els.planTable.innerHTML = `
@@ -7088,8 +7704,8 @@ function upsertLocalUser(user) {
 }
 
 function getSelectedPlan() {
-  const requestedCode = String(state.selectedPlan || 'ultimate_month').replace(/^flagship_/, 'ultimate_');
-  const product = PLAN_PRODUCTS[requestedCode] || PLAN_PRODUCTS.ultimate_month;
+  const requestedCode = String(state.selectedPlan || 'creator_year');
+  const product = PLAN_PRODUCTS[requestedCode] || PLAN_PRODUCTS.creator_year;
   return {
     code: product.code,
     level: product.level,
@@ -7099,8 +7715,6 @@ function getSelectedPlan() {
 }
 
 function updateAccountCopy() {
-  document.getElementById('account-title').textContent = text('accountTitle');
-  document.getElementById('account-subtitle').textContent = state.account?.email ? text('signedInDescription') : text('signedOutDescription');
   const page = els.pages.account;
   page.querySelector('.login-title').textContent = text(state.accountMode === 'login' ? 'login' : 'registerTitle');
   page.querySelector('.login-subtitle').textContent = text(state.accountMode === 'login' ? 'loginSubtitle' : 'registerSubtitle');
@@ -7115,6 +7729,7 @@ function updateAccountCopy() {
   els.registerButton.textContent = text('register');
   els.registerModeButton.textContent = text('register');
   els.loginModeButton.textContent = text('backToLogin');
+  syncRememberedLoginControls();
   document.getElementById('account-refresh-label').textContent = text('refresh');
   document.getElementById('logout-button-label').textContent = text('logout');
   document.getElementById('account-view-plans-label').textContent = text('viewPlans');
@@ -7141,6 +7756,54 @@ function updateAccountCopy() {
   renderAccount();
 }
 
+function syncRememberedLoginControls() {
+  const available = state.rememberedLogin.available !== false;
+  els.rememberLogin.disabled = !available;
+  els.rememberLoginLabel.textContent = text(available ? 'rememberLogin' : 'rememberLoginUnavailable');
+  els.forgetLogin.textContent = text('forgetLogin');
+  els.forgetLogin.hidden = !state.rememberedLogin.remembered;
+}
+
+function applyRememberedLogin(value, { fill = true } = {}) {
+  const remembered = value?.remembered === true;
+  state.rememberedLogin = {
+    available: value?.available !== false,
+    remembered,
+    email: remembered ? String(value?.email || '').trim().toLowerCase() : '',
+  };
+  els.rememberLogin.checked = remembered;
+  syncRememberedLoginControls();
+  if (fill && remembered) {
+    els.loginEmail.value = String(value?.email || '');
+    els.loginPassword.value = String(value?.password || '');
+  }
+}
+
+async function hydrateRememberedLogin({ fill = true } = {}) {
+  const value = await window.mediaDeck.getRememberedLogin().catch(() => ({
+    available: false,
+    remembered: false,
+    email: '',
+    password: '',
+  }));
+  applyRememberedLogin(value, { fill });
+  return value;
+}
+
+async function forgetRememberedLogin() {
+  const rememberedEmail = state.rememberedLogin.email;
+  const value = await window.mediaDeck.clearRememberedLogin().catch(() => ({
+    available: state.rememberedLogin.available,
+    remembered: false,
+    email: '',
+    password: '',
+  }));
+  if (!rememberedEmail || els.loginEmail.value.trim().toLowerCase() === rememberedEmail) els.loginEmail.value = '';
+  els.loginPassword.value = '';
+  applyRememberedLogin(value, { fill: false });
+  toast(text('rememberedLoginCleared'));
+}
+
 function renderAccount() {
   const signedIn = Boolean(state.account?.email);
   els.accountAuthPanel.classList.toggle('hidden', signedIn);
@@ -7152,6 +7815,7 @@ function renderAccount() {
   els.registerModeButton.classList.toggle('hidden', state.accountMode !== 'login');
   els.registerButton.classList.toggle('hidden', state.accountMode !== 'register');
   els.loginModeButton.classList.toggle('hidden', state.accountMode !== 'register');
+  els.accountRememberRow.classList.toggle('hidden', state.accountMode !== 'login');
   els.accountPasswordPanel.classList.toggle('hidden', !signedIn || !state.passwordPanelOpen);
   if (signedIn) {
     document.getElementById('profile-email').textContent = state.account.email;
@@ -7175,7 +7839,7 @@ function renderOrders() {
   }
   els.ordersList.innerHTML = visibleOrders.map((order) => `
     <div class="account-order-row">
-      <div><strong>${escapeHtml(text(order.level || order.plan))}</strong><span>${escapeHtml(order.provider || order.channel || 'payment')}</span></div>
+      <div><strong>${escapeHtml(text(normalizePlanLevel(order.level || order.plan)))}</strong><span>${escapeHtml(order.provider || order.channel || 'payment')}</span></div>
       <bdi>${escapeHtml(order.amountCents === undefined ? order.amount : formatPlanCurrency(order.amountCents / 100, order.currency))}</bdi>
       <time>${escapeHtml(formatTime(order.createdAt || order.time))}</time>
       <span class="account-order-status">${escapeHtml(text(order.status) || order.status)}</span>
@@ -7210,23 +7874,39 @@ function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
 
+function accountAuthErrorCopy(error, fallback = 'loginFailed') {
+  const code = String(error?.code || '').toUpperCase();
+  const message = String(error?.message || '').toLowerCase();
+  if (code === 'EMAIL_EXISTS' || /already exists|already registered|已存在|已注册/.test(message)) return text('accountExists');
+  if (code === 'PASSWORD_INVALID') return text('passwordLengthInvalid');
+  if (code === 'ACCOUNT_API_ERROR' || /account service|账户服务|帳戶服務|temporarily unavailable|连接超时|連線逾時|无法连接|無法連線/.test(message)) return text('accountServiceUnavailable');
+  return text(fallback);
+}
+
 async function submitLocalLogin() {
   if (accountAuthPending) return;
   const email = els.loginEmail.value.trim();
   if (!isEmail(email)) return showAccountAuthError(text('invalidEmail'), [els.loginEmail]);
-  if (!els.loginPassword.value) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
+  const password = els.loginPassword.value;
+  if (!password) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
   clearAccountAuthError();
   accountAuthPending = true;
   els.loginButton.disabled = true;
   try {
-    const data = await window.mediaDeck.loginAccount({ email, password: els.loginPassword.value });
+    const data = await window.mediaDeck.loginAccount({ email, password });
+    const remembered = await window.mediaDeck.saveRememberedLogin({
+      remember: els.rememberLogin.checked,
+      email,
+      password,
+    }).catch(() => ({ available: false, remembered: false, email: '', password: '' }));
+    applyRememberedLogin(remembered, { fill: false });
     state.account = data?.user || {};
     els.loginPassword.value = '';
     await refreshRemoteAccount();
     await syncRecordingConfiguration();
     toast(text('loginSuccess'));
   } catch (error) {
-    showAccountAuthError(text('loginFailed'), [els.loginEmail, els.loginPassword]);
+    showAccountAuthError(accountAuthErrorCopy(error), [els.loginEmail, els.loginPassword]);
   } finally {
     accountAuthPending = false;
     els.loginButton.disabled = false;
@@ -7258,12 +7938,63 @@ async function runAccountUiFlowTest() {
   return { ok: failures.length === 0, failures, inlineError: els.accountAuthErrorCopy.textContent, toastCount: els.toastRegion.children.length };
 }
 
+async function runAccountApiFlowTest() {
+  const failures = [];
+  const assert = (condition, message) => { if (!condition) failures.push(message); };
+  const email = `smoke-${Date.now()}@example.com`;
+  const password = 'VidoGoSmokePassword123!';
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:register';
+  await window.mediaDeck.logoutAccount().catch(() => null);
+  state.account = {};
+  state.orders = [];
+  setSection('account');
+  try {
+    setAccountMode('register');
+    els.loginEmail.value = email;
+    els.loginPassword.value = password;
+    els.confirmPassword.value = password;
+    await submitLocalRegister();
+    assert(state.accountMode === 'login', 'Registration did not return the form to sign-in mode.');
+    assert(!els.loginPassword.value && !els.confirmPassword.value, 'Registration did not clear password fields.');
+    assert(els.accountAuthError.hidden, 'A valid registration displayed an authentication error.');
+
+    window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:login';
+    els.loginPassword.value = password;
+    await submitLocalLogin();
+    assert(state.account.email === email, 'Login did not return the created user.');
+    assert(!els.accountProfilePanel.classList.contains('hidden'), 'Successful login did not show the account profile.');
+
+    window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:session';
+    const current = await window.mediaDeck.getCurrentAccount();
+    assert(current?.user?.email === email, 'Persisted bearer session did not resolve through /auth/me.');
+
+    window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:logout';
+    els.logoutButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const loggedOut = await window.mediaDeck.getCurrentAccount();
+    assert(!loggedOut?.user, 'Logout did not invalidate the account session.');
+    assert(els.accountAuthPanel.classList.contains('hidden') === false, 'Logout did not return to the sign-in form.');
+
+    window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:relogin';
+    els.loginPassword.value = password;
+    await submitLocalLogin();
+    assert(state.account.email === email, 'The account could not sign in again after logout.');
+    els.logoutButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  } catch (error) {
+    failures.push(String(error?.message || error));
+    await window.mediaDeck.logoutAccount().catch(() => null);
+  }
+  window.__VIDOGO_SELF_TEST_PROGRESS = 'account-api-flow:done';
+  return { ok: failures.length === 0, failures, email };
+}
+
 async function submitLocalRegister() {
   if (accountAuthPending) return;
   const email = els.loginEmail.value.trim();
   if (!isEmail(email)) return showAccountAuthError(text('invalidEmail'), [els.loginEmail]);
   if (!els.loginPassword.value) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
-  if (els.loginPassword.value.length < 10 || els.loginPassword.value.length > 128) return showAccountAuthError(text('passwordRequired'), [els.loginPassword]);
+  if (els.loginPassword.value.length < 10 || els.loginPassword.value.length > 128) return showAccountAuthError(text('passwordLengthInvalid'), [els.loginPassword]);
   if (els.loginPassword.value !== els.confirmPassword.value) return showAccountAuthError(text('passwordMismatch'), [els.loginPassword, els.confirmPassword]);
   clearAccountAuthError();
   accountAuthPending = true;
@@ -7277,7 +8008,7 @@ async function submitLocalRegister() {
     updateAccountCopy();
     toast(text('registerSuccess'));
   } catch (error) {
-    showAccountAuthError(text('loginFailed'), [els.loginEmail, els.loginPassword]);
+    showAccountAuthError(accountAuthErrorCopy(error, 'accountServiceUnavailable'), [els.loginEmail, els.loginPassword]);
   } finally {
     accountAuthPending = false;
     els.registerButton.disabled = false;
@@ -7291,6 +8022,7 @@ async function submitLocalPurchase() {
   }
   const selected = getSelectedPlan();
   try {
+    trackAnalytics('checkout_started', { billing: selected.code.endsWith('founder') ? 'founder' : 'year' });
     const data = await window.mediaDeck.createAccountOrder(selected.code);
     const order = data?.order;
     if (order) state.orders = [order, ...state.orders.filter((item) => item.id !== order.id)];
@@ -7329,6 +8061,11 @@ async function refreshRemoteAccount() {
   const current = await window.mediaDeck.getCurrentAccount();
   state.account = current?.user || {};
   state.orders = state.account?.email ? ((await window.mediaDeck.listAccountOrders())?.orders || []) : [];
+  state.orders.filter((order) => String(order.status).toLowerCase() === 'paid').forEach((order) => {
+    if (state.analyticsPaidOrderIds.has(order.id)) return;
+    state.analyticsPaidOrderIds.add(order.id);
+    trackAnalytics('purchase_completed', { billing: String(order.productCode || '').endsWith('founder') ? 'founder' : 'year' });
+  });
   updateAccountCopy();
   renderPlans();
   return state.account;
@@ -7481,6 +8218,25 @@ async function syncExternalLogin() {
 
 function bindEvents() {
   bindPlatformManagerEvents();
+  els.homeAssetPackForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    void submitHomeAssetPack();
+  });
+  els.homeAssetPackUrl.addEventListener('input', () => {
+    clearHomeAssetPackError();
+  });
+  els.homeAssetPackUrl.addEventListener('pointerdown', clearHomeAssetPackError);
+  document.addEventListener('pointerdown', (event) => {
+    if (!els.homeAssetPackError.hidden && !els.homeAssetPackForm.contains(event.target)) clearHomeAssetPackError();
+  }, true);
+  const updateAnalyticsConsent = async (enabled) => {
+    state.analytics = await window.mediaDeck.setAnalyticsConsent(enabled).catch(() => ({ ...state.analytics, consent: enabled }));
+    els.analyticsConsentOverlay.hidden = true;
+    syncSettingsControls();
+  };
+  els.analyticsConsentAllow.addEventListener('click', () => void updateAnalyticsConsent(true));
+  els.analyticsConsentDecline.addEventListener('click', () => void updateAnalyticsConsent(false));
+  els.settingsAnalytics.addEventListener('change', () => void updateAnalyticsConsent(els.settingsAnalytics.checked));
   els.browserLoginButton.addEventListener('click', () => void beginExternalLogin());
   els.externalLoginClose.addEventListener('click', hideExternalLoginDialog);
   els.externalLoginReopen.addEventListener('click', () => void beginExternalLogin());
@@ -7538,6 +8294,8 @@ function bindEvents() {
       void handleLibraryAction(action.dataset.libraryAssetAction, action.dataset.libraryAssetId, action);
       return;
     }
+    const tagEditor = event.target.closest('[data-library-project-tag-editor]');
+    if (tagEditor) return openLibraryProjectTagEditor(tagEditor.dataset.libraryProjectTagEditor);
     const projectImport = event.target.closest('[data-library-project-import]');
     if (projectImport) {
       void handleLibraryProjectImport(projectImport.dataset.libraryProjectImport, projectImport);
@@ -7556,9 +8314,73 @@ function bindEvents() {
     const projectAction = event.target.closest('[data-library-project-action]');
     if (projectAction) void handleLibraryProjectAction(projectAction.dataset.libraryProjectAction);
   });
+  els.libraryDetailHeadingActions.addEventListener('click', (event) => {
+    const projectAction = event.target.closest('[data-library-project-action]');
+    if (projectAction) void handleLibraryProjectAction(projectAction.dataset.libraryProjectAction);
+  });
+  els.libraryDetailTagForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const project = libraryProjectForId(state.library.selectedProjectId);
+    if (!project) return;
+    const [tag] = normalizeLibraryDetailTags([els.libraryDetailTagInput.value]);
+    if (!tag) return;
+    els.libraryDetailTagInput.value = '';
+    void saveLibraryDetailTags([...(project.tags || []), tag]);
+  });
+  els.libraryDetailTagList.addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-library-tag-remove]');
+    if (!remove) return;
+    const project = libraryProjectForId(state.library.selectedProjectId);
+    if (!project) return;
+    const tags = normalizeLibraryDetailTags(project.tags);
+    tags.splice(Number(remove.dataset.libraryTagRemove), 1);
+    void saveLibraryDetailTags(tags);
+  });
+  els.libraryDetailTagList.addEventListener('dragstart', (event) => {
+    if (event.target.closest('button')) return event.preventDefault();
+    const tag = event.target.closest('[data-library-tag-index]');
+    if (!tag) return;
+    state.library.draggedTagIndex = Number(tag.dataset.libraryTagIndex);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/x-vidogo-library-tag', String(state.library.draggedTagIndex));
+    tag.classList.add('is-dragging');
+  });
+  els.libraryDetailTagList.addEventListener('dragover', (event) => {
+    const tag = event.target.closest('[data-library-tag-index]');
+    if (!tag || state.library.draggedTagIndex === null) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    els.libraryDetailTagList.querySelectorAll('.is-drop-before, .is-drop-after').forEach((item) => item.classList.remove('is-drop-before', 'is-drop-after'));
+    const bounds = tag.getBoundingClientRect();
+    const after = document.documentElement.dir === 'rtl'
+      ? event.clientX < bounds.left + bounds.width / 2
+      : event.clientX > bounds.left + bounds.width / 2;
+    tag.classList.toggle('is-drop-before', !after);
+    tag.classList.toggle('is-drop-after', after);
+  });
+  els.libraryDetailTagList.addEventListener('drop', (event) => {
+    const target = event.target.closest('[data-library-tag-index]');
+    const project = libraryProjectForId(state.library.selectedProjectId);
+    if (!target || !project) return;
+    event.preventDefault();
+    const fromTransfer = Number.parseInt(event.dataTransfer.getData('text/x-vidogo-library-tag'), 10);
+    const from = Number.isInteger(fromTransfer) ? fromTransfer : state.library.draggedTagIndex;
+    const targetIndex = Number(target.dataset.libraryTagIndex);
+    const after = target.classList.contains('is-drop-after');
+    clearLibraryTagDropState();
+    state.library.draggedTagIndex = null;
+    void saveLibraryDetailTags(reorderLibraryDetailTags(project.tags, from, targetIndex, after));
+  });
+  els.libraryDetailTagList.addEventListener('dragend', () => {
+    state.library.draggedTagIndex = null;
+    clearLibraryTagDropState();
+  });
+  els.libraryDetailTitle.addEventListener('pointerenter', syncLibraryDetailTitleMarquee);
   els.libraryDetailClose.addEventListener('click', closeLibraryDetail);
   els.libraryDetailScrim.addEventListener('click', closeLibraryDetail);
   els.libraryDetailOverlay.addEventListener('wheel', (event) => containOverlayWheel(event, '.library-detail-body'), { passive: false, capture: true });
+  window.addEventListener('resize', syncLibraryDetailTitleMarquee);
+  window.addEventListener('resize', () => scheduleLibraryProjectRowTagSync(els.libraryContent));
   els.settingsNav.forEach((button) => button.addEventListener('click', () => setSettingsSection(button.dataset.settingsSection)));
   els.settingsEditor.addEventListener('change', () => void changeDefaultEditingApp());
   els.settingsEditorScan.addEventListener('click', () => void scanEditingApps());
@@ -7776,6 +8598,7 @@ function bindEvents() {
   els.registerModeButton.addEventListener('click', () => setAccountMode('register'));
   els.loginButton.addEventListener('click', () => void submitLocalLogin());
   els.registerButton.addEventListener('click', () => void submitLocalRegister());
+  els.forgetLogin.addEventListener('click', () => void forgetRememberedLogin());
   [els.loginEmail, els.loginPassword, els.confirmPassword].forEach((input) => input.addEventListener('input', clearAccountAuthError));
   els.passwordVisibilityToggles.forEach((button) => {
     button.addEventListener('click', () => {
@@ -7804,6 +8627,7 @@ function bindEvents() {
     state.account = {};
     state.orders = [];
     state.passwordPanelOpen = false;
+    await hydrateRememberedLogin({ fill: true });
     updateAccountCopy();
     renderPlans();
     await syncRecordingConfiguration();
@@ -7888,8 +8712,10 @@ function bindEvents() {
       const data = payload.data || {};
       const row = downloadRowForEvent(payload, data);
       if (row) {
-        if (normalizeDownloadState(row.status || row.state) === 'paused') return;
+        const currentState = normalizeDownloadState(row.status || row.state);
+        if (currentState === 'paused' || isTerminalDownloadState(currentState)) return;
         row.jobId = payload.jobId || row.jobId;
+        row.resumePending = false;
         row.percent = Number(data.percent || 0);
         row.fileName = row.fileName || getFileName(data.filename || row.title || row.url);
         row.downloaded = formatBytes(data.downloaded_bytes) || row.downloaded || '0 B';
@@ -7922,6 +8748,7 @@ function bindEvents() {
         row.status = 'error';
         row.state = 'error';
         row.errorMessage = String(payload.message || 'download failed');
+        row.resumePending = false;
         saveState();
         renderDownloads();
       } else {
@@ -7939,6 +8766,7 @@ function bindEvents() {
         row.jobId = payload.jobId || row.jobId;
         row.status = 'cancelled';
         row.state = 'cancelled';
+        row.resumePending = false;
         saveState();
         renderDownloads();
       }
@@ -7950,6 +8778,7 @@ function bindEvents() {
         row.status = 'paused';
         row.state = 'paused';
         row.speed = '-';
+        row.resumePending = false;
         saveState();
         renderDownloads();
       }
@@ -7970,13 +8799,10 @@ function bindEvents() {
 }
 
 async function bootstrap() {
-  if (state.account?.plan === 'flagship') state.account.plan = 'ultimate';
-  state.users = state.users.map((user) => user?.plan === 'flagship' ? { ...user, plan: 'ultimate' } : user);
-  state.orders = state.orders.map((order) => order?.plan === 'flagship' ? { ...order, plan: 'ultimate' } : order);
-  if (String(state.selectedPlan).startsWith('flagship_')) state.selectedPlan = String(state.selectedPlan).replace(/^flagship_/, 'ultimate_');
+  if (!PLAN_PRODUCTS[state.selectedPlan]) state.selectedPlan = 'creator_year';
   state.settings = { ...state.settings, ...readObject(STORAGE_KEYS.settings) };
   if (!['light', 'dark'].includes(state.theme)) state.theme = resolveTheme();
-  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration, updateInfo] = await Promise.all([
+  const [systemLocale, defaultDir, candidates, runtimeInfo, platformConfig, editorConfiguration, updateInfo, analyticsState, rememberedLogin] = await Promise.all([
     window.mediaDeck.getSystemLocale(),
     window.mediaDeck.getDefaultDownloadDir(),
     window.mediaDeck.getMediaCandidates(),
@@ -7984,6 +8810,8 @@ async function bootstrap() {
     window.mediaDeck.getPlatforms(),
     window.mediaDeck.getEditorConfig(),
     window.mediaDeck.getUpdateState(),
+    window.mediaDeck.getAnalyticsState(),
+    window.mediaDeck.getRememberedLogin().catch(() => ({ available: false, remembered: false, email: '', password: '' })),
   ]);
   if (!localStorage.getItem(STORAGE_KEYS.locale)) {
     state.locale = I18N.resolveSupportedLocale(systemLocale) || 'zh-CN';
@@ -7991,10 +8819,12 @@ async function bootstrap() {
   state.settings.outputDir = state.settings.outputDir || defaultDir;
   state.runtimeInfo = runtimeInfo || null;
   state.updateInfo = updateInfo && typeof updateInfo === 'object' ? updateInfo : null;
+  state.analytics = analyticsState && typeof analyticsState === 'object' ? analyticsState : state.analytics;
   state.platformConfig = platformConfig || state.platformConfig;
   state.editor.editors = Array.isArray(editorConfiguration?.editors) ? editorConfiguration.editors : [];
   state.editor.selected = editorConfiguration?.selected || null;
   state.activePlatformCategoryId = state.platformConfig.categories[0]?.id || null;
+  applyRememberedLogin(rememberedLogin, { fill: true });
   try {
     await refreshRemoteAccount();
   } catch {
@@ -8009,6 +8839,7 @@ async function bootstrap() {
   startSystemNetworkSpeedPolling();
   applyLocale();
   syncSettingsControls();
+  if (state.analytics.consent === null && !window.mediaDeckSmokeTest) els.analyticsConsentOverlay.hidden = false;
   updateTitlebarAccount();
   const initialCandidates = Array.isArray(candidates) ? candidates.reverse() : [];
   if (initialCandidates.length) {
@@ -8026,6 +8857,7 @@ async function bootstrap() {
   window.__VIDOGO_RUN_BROWSER_YOUTUBE_FLOW_TEST = runBrowserYouTubeFlowTest;
   window.__VIDOGO_RUN_BROWSER_PLATFORM_FLOW_TEST = runBrowserPlatformFlowTest;
   window.__VIDOGO_RUN_ACCOUNT_UI_FLOW_TEST = runAccountUiFlowTest;
+  window.__VIDOGO_RUN_ACCOUNT_API_FLOW_TEST = runAccountApiFlowTest;
   window.__VIDOGO_RUN_MANIFEST_FLOW_TEST = runManifestFlowTest;
   window.__VIDOGO_RUN_DASH_FLOW_TEST = runDashManifestFlowTest;
   window.__VIDOGO_RUN_RESOLVER_FLOW_TEST = runResolverFlowTest;
@@ -8083,6 +8915,10 @@ async function runRendererSelfTest() {
     control.click();
     clicked.push(label);
     await wait(20);
+    if (label.startsWith('library:import')) {
+      const importDeadline = Date.now() + 1500;
+      while (state.editor.importing && Date.now() < importDeadline) await wait(20);
+    }
   };
   const changeControl = async (label, control, value) => {
     window.__VIDOGO_SELF_TEST_PROGRESS = label;
@@ -8136,9 +8972,15 @@ async function runRendererSelfTest() {
     'resetPlatforms',
     'choosePlatformIcon',
     'getEntitlements',
+    'getAnalyticsState',
+    'setAnalyticsConsent',
+    'trackAnalytics',
     'configureEntitlements',
     'configureRecording',
     'getUpdateState',
+    'getRememberedLogin',
+    'saveRememberedLogin',
+    'clearRememberedLogin',
     'checkForUpdates',
     'downloadUpdate',
     'installUpdate',
@@ -8228,7 +9070,15 @@ async function runRendererSelfTest() {
   });
   assert(recordingConfiguration?.outputDir === state.settings.outputDir, 'Recording output configuration mismatch');
   const updateState = await window.mediaDeck.checkForUpdates();
-  assert(updateState?.available === true && updateState?.latestVersion === '0.2.0' && updateState?.source === 'github', 'Update check IPC did not return the simulated GitHub release state');
+  assert(updateState?.available === true && updateState?.latestVersion === '0.2.1' && updateState?.source === 'github', 'Update check IPC did not return the simulated GitHub release state');
+  const analyticsState = await window.mediaDeck.getAnalyticsState();
+  assert(analyticsState && Object.prototype.hasOwnProperty.call(analyticsState, 'consent'), 'Anonymous analytics state is unavailable');
+  const analyticsEnabled = await window.mediaDeck.setAnalyticsConsent(true);
+  assert(analyticsEnabled?.consent === true, 'Anonymous analytics consent could not be enabled');
+  const analyticsTracked = await window.mediaDeck.trackAnalytics('media_detected', { provider: 'youtube', path: 'C:\\private\\must-not-leak.mp4' });
+  assert(analyticsTracked?.consent === true, 'Anonymous analytics event could not be accepted');
+  const analyticsDisabled = await window.mediaDeck.setAnalyticsConsent(false);
+  assert(analyticsDisabled?.consent === false && analyticsDisabled?.queuedEvents === 0, 'Declining anonymous analytics must clear queued events');
 
   const candidatesBeforeClear = await window.mediaDeck.clearMediaCandidates();
   assert(Array.isArray(candidatesBeforeClear), 'Clear media candidates did not return an array');
@@ -8244,6 +9094,14 @@ async function runRendererSelfTest() {
   ], 120);
   assert(plannedYouTubeFormats.length === 2, 'YouTube DOM format planner did not preserve codec variants');
   assert(plannedYouTubeFormats[0]?.videoCodec === 'VP9' && plannedYouTubeFormats[0]?.formatSelector.startsWith('248+251/'), 'YouTube DOM format planner did not select the preferred compatible variant');
+  const assetPackSelection = completeAssetPackSelection({
+    assets: {
+      audio: [{ assetType: 'audio', extension: 'mp3' }],
+      images: [{ assetType: 'image', assetRole: 'cover', extension: 'jpg' }],
+      subtitles: [{ assetType: 'subtitle', language: 'zh-CN', extension: 'vtt' }],
+    },
+  });
+  assert(assetPackSelection.audio?.assetType === 'audio' && assetPackSelection.subtitle?.assetType === 'subtitle' && assetPackSelection.gallery.length === 0, 'Home asset-pack planner must select MP3 and an available subtitle while the shared cover is saved with the project');
 
   const cancelState = await window.mediaDeck.cancelDownload();
   assert(cancelState?.running === false, 'Cancel download should report not running');
@@ -8278,8 +9136,9 @@ async function runRendererSelfTest() {
     }
     while (Date.now() < deadline && state.running) await wait(100);
   } else {
-    await waitFor(() => state.queue.every((item) => isTerminalDownloadState(item.state)), 2000);
+    await waitFor(() => state.queue.every((item) => isTerminalDownloadState(item.state)), 10000);
   }
+  await Promise.race([downloadCompletionChain.catch(() => undefined), wait(10000)]);
   const concurrentSnapshot = state.queue.map((item) => ({ url: item.url, state: item.state, jobId: item.jobId }));
   const concurrentDiagnostic = JSON.stringify({ rows: concurrentSnapshot, events: state.downloadDiagnostics.slice(-20) });
   assert(state.queue.every((item) => normalizeDownloadState(item.state) === 'completed'), `Concurrent job events did not complete their matching rows: ${concurrentDiagnostic}`);
@@ -8340,11 +9199,12 @@ async function runRendererSelfTest() {
 
   await waitFor(() => !state.library.loading, 1500);
   const smokeProject = {
-    id: 'project-library-smoke', title: 'Glacier Express · Zermatt', provider: 'youtube', mediaId: 'Mpx3HPlyFZk',
+    id: 'project-library-smoke', key: 'youtube:media:Mpx3HPlyFZk', title: 'Glacier Express · Zermatt', provider: 'youtube', mediaId: 'Mpx3HPlyFZk',
     sourceGroupId: 'youtube:Mpx3HPlyFZk', sourceUrl: 'https://www.youtube.com/watch?v=Mpx3HPlyFZk',
     folderPath: 'C:\\SmokeDownloads\\YouTube\\Glacier Express [Mpx3HPlyFZk]', coverPath: 'C:\\SmokeDownloads\\YouTube\\Glacier Express [Mpx3HPlyFZk]\\images\\cover.jpg',
     updatedAt: new Date().toISOString(), downloadedAt: new Date().toISOString(), status: 'available', missingCount: 0,
     totalSize: 155 * 1024 * 1024, assetCount: 4, assetCounts: { video: 1, audio: 1, image: 1, subtitle: 1 },
+    tags: ['旅行', '火车'],
     assets: [
       { id: 'library-video-smoke', title: 'Glacier Express', assetType: 'video', assetRole: 'primary', status: 'available', fileSize: 150 * 1024 * 1024, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\video.mp4', folderPath: 'C:\\SmokeDownloads' },
       { id: 'library-audio-smoke', title: 'Glacier Express', assetType: 'audio', assetRole: 'derived', status: 'available', fileSize: 5 * 1024 * 1024, downloadedAt: new Date().toISOString(), filePath: 'C:\\SmokeDownloads\\audio.mp3', folderPath: 'C:\\SmokeDownloads' },
@@ -8359,8 +9219,29 @@ async function runRendererSelfTest() {
   assert(els.libraryProviderFilter.options.length === libraryFilterPlatforms().length + 1, 'Library platform options must come from Platform Manager, not downloaded projects');
   assert(els.libraryProjectCount.textContent === '1' && els.libraryAssetCount.textContent === '4', 'Media library totals did not render one project with four logical assets');
   assert(els.libraryContent.querySelectorAll('[data-library-project]').length === 1, 'One source must render as exactly one media-project card');
+  const smokeProjectCard = els.libraryContent.querySelector('.library-project-card');
+  const smokeProjectTitle = smokeProjectCard?.querySelector('.library-project-title');
+  const smokeProjectCover = smokeProjectCard?.querySelector('.library-project-cover');
+  const smokeProjectProviderBadge = smokeProjectCover?.querySelector('.library-provider-badge');
+  const smokeProjectMeta = smokeProjectCard?.querySelector('.library-project-meta');
+  const smokeProjectCounts = smokeProjectCard?.querySelector('.library-project-counts');
+  assert(smokeProjectCard?.querySelectorAll('.library-row-project-tag').length === 2, 'Media-project cards must render their project tags');
+  assert(smokeProjectTitle && getComputedStyle(smokeProjectTitle).whiteSpace === 'nowrap' && getComputedStyle(smokeProjectTitle).textOverflow === 'ellipsis', 'Media-project card titles must stay on one ellipsized line');
+  assert(smokeProjectCard?.getBoundingClientRect().width < 220 && Math.abs((smokeProjectCover?.getBoundingClientRect().width || 0) - smokeProjectCard.clientWidth) <= 2, 'Media-project grid cards must narrow around a full-bleed 16:9 cover');
+  assert(Math.abs((smokeProjectProviderBadge?.getBoundingClientRect().left || 0) - (smokeProjectCover?.getBoundingClientRect().left || 0)) <= 1 && Math.abs((smokeProjectProviderBadge?.getBoundingClientRect().top || 0) - (smokeProjectCover?.getBoundingClientRect().top || 0)) <= 1, 'Media-project source badges must sit directly in the cover corner');
+  assert(smokeProjectMeta?.querySelector('time')?.textContent === formatTime(smokeProject.updatedAt) && smokeProjectMeta.textContent.includes(formatBytes(smokeProject.totalSize)) && !smokeProjectCounts?.querySelector('.library-project-size'), 'Media-project time must follow the asset count and size, leaving the footer for asset icons');
   await clickControl('library:open-project', els.libraryContent.querySelector('[data-library-project]'));
   assert(!els.libraryDetailOverlay.hidden && els.libraryDetailBody.querySelectorAll('.library-detail-asset').length === 4, 'Media project detail did not group all assets');
+  assert(els.libraryDetailTagList.querySelectorAll('.library-detail-tag').length === 2, 'Media project detail did not render its draggable tags');
+  assert(JSON.stringify(reorderLibraryDetailTags(['旅行', '火车', '口播'], 0, 2, true)) === JSON.stringify(['火车', '口播', '旅行']), 'Media project tag reordering must insert at the visible before/after position');
+  els.libraryDetailTagInput.value = '#雪山';
+  els.libraryDetailTagForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  clicked.push('library:add-project-tag');
+  assert(JSON.stringify(smokeProject.tags) === JSON.stringify(['旅行', '火车', '雪山']) && els.libraryDetailTagList.querySelectorAll('.library-detail-tag').length === 3, 'Media project tags must be addable from the drawer');
+  await clickControl('library:remove-project-tag', els.libraryDetailTagList.querySelector('[data-library-tag-remove="2"]'));
+  assert(JSON.stringify(smokeProject.tags) === JSON.stringify(['旅行', '火车']), 'Media project tags must be removable from the drawer');
+  assert(els.libraryDetailSummary.textContent.includes(formatBytes(smokeProject.totalSize)) && !els.libraryDetailBody.querySelector('.library-detail-meta-item'), 'Media project metadata must render as one quiet summary line');
+  assert(els.libraryDetailBody.querySelector('.library-detail-groups') && els.libraryDetailBody.querySelectorAll('.library-detail-groups .library-detail-asset').length === 4, 'Media project assets must share one grouped list surface');
   const detailAssets = Array.from(els.libraryDetailBody.querySelectorAll('.library-detail-asset'));
   const detailImportActions = Array.from(els.libraryDetailBody.querySelectorAll('[data-library-asset-action="import-editor"]'));
   assert(detailImportActions.length === 4 && detailAssets.every((row) => row.querySelector('[data-library-asset-action="import-editor"]')), 'Video, audio, image, and subtitle assets should all expose editor import');
@@ -8370,10 +9251,19 @@ async function runRendererSelfTest() {
   const drawerWheel = new WheelEvent('wheel', { deltaY: 240, bubbles: true, cancelable: true });
   els.libraryDetailScrim.dispatchEvent(drawerWheel);
   assert(drawerWheel.defaultPrevented, 'Library drawer wheel events must not reach the obscured asset grid');
-  await clickControl('library:open-folder', els.libraryDetailBody.querySelector('[data-library-project-action="folder"]'));
+  await clickControl('library:open-folder', els.libraryDetailHeadingActions.querySelector('[data-library-project-action="folder"]'));
   await clickControl('library:close-detail', els.libraryDetailClose);
   await clickControl('library:all-assets', els.libraryTabs.querySelector('[data-library-tab="assets"]'));
   assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'All-assets view did not expose each logical asset');
+  const smokeAssetCards = Array.from(els.libraryContent.querySelectorAll('.library-asset-card'));
+  assert(smokeAssetCards.every((card) => card.getBoundingClientRect().width < 220 && card.querySelector('.library-asset-project-tags-label')?.textContent === text('libraryTags') && card.querySelectorAll('.library-asset-project-tags .library-row-project-tag').length === 2), 'All-assets cards must share the compact project width and identify inherited project tags explicitly');
+  const smokeAssetCover = smokeAssetCards[0].querySelector('.library-asset-cover');
+  const smokeAssetTypeBadge = smokeAssetCover?.querySelector('.library-asset-type-badge');
+  assert(Math.abs((smokeAssetTypeBadge?.getBoundingClientRect().right || 0) - (smokeAssetCover?.getBoundingClientRect().right || 0)) <= 1 && Math.abs((smokeAssetTypeBadge?.getBoundingClientRect().top || 0) - (smokeAssetCover?.getBoundingClientRect().top || 0)) <= 1, 'All-assets type badges must sit directly in the cover top-right corner');
+  await clickControl('library:edit-project-tags-from-asset', smokeAssetCards[0].querySelector('[data-library-project-tag-editor]'));
+  await wait(20);
+  assert(!els.libraryDetailOverlay.hidden && document.activeElement === els.libraryDetailTagInput, 'All-assets cards must open and focus the owning project tag editor');
+  await clickControl('library:close-tag-editor-from-asset', els.libraryDetailClose);
   await changeControl('library:type-audio', els.libraryTypeFilter, 'audio');
   assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 1, 'Asset-type filter did not isolate the MP3');
   await clickControl('library:preview-audio', els.libraryContent.querySelector('[data-library-asset-action="preview"]'));
@@ -8402,6 +9292,10 @@ async function runRendererSelfTest() {
   state.library.timeRange = 'all';
   els.libraryProviderFilter.value = 'all';
   els.libraryTimeFilter.value = 'all';
+  els.librarySearch.value = '#旅行';
+  els.librarySearch.dispatchEvent(new Event('input', { bubbles: true }));
+  clicked.push('library:search-tag-assets');
+  assert(els.libraryContent.querySelectorAll('.library-asset-card').length === 4, 'All-assets search must match the owning project tags, including hashtag queries');
   els.librarySearch.value = 'not-a-match';
   els.librarySearch.dispatchEvent(new Event('input', { bubbles: true }));
   clicked.push('library:search-no-match');
@@ -8412,13 +9306,38 @@ async function runRendererSelfTest() {
   assert(els.libraryContent.querySelectorAll('.library-asset-row').length === 4, 'Media library list view did not render all assets');
   await clickControl('library:media-projects', els.libraryTabs.querySelector('[data-library-tab="projects"]'));
   assert(els.libraryContent.querySelectorAll('.library-project-row-shell').length === 1, 'Media-project list view did not render its project row');
+  els.librarySearch.value = '#火车';
+  els.librarySearch.dispatchEvent(new Event('input', { bubbles: true }));
+  clicked.push('library:search-tag-projects');
+  assert(els.libraryContent.querySelectorAll('.library-project-row-shell').length === 1, 'Media-project search must match hashtag queries');
+  els.librarySearch.value = '';
+  els.librarySearch.dispatchEvent(new Event('input', { bubbles: true }));
+  const projectListRow = els.libraryContent.querySelector('.library-project-row');
+  const projectListCounts = projectListRow?.querySelector('.library-project-counts');
+  assert(projectListRow?.querySelectorAll('.library-row-project-tag').length === 2 && projectListRow.querySelector('.library-row-project-title'), 'Media-project list rows must show a compact title followed by project tags');
+  assert(projectListCounts && getComputedStyle(projectListCounts).borderTopWidth === '0px', 'Media-project list asset counts must not render a decorative divider');
   await clickControl('library:import-project-editor', els.libraryContent.querySelector('[data-library-project-import]'));
   openLibraryDetail(smokeProject.id);
-  await clickControl('library:open-source-embedded', els.libraryDetailBody.querySelector('[data-library-project-action="source"]'));
+  await clickControl('library:open-source-embedded', els.libraryDetailHeadingActions.querySelector('[data-library-project-action="source"]'));
   assert(state.section === 'browser' && activeTab()?.url === smokeProject.sourceUrl, 'Media library source page must open in the embedded browser');
 
   setSection('home');
   await wait(250);
+  assert(els.homeAssetPackForm.noValidate === true, 'Home asset form must not show a browser-native English validation bubble');
+  els.homeAssetPackUrl.value = '';
+  await submitHomeAssetPack();
+  assert(els.homeAssetPackError.hidden === false && els.homeAssetPackError.textContent === text('homeInvalidUrl'), 'Home URL validation must render beside the field');
+  assert(!Array.from(els.toastRegion.children).some((item) => item.textContent.includes(text('homeInvalidUrl'))), 'Home URL validation must not use a detached global toast');
+  document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  assert(els.homeAssetPackError.hidden === true && !els.homeAssetPackUrl.hasAttribute('aria-invalid'), 'Home URL validation did not clear after clicking elsewhere');
+  const platformDetails = document.querySelector('.home-secondary-sites');
+  const platformSummary = platformDetails?.querySelector(':scope > summary');
+  const summaryRect = platformSummary?.getBoundingClientRect();
+  assert(summaryRect?.width > 100 && summaryRect?.width < 280, `Platform disclosure hit target is too wide: ${Math.round(summaryRect?.width || 0)}px`);
+  await clickControl('home:platforms-expand', platformSummary);
+  assert(platformDetails?.open === true, 'Platform disclosure did not expand from its compact label');
+  await clickControl('home:platforms-collapse', platformSummary);
+  assert(platformDetails?.open === false, 'Platform disclosure did not collapse from its compact label');
   const siteImages = Array.from(document.querySelectorAll('.popular-site-button img, .site-card img'));
   await Promise.race([Promise.allSettled(siteImages.map((image) => {
     if (image.complete && image.naturalWidth > 0) return Promise.resolve();
@@ -8515,6 +9434,7 @@ async function runRendererSelfTest() {
   setSection('home');
   await clickControl('home:quick-site:youtube', quickYouTube);
   assert(state.tabs.length === tabsBeforeQuickSite + 1, 'YouTube quick site did not create a new browser tab');
+  assert(els.browserPageLoading.hidden === false, 'New YouTube tab did not cover its initial blank webview immediately');
   assert(activeTab()?.title === 'YouTube', 'YouTube quick site did not label the opened tab');
   assert(activeTab()?.url === 'https://www.youtube.com/', 'YouTube quick site did not open the expected URL');
   assert(document.querySelector('.tab:first-child')?.textContent.includes(text('home')), 'Home tab should remain before browser tabs after opening YouTube');
@@ -8763,6 +9683,27 @@ async function runRendererSelfTest() {
   closeMediaPreview();
   await clickControl('downloads:open-folder', els.downloadBody.querySelector('[data-folder]'));
   await clickControl('downloads:remove', els.downloadBody.querySelector('[data-remove]'));
+  state.queue = [{
+    id: 'self-test-paused-download',
+    downloadId: 'self-test-paused-download',
+    url: 'https://example.com/resume.mp4',
+    fileName: 'resume.mp4',
+    title: 'resume.mp4',
+    percent: 37,
+    downloaded: '37 MB',
+    size: '100 MB',
+    speed: '-',
+    time: new Date().toISOString(),
+    createdAt: Date.now(),
+    status: 'paused',
+    state: 'paused',
+    path: state.settings.outputDir,
+    savePath: state.settings.outputDir,
+  }];
+  queueUrls([state.queue[0].url], { ...state.queue[0], retryRowId: state.queue[0].id, isRetry: true, preserveProgress: true });
+  assert(state.queue[0].percent === 37 && state.queue[0].downloaded === '37 MB', 'Resume cleared the last confirmed progress');
+  assert(Boolean(els.downloadBody.querySelector('.download-progress-track.is-indeterminate')), 'Resume did not render an indeterminate progress track');
+  assert(els.downloadBody.querySelector('.download-progress-ratio')?.textContent.includes('37%'), 'Resume progress ratio did not remain visible');
   state.queue = [{
     id: 'self-test-error-download',
     downloadId: 'self-test-error-download',
@@ -9076,11 +10017,11 @@ async function runRendererSelfTest() {
   const renderedPlanCodes = Array.from(els.planCards.querySelectorAll('[data-plan-code]'), (button) => button.dataset.planCode);
   assert(JSON.stringify(renderedPlanLevels) === JSON.stringify(PLAN_LEVELS), `Plan levels differ from VidBrowser: ${renderedPlanLevels.join(', ')}`);
   assert(JSON.stringify(renderedPlanCodes) === JSON.stringify(Object.keys(PLAN_PRODUCTS)), `Plan purchase choices differ from VidBrowser: ${renderedPlanCodes.join(', ')}`);
-  assert(els.planTable.querySelectorAll('[data-plan-comparison]').length === 11, 'Plan comparison must contain all 11 VidBrowser rows');
-  assert(els.planTable.querySelector('[data-plan-comparison="dailyDownloadsRecording"]')?.textContent.includes('5'), 'Free daily plan limit must be 5');
-  assert(els.planTable.querySelector('[data-plan-comparison="concurrentDownloads"]')?.textContent.includes('10'), 'Ultimate plan concurrency must be 10');
+  assert(els.planTable.querySelectorAll('[data-plan-comparison]').length === 10, 'Plan comparison must contain the 10 Free/Creator rows');
+  assert(els.planTable.querySelector('[data-plan-comparison="dailySourceProjects"]')?.textContent.includes('5'), 'Free project limit must be 5');
+  assert(els.planTable.querySelector('[data-plan-comparison="concurrentDownloads"]')?.textContent.includes('5'), 'Creator concurrency must be 5');
   assert(els.paymentChannels.length === 1 && els.paymentChannels[0].disabled, 'Desktop checkout must use the management platform payment provider.');
-  await clickControl('plans:select-pro-year', document.querySelector('[data-plan-code="pro_year"]'));
+  await clickControl('plans:select-creator-year', document.querySelector('[data-plan-code="creator_year"]'));
   await clickControl('plans:purchase-needs-login', els.purchaseButton);
   setSection('account');
   await clickControl('account:register-mode', els.registerModeButton);
@@ -9091,9 +10032,12 @@ async function runRendererSelfTest() {
   await waitFor(() => state.accountMode === 'login');
   assert(!state.account?.email && state.accountMode === 'login', 'Registration must return to sign-in instead of creating an authenticated session');
   els.loginPassword.value = 'password123';
+  els.rememberLogin.checked = true;
   await clickControl('account:login-after-register', els.loginButton);
   await waitFor(() => state.account?.email === 'selftest@example.com');
   assert(state.account?.email === 'selftest@example.com', 'Management-platform login after registration did not sign in');
+  const rememberedAfterLogin = await window.mediaDeck.getRememberedLogin();
+  assert(rememberedAfterLogin?.remembered === true && rememberedAfterLogin?.email === 'selftest@example.com' && rememberedAfterLogin?.password === 'password123', 'Successful login did not save the opted-in encrypted credential');
   assert(!els.accountRefresh.classList.contains('hidden') && !els.accountOrdersPanel.classList.contains('hidden'), 'Signed-in account controls did not become visible');
   await clickControl('account:refresh', els.accountRefresh);
   await clickControl('account:view-plans', els.accountViewPlans);
@@ -9112,6 +10056,8 @@ async function runRendererSelfTest() {
   await clickControl('account:login', els.loginButton);
   await waitFor(() => state.account?.email === 'selftest@example.com');
   assert(state.account?.email === 'selftest@example.com', 'Management-platform login did not sign in');
+  const rememberedAfterPasswordChange = await window.mediaDeck.getRememberedLogin();
+  assert(rememberedAfterPasswordChange?.password === 'password456', 'Remembered login was not refreshed after the password changed');
   setSection('plans');
   const planBeforePurchase = state.account.plan;
   await clickControl('plans:purchase', els.purchaseButton);
@@ -9121,14 +10067,16 @@ async function runRendererSelfTest() {
   assert(state.orders[0]?.status === 'pending', 'New payment order should remain pending');
   setSection('account');
   assert(!els.ordersList.querySelector('[data-order-pay], [data-order-remove]'), 'Server-style account orders must not expose local payment or delete controls');
+  await window.mediaDeck.clearRememberedLogin();
+  applyRememberedLogin({ available: true, remembered: false, email: '', password: '' }, { fill: false });
 
   state.account.plan = 'pro';
   const selfTestUser = findLocalUser('selftest@example.com');
   if (selfTestUser) upsertLocalUser({ ...selfTestUser, plan: 'pro' });
   await syncRecordingConfiguration();
-  assert(state.entitlements?.planLevel === 'pro', 'Confirmed Pro plan did not reach main-process entitlements');
-  assert(state.entitlements?.maxConcurrentDownloads === 5, 'Pro concurrency entitlement must be 5');
-  assert(state.entitlements?.recordingDurationLimitMs === 30 * 60 * 1000, 'Pro recording limit must be 30 minutes');
+  assert(state.entitlements?.planLevel === 'creator', 'Legacy Pro plan did not migrate to Creator entitlements');
+  assert(state.entitlements?.maxConcurrentDownloads === 5, 'Creator concurrency entitlement must be 5');
+  assert(state.entitlements?.recordingDurationLimitMs === null, 'Creator recording duration must be unlimited');
   updateAccountCopy();
   renderPlans();
 
@@ -9168,7 +10116,7 @@ async function runRendererSelfTest() {
   assert(state.settings.adBlocker === true, 'Ad blocker setting did not enable');
   await clickControl('settings:section-about', document.querySelector('[data-settings-section="about"]'));
   assert(els.settingsVersion.textContent.includes('VidoGo'), 'Settings version did not render');
-  assert(els.settingsLatestVersion.textContent === '0.2.0', 'Latest GitHub release version did not render after update check');
+  assert(els.settingsLatestVersion.textContent === '0.2.1', 'Latest GitHub release version did not render after update check');
   assert(state.updateInfo?.available === true && state.updateInfo?.source === 'github', 'Available GitHub update state was not retained');
   assert(els.settingsCheckUpdate.textContent === text('downloadUpdate'), `Available update did not expose its background download action: ${els.settingsCheckUpdate.textContent} / ${JSON.stringify(state.updateInfo)}`);
   assert(els.appUpdateOverlay.hidden === false && els.appUpdatePrimary.textContent === text('downloadUpdate'), `Available update dialog did not open: hidden=${els.appUpdateOverlay.hidden}, action=${els.appUpdatePrimary.textContent}`);
@@ -9856,6 +10804,8 @@ async function runBrowserPlatformFlowTest() {
     assert(Boolean(nativeQueueReady?.qualityLabel), `${provider} native download task lost its selected quality`);
   }
   if (provider === 'tiktok') {
+    await wait(500);
+    assert(els.browserPageLoading.hidden === true, 'TikTok media became usable but the page-loading cover remained visible');
     assert(Boolean(tab.activeMediaContext?.mediaId), 'TikTok did not report the current visible video');
     assert(candidates.length === 1, `TikTok media panel should contain one active item, got ${candidates.length}`);
     assert(Boolean(candidates[0]?.thumbnailUrl), 'TikTok active item did not include a thumbnail');
@@ -10186,6 +11136,18 @@ async function runBrowserYouTubeFlowTest() {
 
   const quickYouTube = Array.from(document.querySelectorAll('.popular-site-button, .site-card')).find((button) => button.textContent.includes('YouTube'));
   await clickControl('home:quick-site:youtube', quickYouTube);
+  const youtubeInitialContentReady = await activeTab()?.webview.executeJavaScript(`(() => {
+    const body = document.body;
+    if (!body) return false;
+    const textReady = String(body.innerText || '').replace(/\\s+/g, ' ').trim().length >= 20;
+    const controlsReady = Array.from(document.querySelectorAll('a[href], button, input, [role="button"]')).filter((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 8 && rect.height > 8 && style.display !== 'none' && style.visibility !== 'hidden';
+    }).length >= 2;
+    return textReady || controlsReady;
+  })()`, true).catch(() => false);
+  assert(els.browserPageLoading.hidden === false || youtubeInitialContentReady, 'Opening a new YouTube tab exposed the blank webview before the branded transition');
   await wait(1200);
   const youtubeWatchUrl = String(window.mediaDeckSmokeBrowserUrl || '').trim()
     || 'https://www.youtube.com/watch?v=jNQXAC9IVRw';
@@ -10214,6 +11176,7 @@ async function runBrowserYouTubeFlowTest() {
   }
   await wait(750);
   guest = await inspectActiveGuestPage();
+  assert(els.browserPageLoading.hidden === true, 'YouTube became visually usable but the page-loading cover remained visible');
   assert(state.tabs.length === 1, `YouTube flow should create one browser tab, got ${state.tabs.length}`);
   assert(String(activeTab()?.title || '').includes('YouTube'), 'YouTube tab title did not identify the active site');
   assert(activeTab()?.url === youtubeWatchUrl, 'YouTube watch page opened an unexpected URL');
