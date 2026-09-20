@@ -3102,7 +3102,7 @@ html[dir="rtl"] select:not([multiple]) {
 }
 .library-content { min-height: 0; overflow: auto; padding: 12px 14px 24px; }
 .library-summary { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-.library-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .library-project-card,
 .library-asset-card {
   position: relative;
