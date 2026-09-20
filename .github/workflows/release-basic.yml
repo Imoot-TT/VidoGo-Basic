@@ -24,16 +24,6 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Configure signed production build
-        shell: pwsh
-        env:
-          CSC_LINK: ${{ secrets.WINDOWS_CODE_SIGNING_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CODE_SIGNING_PASSWORD }}
-          VIDOGO_ACCOUNT_API_ORIGIN: ${{ vars.VIDOGO_ACCOUNT_API_ORIGIN }}
-        run: |
-          if (-not $env:CSC_LINK -or -not $env:CSC_KEY_PASSWORD) { throw "Windows code-signing secrets are required" }
-          if (-not $env:VIDOGO_ACCOUNT_API_ORIGIN) { throw "VIDOGO_ACCOUNT_API_ORIGIN repository variable is required" }
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -81,11 +71,7 @@ jobs:
 
       - name: Build Windows installer
         shell: pwsh
-        env:
-          CSC_LINK: ${{ secrets.WINDOWS_CODE_SIGNING_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CODE_SIGNING_PASSWORD }}
-          VIDOGO_ACCOUNT_API_ORIGIN: ${{ vars.VIDOGO_ACCOUNT_API_ORIGIN }}
-        run: npm run dist:signed
+        run: npm run dist:win -- --publish never
 
       - name: Verify packaged media tools and release files
         shell: pwsh
