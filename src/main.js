@@ -52,6 +52,15 @@ const {
   verifyBuiltinOwnerCredentials,
 } = require('./builtin-account');
 
+// Some Windows systems fail before the first window is created when Chromium's
+// GPU process cannot initialize. Keep the desktop shell usable with software
+// rendering; video hardware decode is disabled below as a separate playback
+// compatibility measure.
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+app.commandLine.appendSwitch('in-process-gpu');
+
 const APP_NAME = 'VidoGo Basic';
 const RELEASE_CHANNEL = 'basic';
 const APP_ID = 'com.vidogo.desktop';
@@ -754,15 +763,20 @@ async function accountCatalog() {
 
 async function fetchLatestReleaseResponse() {
   if (IS_SMOKE_TEST) {
+    const currentVersion = String(app.getVersion() || '0.0.0');
+    const versionParts = currentVersion.split('.').map((value) => Number.parseInt(value, 10));
+    const smokeLatestVersion = versionParts.length === 3 && versionParts.every(Number.isFinite)
+      ? `${versionParts[0]}.${versionParts[1]}.${versionParts[2] + 1}`
+      : '0.0.1';
     return {
       status: 200,
       data: [{
-        tag_name: 'basic-v0.2.2',
-        html_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v0.2.2',
+        tag_name: `basic-v${smokeLatestVersion}`,
+        html_url: `https://github.com/Imoot-TT/VidoGo-Basic/releases/tag/basic-v${smokeLatestVersion}`,
         published_at: '2026-08-23T12:00:00Z',
         assets: [{
-          name: 'VidoGo-Basic-0.2.2-x64-Setup.exe',
-          browser_download_url: 'https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v0.2.2/VidoGo-Basic-0.2.2-x64-Setup.exe',
+          name: `VidoGo-Basic-${smokeLatestVersion}-x64-Setup.exe`,
+          browser_download_url: `https://github.com/Imoot-TT/VidoGo-Basic/releases/download/basic-v${smokeLatestVersion}/VidoGo-Basic-${smokeLatestVersion}-x64-Setup.exe`,
         }],
       }],
     };
@@ -2967,6 +2981,10 @@ const DIRECT_MEDIA_HOST_SUFFIXES = [
   'byteimg.com',
   'zjcdn.com',
   'toutiao50.com',
+  // Pornhub serves the playable MP4/HLS resources from phncdn.com rather
+  // than from the page host. Treat those signed CDN URLs as first-party media
+  // so the page ad filter cannot turn playback/download into ERR_BLOCKED_BY_CLIENT.
+  'phncdn.com',
 ];
 
 function isTrustedDirectMediaUrl(value) {
@@ -2977,6 +2995,20 @@ function isTrustedDirectMediaUrl(value) {
       && !parsed.username
       && !parsed.password
       && DIRECT_MEDIA_HOST_SUFFIXES.some((suffix) => host === suffix || host.endsWith('.' + suffix));
+  } catch {
+    return false;
+  }
+}
+
+function isPornhubMediaUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    const host = parsed.hostname.toLowerCase();
+    return /^https?:$/.test(parsed.protocol)
+      && (host === 'pornhub.com'
+        || host.endsWith('.pornhub.com')
+        || host === 'phncdn.com'
+        || host.endsWith('.phncdn.com'));
   } catch {
     return false;
   }
@@ -3668,6 +3700,14 @@ function pumpDownloadQueue() {
         && /^(?:tiktok|douyin)-page$/.test(job.task.sourceClient || '')
         && job.task.webContentsId) {
         spawnWebviewDirectDownloadJob(job);
+      } else if (job.task.directDownload
+        && job.task.webContentsId
+        && isPornhubMediaUrl(job.url)) {
+        // The page can play Pornhub's cross-origin CDN stream, but a renderer
+        // fetch cannot read that response and fails with a CORS-style
+        // "Failed to fetch". Use Electron's native download channel with the
+        // same webview session instead of reading the stream in JavaScript.
+        spawnBrowserDownloadJob(job);
       } else if (job.task.directDownload) {
         spawnDirectDownloadJob(job);
       } else {

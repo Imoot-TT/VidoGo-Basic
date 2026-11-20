@@ -114,7 +114,7 @@ assert(html.includes('src="./assets/vidogo-app-icon-16.png"') && html.includes('
 assert(main.includes("nativeImage.createFromPath(path.join(__dirname, 'renderer', 'assets', 'vidogo-app-icon-256.png'))"), 'Electron runtime icon must load the official renderer asset');
 assert(packageJson.build?.win?.icon === 'app-icon.ico', 'Windows packaging must use the official app-icon.ico');
 assert(packageJson.scripts?.['pack:win']?.includes('--config.electronDist=node_modules/electron/dist'), 'Windows packaging must use the installed Electron distribution reliably');
-assert(packageJson.version === '0.2.1', 'Package version must match the productized release version');
+assert(packageJson.version === '0.2.2', 'Package version must match the productized release version');
 assert(packageJson.dependencies?.['electron-updater'] === '6.8.9', 'electron-updater must be pinned as a packaged runtime dependency');
 assert(packageJson.build?.publish?.provider === 'github'
   && packageJson.build.publish.owner === 'Imoot-TT'
@@ -192,6 +192,8 @@ assert(app.includes('els.settingsConcurrency.disabled = unlimitedConcurrency || 
 assert(app.includes("els.settingsConcurrencyPlans.addEventListener('click', () => setSection('plans'))"), 'Concurrency plan action must navigate to the plans page');
 assert(main.includes('Math.min(10, concurrency)'), 'Main download queue must accept the VidBrowser 10-task limit');
 assert(main.includes('width: 1360') && main.includes('height: 860') && main.includes('minWidth: 980') && main.includes('minHeight: 680'), 'Main window dimensions must match VidBrowser');
+assert(main.includes('app.disableHardwareAcceleration()'), 'Electron must fall back to software rendering when the Windows GPU process cannot initialize');
+assert(main.includes("appendSwitch('disable-gpu')") && main.includes("appendSwitch('disable-gpu-compositing')") && main.includes("appendSwitch('in-process-gpu')"), 'Electron must avoid a crashing out-of-process GPU on incompatible Windows systems');
 assert(main.includes("appendSwitch('disable-gpu-shader-disk-cache')") && main.includes("appendSwitch('disable-accelerated-video-decode')"), 'Electron playback compatibility switches must match VidBrowser');
 assert(/\.download-actions-cell \.el-button\s*\{[^}]*display:\s*inline-flex[^}]*align-items:\s*center[^}]*justify-content:\s*center/s.test(css), 'Download row action icons must use a centered flex layout');
 assert(!html.includes('id="head-path"') && !app.includes('download-path-cell'), 'Download list must use the open-folder action instead of a redundant save-path column');
@@ -271,6 +273,8 @@ assert(app.includes('browserLoadingShowTimer') && app.includes('window.setTimeou
 assert(app.includes("did-first-visually-non-empty-paint") && app.includes('scheduleTabPageUsableProbe(tab') && app.includes('tab.navigationPending && !tab.pageVisuallyReady'), 'Browser loading transition must wait for meaningful page content instead of a blank first paint or every background request');
 assert(app.includes("const startsWithNavigation = Boolean(url && url !== 'about:blank')") && app.includes('loadingCoverUntil: needsInitialCover ? Date.now() + 520 : 0'), 'A new YouTube tab must be treated as an external navigation and receive an immediate initial loading cover');
 assert(main.includes('AD_SUPPORTED_PAGE_PROVIDERS') && main.includes('AD_SUPPORTED_PAGE_PROVIDERS.has(providerSiteForUrl(value))'), 'Stock platforms must bypass the page ad filter across subframe and redirect requests');
+assert(main.includes("'phncdn.com'"), 'Pornhub CDN media must bypass the page ad filter so signed playback URLs are not blocked');
+assert(main.includes('isPornhubMediaUrl(job.url)') && main.includes('spawnBrowserDownloadJob(job)'), 'Pornhub direct downloads must use Electron native download instead of a cross-origin renderer fetch');
 assert(webviewPreload.includes("host.endsWith('.youtube.com')") && webviewPreload.includes("host.endsWith('.google.com')"), 'Chrome identity hints must be limited to Google and YouTube pages');
 assert(app.includes('BATCH_RESOLVER_CONCURRENCY') && app.includes('Math.min(BATCH_RESOLVER_CONCURRENCY, queuedTasks.length)'), 'Batch episode resolution must use a bounded parallel worker pool');
 assert(!app.includes('const resolverConcurrency = hasCollectionPages ? 1'), 'Collection-page resolution must not force the worker pool back to serial execution');
